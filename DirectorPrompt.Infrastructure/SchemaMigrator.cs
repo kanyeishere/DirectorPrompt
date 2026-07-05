@@ -77,9 +77,9 @@ public sealed class SchemaMigrator
                 (name =>
                     {
                         var withoutPrefix = name["DirectorPrompt.Infrastructure.Schema.".Length..];
-                        var withoutSuffix = withoutPrefix.EndsWith(".sql", StringComparison.Ordinal)
-                                                ? withoutPrefix[..^4]
-                                                : withoutPrefix;
+                        var withoutSuffix = withoutPrefix.EndsWith(".sql", StringComparison.Ordinal) ?
+                                                withoutPrefix[..^4] :
+                                                withoutPrefix;
                         var versionStr = withoutSuffix.Split('_')[0];
                         return (version: int.Parse(versionStr), scriptName: name);
                     }

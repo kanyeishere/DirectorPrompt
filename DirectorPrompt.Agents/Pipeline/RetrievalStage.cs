@@ -62,8 +62,8 @@ public sealed class RetrievalStage
         (
             "RetrievalStage 完成: 知识上下文长度={KnowledgeLen}, 记忆上下文长度={MemoryLen}, 系统注入长度={InjectionLen}",
             context.KnowledgeContext?.Length ?? 0,
-            context.MemoryContext?.Length ?? 0,
-            context.SystemInjection?.Length ?? 0
+            context.MemoryContext?.Length    ?? 0,
+            context.SystemInjection?.Length  ?? 0
         );
 
         if (!string.IsNullOrWhiteSpace(context.KnowledgeContext))

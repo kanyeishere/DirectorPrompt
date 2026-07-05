@@ -18,12 +18,10 @@ public sealed partial class DirectivePanelItemViewModel : ObservableObject
     private bool hasTTL;
 }
 
-public sealed partial class DirectivesPanelViewModel : ObservableObject
+public sealed class DirectivesPanelViewModel : ObservableObject
 {
     public ObservableCollection<DirectivePanelItemViewModel> Directives { get; } = [];
 
-    public void Clear()
-    {
+    public void Clear() =>
         Directives.Clear();
-    }
 }

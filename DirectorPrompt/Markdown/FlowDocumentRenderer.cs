@@ -3,6 +3,8 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
+using Block = Markdig.Syntax.Block;
+using Inline = Markdig.Syntax.Inlines.Inline;
 
 namespace DirectorPrompt.Markdown;
 
@@ -15,12 +17,10 @@ internal sealed class FlowDocumentRenderer
         document = doc;
 
         foreach (var block in parsed)
-        {
             RenderBlock(block);
-        }
     }
 
-    private void RenderBlock(Markdig.Syntax.Block block)
+    private void RenderBlock(Block block)
     {
         switch (block)
         {
@@ -41,9 +41,7 @@ internal sealed class FlowDocumentRenderer
                 break;
             default:
                 if (block is ParagraphBlock p)
-                {
                     RenderParagraph(p);
-                }
 
                 break;
         }
@@ -61,15 +59,13 @@ internal sealed class FlowDocumentRenderer
 
         var paragraph = new Paragraph
         {
-            FontSize = fontSize,
+            FontSize   = fontSize,
             FontWeight = FontWeights.Bold,
-            Margin = new Thickness(0, 8, 0, 4)
+            Margin     = new Thickness(0, 8, 0, 4)
         };
 
         if (heading.Inline is not null)
-        {
             RenderInlines(paragraph, heading.Inline);
-        }
 
         document!.Blocks.Add(paragraph);
     }
@@ -78,14 +74,12 @@ internal sealed class FlowDocumentRenderer
     {
         var p = new Paragraph
         {
-            Margin = new Thickness(0, 4, 0, 4),
+            Margin     = new Thickness(0, 4, 0, 4),
             LineHeight = 22
         };
 
         if (paragraph.Inline is not null)
-        {
             RenderInlines(p, paragraph.Inline);
-        }
 
         document!.Blocks.Add(p);
     }
@@ -100,17 +94,15 @@ internal sealed class FlowDocumentRenderer
             {
                 var paragraph = new Paragraph
                 {
-                    Margin = new Thickness(16, 2, 0, 2),
-                    BorderBrush = borderBrush,
+                    Margin          = new Thickness(16, 2, 0, 2),
+                    BorderBrush     = borderBrush,
                     BorderThickness = new Thickness(3, 0, 0, 0),
-                    Padding = new Thickness(8, 0, 0, 0),
-                    Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 190))
+                    Padding         = new Thickness(8, 0, 0, 0),
+                    Foreground      = new SolidColorBrush(Color.FromRgb(180, 180, 190))
                 };
 
                 if (p.Inline is not null)
-                {
                     RenderInlines(paragraph, p.Inline);
-                }
 
                 document!.Blocks.Add(paragraph);
             }
@@ -124,13 +116,13 @@ internal sealed class FlowDocumentRenderer
         foreach (var item in list)
         {
             if (item is not ListItemBlock listItem)
-            {
                 continue;
-            }
 
             index++;
 
-            var prefix = list.IsOrdered ? $"{index}. " : "• ";
+            var prefix = list.IsOrdered ?
+                             $"{index}. " :
+                             "• ";
 
             var paragraph = new Paragraph
             {
@@ -142,9 +134,7 @@ internal sealed class FlowDocumentRenderer
             foreach (var subBlock in listItem)
             {
                 if (subBlock is ParagraphBlock p && p.Inline is not null)
-                {
                     RenderInlines(paragraph, p.Inline);
-                }
             }
 
             document!.Blocks.Add(paragraph);
@@ -154,12 +144,10 @@ internal sealed class FlowDocumentRenderer
     private void RenderInlines(Paragraph paragraph, ContainerInline container)
     {
         foreach (var inline in container)
-        {
             RenderInline(paragraph, inline);
-        }
     }
 
-    private void RenderInline(Paragraph paragraph, Markdig.Syntax.Inlines.Inline inline)
+    private void RenderInline(Paragraph paragraph, Inline inline)
     {
         switch (inline)
         {
@@ -170,20 +158,14 @@ internal sealed class FlowDocumentRenderer
                 var run = new Run();
 
                 if (emphasis.DelimiterCount == 2)
-                {
                     run.FontWeight = FontWeights.Bold;
-                }
                 else
-                {
                     run.FontStyle = FontStyles.Italic;
-                }
 
                 foreach (var child in emphasis)
                 {
                     if (child is LiteralInline li)
-                    {
                         run.Text += li.ToString();
-                    }
                 }
 
                 paragraph.Inlines.Add(run);
@@ -192,7 +174,7 @@ internal sealed class FlowDocumentRenderer
                 var codeRun = new Run(code.Content)
                 {
                     FontFamily = new FontFamily("Consolas"),
-                    Background = new SolidColorBrush(Color.FromRgb(45, 45, 48)),
+                    Background = new SolidColorBrush(Color.FromRgb(45,  45,  48)),
                     Foreground = new SolidColorBrush(Color.FromRgb(220, 180, 100))
                 };
 
@@ -201,8 +183,8 @@ internal sealed class FlowDocumentRenderer
             case LinkInline link:
                 var linkRun = new Run(link.Url ?? string.Empty)
                 {
-                    Foreground = new SolidColorBrush(Color.FromRgb(100, 180, 255)),
-                    TextDecorations = System.Windows.TextDecorations.Underline
+                    Foreground      = new SolidColorBrush(Color.FromRgb(100, 180, 255)),
+                    TextDecorations = TextDecorations.Underline
                 };
 
                 paragraph.Inlines.Add(linkRun);

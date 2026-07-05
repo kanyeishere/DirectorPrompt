@@ -86,7 +86,7 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
     {
         if (IsNarrative)
         {
-            Document = MarkdownRenderer.Render(Content);
+            Document    = MarkdownRenderer.Render(Content);
             IsStreaming = false;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Document)));
         }
@@ -94,7 +94,7 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
 
     public void UpdateStreamingContent(string narrative, string thinking)
     {
-        Content = narrative;
+        Content  = narrative;
         Thinking = thinking;
     }
 }
@@ -103,10 +103,8 @@ public sealed class DialogViewModel
 {
     public ObservableCollection<DialogEntryViewModel> Entries { get; } = [];
 
-    public void Clear()
-    {
+    public void Clear() =>
         Entries.Clear();
-    }
 
     public void AddOpeningMessage(string content)
     {
@@ -114,11 +112,11 @@ public sealed class DialogViewModel
 
         var entry = new DialogEntryViewModel
         {
-            ID = Entries.Count + 1,
+            ID      = Entries.Count + 1,
             RoundID = 0,
-            Type = EventType.NarrativeOutput,
+            Type    = EventType.NarrativeOutput,
             Content = content,
-            IsLast = true
+            IsLast  = true
         };
 
         entry.RenderMarkdown();
@@ -131,11 +129,11 @@ public sealed class DialogViewModel
 
         var entry = new DialogEntryViewModel
         {
-            ID = Entries.Count + 1,
+            ID      = Entries.Count + 1,
             RoundID = roundID,
-            Type = EventType.DirectorInput,
+            Type    = EventType.DirectorInput,
             Content = content,
-            IsLast = true
+            IsLast  = true
         };
 
         Entries.Add(entry);
@@ -147,13 +145,13 @@ public sealed class DialogViewModel
 
         var entry = new DialogEntryViewModel
         {
-            ID = Entries.Count + 1,
-            RoundID = roundID,
-            Type = EventType.NarrativeOutput,
-            Content = string.Empty,
-            Thinking = string.Empty,
+            ID          = Entries.Count + 1,
+            RoundID     = roundID,
+            Type        = EventType.NarrativeOutput,
+            Content     = string.Empty,
+            Thinking    = string.Empty,
             IsStreaming = true,
-            IsLast = true
+            IsLast      = true
         };
 
         Entries.Add(entry);
@@ -166,12 +164,12 @@ public sealed class DialogViewModel
 
         var entry = new DialogEntryViewModel
         {
-            ID = Entries.Count + 1,
-            RoundID = roundID,
-            Type = EventType.NarrativeOutput,
-            Content = content,
+            ID       = Entries.Count + 1,
+            RoundID  = roundID,
+            Type     = EventType.NarrativeOutput,
+            Content  = content,
             Thinking = thinking,
-            IsLast = true
+            IsLast   = true
         };
 
         entry.RenderMarkdown();
@@ -183,32 +181,24 @@ public sealed class DialogViewModel
         var toRemove = Entries.Where(e => e.RoundID == roundID).ToList();
 
         foreach (var entry in toRemove)
-        {
             Entries.Remove(entry);
-        }
 
         var lastNarrative = Entries.LastOrDefault(e => e.IsNarrative);
 
         if (lastNarrative is not null)
-        {
             lastNarrative.IsLast = true;
-        }
         else
         {
             var lastEntry = Entries.LastOrDefault();
 
             if (lastEntry is not null)
-            {
                 lastEntry.IsLast = true;
-            }
         }
     }
 
     private void ClearLastFlag()
     {
         foreach (var entry in Entries)
-        {
             entry.IsLast = false;
-        }
     }
 }

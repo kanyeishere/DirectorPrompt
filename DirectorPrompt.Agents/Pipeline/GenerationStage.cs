@@ -59,7 +59,7 @@ public sealed class GenerationStage
 
         foreach (var entry in context.History)
         {
-            messages.Add(new ChatMessage(ChatRole.User, entry.DirectorInput));
+            messages.Add(new ChatMessage(ChatRole.User,      entry.DirectorInput));
             messages.Add(new ChatMessage(ChatRole.Assistant, entry.NarrativeOutput));
         }
 
@@ -109,23 +109,27 @@ public sealed class GenerationStage
         if (hasFunctionCall || string.IsNullOrWhiteSpace(rawText))
         {
             if (hasFunctionCall)
+            {
                 Log.Warning
                 (
                     "流式响应包含工具调用, 回退到非流式以完成工具调用闭环: 流式更新数={Updates}, 流式文本长度={TextLen}",
                     updateCount,
                     rawText.Length
                 );
+            }
             else
+            {
                 Log.Warning
                 (
                     "流式响应叙事文本为空, 回退到非流式: 流式更新数={Updates}",
                     updateCount
                 );
+            }
 
             narrativeBuilder.Clear();
             reasoningBuilder.Clear();
 
-            var response        = await client.GetResponseAsync(messages, options, cancellationToken);
+            var response         = await client.GetResponseAsync(messages, options, cancellationToken);
             var assistantMessage = response.Messages.LastOrDefault();
 
             apiReasoning = ExtractReasoning(assistantMessage);
@@ -199,13 +203,13 @@ public sealed class GenerationStage
 
         foreach (var entry in context.History)
         {
-            messages.Add(new ChatMessage(ChatRole.User, entry.DirectorInput));
+            messages.Add(new ChatMessage(ChatRole.User,      entry.DirectorInput));
             messages.Add(new ChatMessage(ChatRole.Assistant, entry.NarrativeOutput));
         }
 
-        messages.Add(new ChatMessage(ChatRole.User, BuildNarratorInput(context)));
+        messages.Add(new ChatMessage(ChatRole.User,      BuildNarratorInput(context)));
         messages.Add(new ChatMessage(ChatRole.Assistant, context.NarrativeOutput ?? string.Empty));
-        messages.Add(new ChatMessage(ChatRole.User, sb.ToString()));
+        messages.Add(new ChatMessage(ChatRole.User,      sb.ToString()));
 
         var options = new ChatOptions
         {
@@ -214,7 +218,7 @@ public sealed class GenerationStage
             Tools       = [.. tools]
         };
 
-        var response        = await client.GetResponseAsync(messages, options, cancellationToken);
+        var response         = await client.GetResponseAsync(messages, options, cancellationToken);
         var assistantMessage = response.Messages.LastOrDefault();
 
         var apiReasoning = ExtractReasoning(assistantMessage);

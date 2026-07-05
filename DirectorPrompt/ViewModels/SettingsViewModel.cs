@@ -13,7 +13,7 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed partial class SettingsViewModel : ObservableObject
 {
-    private readonly IConfiguration configuration;
+    private readonly IConfiguration         configuration;
     private readonly IModelConnectionTester connectionTester;
 
     private readonly Dictionary<string, string[]> agentTools = new(StringComparer.OrdinalIgnoreCase);
@@ -34,14 +34,14 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(IConfiguration configuration, IModelConnectionTester connectionTester)
     {
-        this.configuration     = configuration;
-        this.connectionTester  = connectionTester;
+        this.configuration    = configuration;
+        this.connectionTester = connectionTester;
         LoadSettings();
     }
 
     private void LoadSettings()
     {
-        DatabasePath = configuration["Database:Path"] ?? "data/director.db";
+        DatabasePath     = configuration["Database:Path"] ?? "data/director.db";
         SnapshotInterval = configuration.GetValue<int>("Orchestrator:SnapshotInterval");
 
         LoadAgents();
@@ -52,26 +52,27 @@ public sealed partial class SettingsViewModel : ObservableObject
         var agents = configuration.GetSection("Orchestrator:Agents").Get<List<AgentDefinition>>();
 
         if (agents is null || agents.Count == 0)
-        {
             return;
-        }
 
         foreach (var agent in agents)
         {
             agentTools[agent.Name] = agent.Tools;
 
-            Agents.Add(new AgentSettingViewModel
-            {
-                Name = agent.Name,
-                Role = agent.Role,
-                Provider = agent.ModelConfig.Provider,
-                Endpoint = agent.ModelConfig.Endpoint,
-                APIKey = agent.ModelConfig.APIKey ?? string.Empty,
-                ModelName = agent.ModelConfig.ModelName,
-                Temperature = agent.Temperature,
-                Enabled = agent.Enabled,
-                MaxRetries = agent.MaxRetries
-            });
+            Agents.Add
+            (
+                new AgentSettingViewModel
+                {
+                    Name        = agent.Name,
+                    Role        = agent.Role,
+                    Provider    = agent.ModelConfig.Provider,
+                    Endpoint    = agent.ModelConfig.Endpoint,
+                    APIKey      = agent.ModelConfig.APIKey ?? string.Empty,
+                    ModelName   = agent.ModelConfig.ModelName,
+                    Temperature = agent.Temperature,
+                    Enabled     = agent.Enabled,
+                    MaxRetries  = agent.MaxRetries
+                }
+            );
         }
     }
 
@@ -111,9 +112,9 @@ public sealed partial class SettingsViewModel : ObservableObject
             ["Orchestrator"] = BuildOrchestratorJSON(),
             ["Embedding"] = new JsonObject
             {
-                ["Provider"] = configuration["Embedding:Provider"] ?? "openai",
-                ["Endpoint"] = configuration["Embedding:Endpoint"] ?? string.Empty,
-                ["ApiKey"] = configuration["Embedding:ApiKey"] ?? string.Empty,
+                ["Provider"]  = configuration["Embedding:Provider"]  ?? "openai",
+                ["Endpoint"]  = configuration["Embedding:Endpoint"]  ?? string.Empty,
+                ["ApiKey"]    = configuration["Embedding:ApiKey"]    ?? string.Empty,
                 ["ModelName"] = configuration["Embedding:ModelName"] ?? "text-embedding-3-small"
             }
         };
@@ -132,9 +133,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         foreach (var agent in Agents)
         {
-            var tools = agentTools.TryGetValue(agent.Name, out var t)
-                ? t
-                : [];
+            var tools = agentTools.TryGetValue(agent.Name, out var t) ?
+                            t :
+                            [];
 
             var toolNodes = tools.Select(tool => (JsonNode)tool).ToList();
 
@@ -144,32 +145,31 @@ public sealed partial class SettingsViewModel : ObservableObject
                 ["Role"] = agent.Role.ToString(),
                 ["ModelConfig"] = new JsonObject
                 {
-                    ["Provider"] = agent.Provider,
-                    ["Endpoint"] = agent.Endpoint,
-                    ["APIKey"] = agent.APIKey,
+                    ["Provider"]  = agent.Provider,
+                    ["Endpoint"]  = agent.Endpoint,
+                    ["APIKey"]    = agent.APIKey,
                     ["ModelName"] = agent.ModelName
                 },
                 ["SystemPrompt"] = string.Empty,
-                ["Temperature"] = agent.Temperature,
-                ["Tools"] = new JsonArray([.. toolNodes]),
-                ["Enabled"] = agent.Enabled
+                ["Temperature"]  = agent.Temperature,
+                ["Tools"]        = new JsonArray([.. toolNodes]),
+                ["Enabled"]      = agent.Enabled
             };
 
             if (agent.MaxRetries.HasValue)
-            {
                 agentObj["MaxRetries"] = agent.MaxRetries.Value;
-            }
 
             agentsArray.Add(agentObj);
         }
 
         var auditSection = configuration.GetSection("Orchestrator:AuditConfig");
         var dimensionNodes = auditSection.GetSection("Dimensions")
-            .Get<List<string>>()
-            ?.Select(d => (JsonNode)d)
-            .ToList() ?? [];
+                                         .Get<List<string>>()
+                                         ?.Select(d => (JsonNode)d)
+                                         .ToList() ??
+                             [];
 
-        var memorySection = configuration.GetSection("Orchestrator:MemoryConfig");
+        var memorySection    = configuration.GetSection("Orchestrator:MemoryConfig");
         var knowledgeSection = configuration.GetSection("Orchestrator:KnowledgeConfig");
 
         return new JsonObject
@@ -177,21 +177,21 @@ public sealed partial class SettingsViewModel : ObservableObject
             ["Agents"] = agentsArray,
             ["AuditConfig"] = new JsonObject
             {
-                ["Mode"] = auditSection["Mode"] ?? "Blocking",
+                ["Mode"]       = auditSection["Mode"]                      ?? "Blocking",
                 ["MaxRetries"] = auditSection.GetValue<int?>("MaxRetries") ?? 2,
                 ["Dimensions"] = new JsonArray([.. dimensionNodes])
             },
             ["MemoryConfig"] = new JsonObject
             {
-                ["RecallTopK"] = memorySection.GetValue<int?>("RecallTopK") ?? 10,
-                ["TokenBudget"] = memorySection.GetValue<int?>("TokenBudget") ?? 1500,
-                ["MinRelevance"] = memorySection.GetValue<float?>("MinRelevance") ?? 0,
+                ["RecallTopK"]      = memorySection.GetValue<int?>("RecallTopK")        ?? 10,
+                ["TokenBudget"]     = memorySection.GetValue<int?>("TokenBudget")       ?? 1500,
+                ["MinRelevance"]    = memorySection.GetValue<float?>("MinRelevance")    ?? 0,
                 ["TimeDecayLambda"] = memorySection.GetValue<float?>("TimeDecayLambda") ?? 0
             },
             ["KnowledgeConfig"] = new JsonObject
             {
-                ["SemanticTopK"] = knowledgeSection.GetValue<int?>("SemanticTopK") ?? 8,
-                ["TokenBudget"] = knowledgeSection.GetValue<int?>("TokenBudget") ?? 2000,
+                ["SemanticTopK"] = knowledgeSection.GetValue<int?>("SemanticTopK")   ?? 8,
+                ["TokenBudget"]  = knowledgeSection.GetValue<int?>("TokenBudget")    ?? 2000,
                 ["MinRelevance"] = knowledgeSection.GetValue<float?>("MinRelevance") ?? 0
             },
             ["SnapshotInterval"] = SnapshotInterval
@@ -202,9 +202,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private async Task TestAgentConnectionAsync(AgentSettingViewModel? agent)
     {
         if (agent is null)
-        {
             return;
-        }
 
         agent.IsTestingConnection = true;
         agent.ConnectionSuccess   = null;

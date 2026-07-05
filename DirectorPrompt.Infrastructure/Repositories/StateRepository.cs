@@ -135,10 +135,10 @@ public sealed class StateRepository : IStateRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        await connection.ExecuteAsync("DELETE FROM state_values WHERE attribute_id = @id", new { id });
-        await connection.ExecuteAsync("DELETE FROM composite_items WHERE attribute_id = @id", new { id });
+        await connection.ExecuteAsync("DELETE FROM state_values WHERE attribute_id = @id",      new { id });
+        await connection.ExecuteAsync("DELETE FROM composite_items WHERE attribute_id = @id",   new { id });
         await connection.ExecuteAsync("DELETE FROM state_change_logs WHERE attribute_id = @id", new { id });
-        await connection.ExecuteAsync("DELETE FROM state_attributes WHERE id = @id", new { id });
+        await connection.ExecuteAsync("DELETE FROM state_attributes WHERE id = @id",            new { id });
     }
 
     public async Task<StateValue?> GetStateValueAsync(long attributeID, CancellationToken cancellationToken = default)

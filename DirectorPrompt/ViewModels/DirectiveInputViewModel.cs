@@ -18,11 +18,11 @@ public sealed partial class DirectiveItemViewModel : ObservableObject
 
     public string TypeDisplay => Type switch
     {
-        DirectiveType.Plot => "剧情",
-        DirectiveType.Tone => "基调",
+        DirectiveType.Plot                => "剧情",
+        DirectiveType.Tone                => "基调",
         DirectiveType.TemporaryConstraint => "临时约束",
-        DirectiveType.SceneChange => "时间/场景变更",
-        _ => Type.ToString()
+        DirectiveType.SceneChange         => "时间/场景变更",
+        _                                 => Type.ToString()
     };
 }
 
@@ -43,16 +43,17 @@ public sealed partial class DirectiveInputViewModel : ObservableObject
     public void AddDirective()
     {
         if (string.IsNullOrWhiteSpace(InputContent))
-        {
             return;
-        }
 
-        Directives.Add(new DirectiveItemViewModel
-        {
-            Type = SelectedType,
-            Content = InputContent.Trim(),
-            Order = Directives.Count + 1
-        });
+        Directives.Add
+        (
+            new DirectiveItemViewModel
+            {
+                Type    = SelectedType,
+                Content = InputContent.Trim(),
+                Order   = Directives.Count + 1
+            }
+        );
 
         InputContent = string.Empty;
     }
@@ -70,9 +71,7 @@ public sealed partial class DirectiveInputViewModel : ObservableObject
         var index = Directives.IndexOf(item);
 
         if (index <= 0)
-        {
             return;
-        }
 
         Directives.Move(index, index - 1);
         ReorderDirectives();
@@ -84,24 +83,18 @@ public sealed partial class DirectiveInputViewModel : ObservableObject
         var index = Directives.IndexOf(item);
 
         if (index < 0 || index >= Directives.Count - 1)
-        {
             return;
-        }
 
         Directives.Move(index, index + 1);
         ReorderDirectives();
     }
 
-    public void Clear()
-    {
+    public void Clear() =>
         Directives.Clear();
-    }
 
     private void ReorderDirectives()
     {
         for (var i = 0; i < Directives.Count; i++)
-        {
             Directives[i].Order = i + 1;
-        }
     }
 }

@@ -33,7 +33,7 @@ public sealed class PipelineContext
     public int AuditRetryCount { get; set; }
 
     /// <summary>
-    /// 流式回调, 参数为 (narrativeText, thinkingText), 表示当前累计的叙事文本和思考文本
+    ///     流式回调, 参数为 (narrativeText, thinkingText), 表示当前累计的叙事文本和思考文本
     /// </summary>
     public Action<string, string>? OnStreamingUpdate { get; set; }
 
@@ -46,4 +46,9 @@ public sealed class PipelineContext
     );
 }
 
-public record ChatHistoryEntry(long RoundID, string DirectorInput, string NarrativeOutput);
+public record ChatHistoryEntry
+(
+    long   RoundID,
+    string DirectorInput,
+    string NarrativeOutput
+);

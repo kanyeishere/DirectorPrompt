@@ -59,33 +59,40 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
 
     public bool IsCompositeConfig => ValueType == StateValueType.Composite;
 
-    public string BuildConfig()
-    {
-        return (ValueType, Driver) switch
+    public string BuildConfig() =>
+        (ValueType, Driver) switch
         {
-            (StateValueType.Numeric, Driver.Narrative) => JsonSerializer.Serialize(new
-            {
-                min = MinValue,
-                max = MaxValue,
-                unit = Unit,
-                changeRules = ChangeRules
-            }),
-            (StateValueType.Enum, Driver.System) => JsonSerializer.Serialize(new
-            {
-                options = Options.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-                trigger = Trigger.ToString(),
-                transitionRules = new { },
-                effects = new { }
-            }),
-            (StateValueType.Composite, Driver.System) => JsonSerializer.Serialize(new
-            {
-                generationGuide = GenerationGuide,
-                regenerateTrigger = RegenerateTrigger.ToString(),
-                regenerateCondition = (string?)null,
-                itemCompleteEffect = new { },
-                itemFailEffect = new { }
-            }),
+            (StateValueType.Numeric, Driver.Narrative) => JsonSerializer.Serialize
+            (
+                new
+                {
+                    min         = MinValue,
+                    max         = MaxValue,
+                    unit        = Unit,
+                    changeRules = ChangeRules
+                }
+            ),
+            (StateValueType.Enum, Driver.System) => JsonSerializer.Serialize
+            (
+                new
+                {
+                    options         = Options.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    trigger         = Trigger.ToString(),
+                    transitionRules = new { },
+                    effects         = new { }
+                }
+            ),
+            (StateValueType.Composite, Driver.System) => JsonSerializer.Serialize
+            (
+                new
+                {
+                    generationGuide     = GenerationGuide,
+                    regenerateTrigger   = RegenerateTrigger.ToString(),
+                    regenerateCondition = (string?)null,
+                    itemCompleteEffect  = new { },
+                    itemFailEffect      = new { }
+                }
+            ),
             _ => "{}"
         };
-    }
 }

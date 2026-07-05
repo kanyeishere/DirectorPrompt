@@ -1,14 +1,14 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using DirectorPrompt.Agents;
+using DirectorPrompt.Domain.Configurations;
+using DirectorPrompt.Domain.Repositories;
+using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Infrastructure;
 using DirectorPrompt.Infrastructure.AI;
 using DirectorPrompt.Infrastructure.Logging;
 using DirectorPrompt.Infrastructure.Repositories;
-using DirectorPrompt.Domain.Repositories;
-using DirectorPrompt.Domain.Services;
-using DirectorPrompt.Agents;
-using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.ViewModels;
 using DirectorPrompt.Views;
 using Microsoft.Extensions.Configuration;
@@ -31,15 +31,17 @@ public partial class App : Application
         try
         {
             host = Host.CreateDefaultBuilder()
-                .UseContentRoot(AppContext.BaseDirectory)
-                .UseSerilog()
-                .ConfigureAppConfiguration(config =>
-                {
-                    config.SetBasePath(AppContext.BaseDirectory);
-                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-                })
-                .ConfigureServices(ConfigureServices)
-                .Build();
+                       .UseContentRoot(AppContext.BaseDirectory)
+                       .UseSerilog()
+                       .ConfigureAppConfiguration
+                       (config =>
+                           {
+                               config.SetBasePath(AppContext.BaseDirectory);
+                               config.AddJsonFile("appsettings.json", false, true);
+                           }
+                       )
+                       .ConfigureServices(ConfigureServices)
+                       .Build();
 
             host.StartAsync().GetAwaiter().GetResult();
 
@@ -54,11 +56,13 @@ public partial class App : Application
             Log.Fatal(ex, "应用启动失败");
             Log.CloseAndFlush();
 
-            MessageBox.Show(
+            MessageBox.Show
+            (
                 $"启动失败: {ex.Message}\n\n{ex.StackTrace}",
                 "DirectorPrompt 启动错误",
                 MessageBoxButton.OK,
-                MessageBoxImage.Error);
+                MessageBoxImage.Error
+            );
 
             Shutdown(1);
         }
@@ -80,11 +84,13 @@ public partial class App : Application
     {
         Log.Error(e.Exception, "未处理的异常");
 
-        MessageBox.Show(
+        MessageBox.Show
+        (
             $"发生未处理异常:\n{e.Exception.Message}\n\n{e.Exception.StackTrace}",
             "DirectorPrompt 错误",
             MessageBoxButton.OK,
-            MessageBoxImage.Error);
+            MessageBoxImage.Error
+        );
 
         e.Handled = false;
     }
@@ -95,18 +101,16 @@ public partial class App : Application
 
         var dbPath = configuration["Database:Path"] ?? "director.db";
 
-        var fullDBPath = Path.IsPathRooted(dbPath)
-            ? dbPath
-            : Path.Combine(AppContext.BaseDirectory, dbPath);
+        var fullDBPath = Path.IsPathRooted(dbPath) ?
+                             dbPath :
+                             Path.Combine(AppContext.BaseDirectory, dbPath);
 
         var dbDirectory = Path.GetDirectoryName(fullDBPath);
 
         if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
-        {
             Directory.CreateDirectory(dbDirectory);
-        }
 
-        var connectionString = $"Data Source={fullDBPath}";
+        var connectionString  = $"Data Source={fullDBPath}";
         var connectionFactory = new SqliteConnectionFactory(connectionString);
 
         services.AddSingleton(connectionFactory);
@@ -131,14 +135,21 @@ public partial class App : Application
         var orchestratorConfig = configuration.GetSection("Orchestrator").Get<OrchestratorConfig>() ?? new OrchestratorConfig();
         services.AddSingleton(orchestratorConfig);
 
-        var embeddingSection = configuration.GetSection("Embedding");
+        var embeddingSection  = configuration.GetSection("Embedding");
         var embeddingProvider = embeddingSection["Provider"] ?? "openai";
         var embeddingEndpoint = embeddingSection["Endpoint"] ?? string.Empty;
-        var embeddingAPIKey = embeddingSection["ApiKey"];
-        var embeddingModel = embeddingSection["ModelName"] ?? "text-embedding-3-small";
+        var embeddingAPIKey   = embeddingSection["ApiKey"];
+        var embeddingModel    = embeddingSection["ModelName"] ?? "text-embedding-3-small";
 
-        services.AddSingleton<IEmbeddingService>(_ => new EmbeddingService(
-            embeddingProvider, embeddingEndpoint, embeddingAPIKey, embeddingModel));
+        services.AddSingleton<IEmbeddingService>
+        (_ => new EmbeddingService
+         (
+             embeddingProvider,
+             embeddingEndpoint,
+             embeddingAPIKey,
+             embeddingModel
+         )
+        );
 
         services.AddSingleton<Orchestrator>();
 

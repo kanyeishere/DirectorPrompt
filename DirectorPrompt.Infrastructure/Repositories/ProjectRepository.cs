@@ -29,9 +29,9 @@ public sealed class ProjectRepository : IProjectRepository
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
         var rows = await connection.QueryAsync<ProjectRow>
-        (
-            "SELECT * FROM projects ORDER BY updated_at DESC"
-        );
+                   (
+                       "SELECT * FROM projects ORDER BY updated_at DESC"
+                   );
 
         return rows.Select(r => r.ToProject()).ToList();
     }
@@ -51,15 +51,15 @@ public sealed class ProjectRepository : IProjectRepository
                      """,
                      new
                      {
-                         name = project.Name,
-                         description = project.Description,
-                         openingMessage = project.OpeningMessage,
+                         name            = project.Name,
+                         description     = project.Description,
+                         openingMessage  = project.OpeningMessage,
                          embeddingConfig = project.EmbeddingConfig,
-                         auditConfig = project.AuditConfig,
-                         memoryConfig = project.MemoryConfig,
+                         auditConfig     = project.AuditConfig,
+                         memoryConfig    = project.MemoryConfig,
                          knowledgeConfig = project.KnowledgeConfig,
-                         createdAt = now,
-                         updatedAt = now
+                         createdAt       = now,
+                         updatedAt       = now
                      }
                  );
 
@@ -86,15 +86,15 @@ public sealed class ProjectRepository : IProjectRepository
             """,
             new
             {
-                id = project.ID,
-                name = project.Name,
-                description = project.Description,
-                openingMessage = project.OpeningMessage,
+                id              = project.ID,
+                name            = project.Name,
+                description     = project.Description,
+                openingMessage  = project.OpeningMessage,
                 embeddingConfig = project.EmbeddingConfig,
-                auditConfig = project.AuditConfig,
-                memoryConfig = project.MemoryConfig,
+                auditConfig     = project.AuditConfig,
+                memoryConfig    = project.MemoryConfig,
                 knowledgeConfig = project.KnowledgeConfig,
-                updatedAt = DateTime.UtcNow.ToString("O")
+                updatedAt       = DateTime.UtcNow.ToString("O")
             }
         );
     }
@@ -131,16 +131,16 @@ public sealed class ProjectRepository : IProjectRepository
         public Project ToProject() =>
             new()
             {
-                ID = ID,
-                Name = Name,
-                Description = Description,
-                OpeningMessage = Opening_Message,
+                ID              = ID,
+                Name            = Name,
+                Description     = Description,
+                OpeningMessage  = Opening_Message,
                 EmbeddingConfig = Embedding_Config,
-                AuditConfig = Audit_Config,
-                MemoryConfig = Memory_Config,
+                AuditConfig     = Audit_Config,
+                MemoryConfig    = Memory_Config,
                 KnowledgeConfig = Knowledge_Config,
-                CreatedAt = DateTime.Parse(Created_At),
-                UpdatedAt = DateTime.Parse(Updated_At)
+                CreatedAt       = DateTime.Parse(Created_At),
+                UpdatedAt       = DateTime.Parse(Updated_At)
             };
     }
 }

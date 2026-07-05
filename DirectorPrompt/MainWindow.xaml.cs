@@ -1,8 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.ViewModels;
 using Wpf.Ui.Controls;
+using MenuItem = System.Windows.Controls.MenuItem;
 
 namespace DirectorPrompt;
 
@@ -13,33 +15,29 @@ public partial class MainWindow : FluentWindow
     public MainWindow(MainViewModel viewModel)
     {
         this.viewModel = viewModel;
-        DataContext = viewModel;
+        DataContext    = viewModel;
         InitializeComponent();
 
         Loaded += OnLoaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
-    {
+    private async void OnLoaded(object sender, RoutedEventArgs e) =>
         await viewModel.LoadProjectsCommand.ExecuteAsync(null);
-    }
 
     private void OnDirectiveTypeChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is not ComboBox comboBox || viewModel is null)
-        {
             return;
-        }
 
         var index = comboBox.SelectedIndex;
 
         viewModel.DirectiveInput.SelectedType = index switch
         {
-            0 => Domain.Enums.DirectiveType.Plot,
-            1 => Domain.Enums.DirectiveType.Tone,
-            2 => Domain.Enums.DirectiveType.TemporaryConstraint,
-            3 => Domain.Enums.DirectiveType.SceneChange,
-            _ => Domain.Enums.DirectiveType.Plot
+            0 => DirectiveType.Plot,
+            1 => DirectiveType.Tone,
+            2 => DirectiveType.TemporaryConstraint,
+            3 => DirectiveType.SceneChange,
+            _ => DirectiveType.Plot
         };
     }
 
@@ -54,17 +52,13 @@ public partial class MainWindow : FluentWindow
 
     private void OnDeleteRound(object sender, RoutedEventArgs e)
     {
-        if (sender is System.Windows.Controls.MenuItem { Tag: DialogEntryViewModel })
-        {
+        if (sender is MenuItem { Tag: DialogEntryViewModel })
             _ = viewModel.DeleteLastRoundCommand.ExecuteAsync(null);
-        }
     }
 
     private void OnRewriteRound(object sender, RoutedEventArgs e)
     {
-        if (sender is System.Windows.Controls.MenuItem { Tag: DialogEntryViewModel })
-        {
+        if (sender is MenuItem { Tag: DialogEntryViewModel })
             _ = viewModel.RewriteLastRoundCommand.ExecuteAsync(null);
-        }
     }
 }

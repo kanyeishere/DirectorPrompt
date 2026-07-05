@@ -26,30 +26,26 @@ public sealed class EnumDisplayConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is null)
-        {
             return Array.Empty<EnumFriendlyItem>();
-        }
 
         var enumType = value as Type ?? value.GetType();
 
         if (!enumType.IsEnum)
-        {
             return Array.Empty<EnumFriendlyItem>();
-        }
 
         var items = Enum.GetValues(enumType)
                         .Cast<object>()
-                        .Select(v => new EnumFriendlyItem
-                        {
-                            Value = v,
-                            Display = GetDescription(v)
-                        })
+                        .Select
+                        (v => new EnumFriendlyItem
+                            {
+                                Value   = v,
+                                Display = GetDescription(v)
+                            }
+                        )
                         .ToArray();
 
         if (!enumType.IsValueType || value is Type)
-        {
             return items;
-        }
 
         return items.FirstOrDefault(i => i.Value.Equals(value)) ?? items[0];
     }
@@ -57,9 +53,7 @@ public sealed class EnumDisplayConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is EnumFriendlyItem item)
-        {
             return item.Value;
-        }
 
         return Binding.DoNothing;
     }
@@ -69,9 +63,7 @@ public sealed class EnumDisplayConverter : IValueConverter
         var field = enumValue.GetType().GetField(enumValue.ToString()!);
 
         if (field?.GetCustomAttribute<DescriptionAttribute>() is { } attr)
-        {
             return attr.Description;
-        }
 
         return enumValue.ToString()!;
     }

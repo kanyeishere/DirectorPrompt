@@ -7,11 +7,11 @@ namespace DirectorPrompt.Infrastructure;
 public sealed class SqliteConnectionFactory
 {
     private readonly string connectionString;
-    private readonly bool enableVecExtension;
+    private readonly bool   enableVecExtension;
 
     public SqliteConnectionFactory(string connectionString, bool enableVecExtension = true)
     {
-        this.connectionString = connectionString;
+        this.connectionString   = connectionString;
         this.enableVecExtension = enableVecExtension;
     }
 
@@ -21,9 +21,7 @@ public sealed class SqliteConnectionFactory
         await connection.OpenAsync(cancellationToken);
 
         if (enableVecExtension)
-        {
             TryLoadVecExtension(connection);
-        }
 
         return connection;
     }
@@ -60,7 +58,7 @@ public sealed class SqliteConnectionFactory
         {
             Path.Combine(baseDir, fileName),
             Path.Combine(baseDir, "runtimes", rid, "native", fileName),
-            Path.Combine(baseDir, "native", fileName)
+            Path.Combine(baseDir, "native",   fileName)
         };
 
         return candidates.FirstOrDefault(File.Exists);

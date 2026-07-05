@@ -236,9 +236,10 @@
                                                             PlaceholderText="输入分组名称"
                                                             Margin="0,0,0,12" />
                                                 <TextBlock Text="分组说明" FontWeight="SemiBold" Margin="0,0,0,4" />
-                                                <ui:TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                                                            PlaceholderText="可选"
-                                                            Margin="0,0,0,12" />
+                                                <ui:TextBox
+                                                    Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                                    PlaceholderText="可选"
+                                                    Margin="0,0,0,12" />
                                                 <CheckBox Content="启用此分组"
                                                           IsChecked="{Binding Active}"
                                                           Margin="0,0,0,12" />
@@ -262,43 +263,48 @@
                                                                             <ColumnDefinition Width="Auto" />
                                                                         </Grid.ColumnDefinitions>
                                                                         <TextBlock Grid.Column="0"
-                                                                                   Text="{Binding Title}"
-                                                                                   FontWeight="SemiBold"
-                                                                                   VerticalAlignment="Center" />
-                                                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                                                Text="{Binding Title}"
+                                                                                FontWeight="SemiBold"
+                                                                                VerticalAlignment="Center" />
+                                                                        <StackPanel Grid.Column="1"
+                                                                                Orientation="Horizontal">
                                                                             <ui:Button Content="编辑"
-                                                                                       Appearance="Secondary"
-                                                                                       Padding="6,4"
-                                                                                       Margin="0,0,4,0"
-                                                                                       Click="OnEditKnowledgeEntry"
-                                                                                       Tag="{Binding}" />
+                                                                                    Appearance="Secondary"
+                                                                                    Padding="6,4"
+                                                                                    Margin="0,0,4,0"
+                                                                                    Click="OnEditKnowledgeEntry"
+                                                                                    Tag="{Binding}" />
                                                                             <ui:Button Content="删除"
-                                                                                       Appearance="Caution"
-                                                                                       Padding="6,4"
-                                                                                       Click="OnDeleteKnowledgeEntry"
-                                                                                       Tag="{Binding}" />
+                                                                                    Appearance="Caution"
+                                                                                    Padding="6,4"
+                                                                                    Click="OnDeleteKnowledgeEntry"
+                                                                                    Tag="{Binding}" />
                                                                         </StackPanel>
                                                                     </Grid>
-                                                                    <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
+                                                                    <StackPanel
+                                                                        Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
                                                                         <TextBlock Text="标题" Margin="0,8,0,4" />
-                                                                        <ui:TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        <ui:TextBox
+                                                                            Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
                                                                         <TextBlock Text="内容" Margin="0,8,0,4" />
-                                                                        <ui:TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                                                                                    AcceptsReturn="True"
-                                                                                    TextWrapping="Wrap"
-                                                                                    MinHeight="80"
-                                                                                    VerticalScrollBarVisibility="Auto" />
+                                                                        <ui:TextBox
+                                                                            Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                                            AcceptsReturn="True"
+                                                                            TextWrapping="Wrap"
+                                                                            MinHeight="80"
+                                                                            VerticalScrollBarVisibility="Auto" />
                                                                         <TextBlock Text="标签 (逗号分隔)" Margin="0,8,0,4" />
-                                                                        <ui:TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}"
-                                                                                    PlaceholderText="如: 魔法, 体系" />
+                                                                        <ui:TextBox
+                                                                            Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}"
+                                                                            PlaceholderText="如: 魔法, 体系" />
                                                                         <CheckBox Content="参与检索"
-                                                                                  IsChecked="{Binding Active}"
-                                                                                  Margin="0,8,0,4" />
+                                                                                IsChecked="{Binding Active}"
+                                                                                Margin="0,8,0,4" />
                                                                         <ui:Button Content="保存"
-                                                                                   Appearance="Primary"
-                                                                                   Margin="0,4,0,0"
-                                                                                   Command="{Binding DataContext.SaveKnowledgeEntryCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                                                   CommandParameter="{Binding}" />
+                                                                                Appearance="Primary"
+                                                                                Margin="0,4,0,0"
+                                                                                Command="{Binding DataContext.SaveKnowledgeEntryCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                                                CommandParameter="{Binding}" />
                                                                     </StackPanel>
                                                                 </StackPanel>
                                                             </Border>
@@ -369,7 +375,8 @@
                                                     </StackPanel>
                                                 </Grid>
 
-                                                <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
+                                                <StackPanel
+                                                    Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
                                                     <Grid Margin="0,8,0,4">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
@@ -377,11 +384,13 @@
                                                         </Grid.ColumnDefinitions>
                                                         <StackPanel Grid.Column="0" Margin="0,0,4,0">
                                                             <TextBlock Text="标识名" Margin="0,0,0,4" />
-                                                            <ui:TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                                            <ui:TextBox
+                                                                Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="1" Margin="4,0,0,0">
                                                             <TextBlock Text="显示名" Margin="0,0,0,4" />
-                                                            <ui:TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
+                                                            <ui:TextBox
+                                                                Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                     </Grid>
                                                     <Grid Margin="0,4,0,4">
@@ -391,13 +400,15 @@
                                                         </Grid.ColumnDefinitions>
                                                         <StackPanel Grid.Column="0" Margin="0,0,4,0">
                                                             <TextBlock Text="数据形态" Margin="0,0,0,4" />
-                                                            <ComboBox ItemsSource="{Binding Source={x:Type enums:StateValueType}, Converter={StaticResource EnumDisplay}}"
-                                                                      SelectedItem="{Binding ValueType, Converter={StaticResource EnumDisplay}}" />
+                                                            <ComboBox
+                                                                ItemsSource="{Binding Source={x:Type enums:StateValueType}, Converter={StaticResource EnumDisplay}}"
+                                                                SelectedItem="{Binding ValueType, Converter={StaticResource EnumDisplay}}" />
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="1" Margin="4,0,0,0">
                                                             <TextBlock Text="驱动方式" Margin="0,0,0,4" />
-                                                            <ComboBox ItemsSource="{Binding Source={x:Type enums:Driver}, Converter={StaticResource EnumDisplay}}"
-                                                                      SelectedItem="{Binding Driver, Converter={StaticResource EnumDisplay}}" />
+                                                            <ComboBox
+                                                                ItemsSource="{Binding Source={x:Type enums:Driver}, Converter={StaticResource EnumDisplay}}"
+                                                                SelectedItem="{Binding Driver, Converter={StaticResource EnumDisplay}}" />
                                                         </StackPanel>
                                                     </Grid>
 
@@ -415,39 +426,45 @@
                                                                       Maximum="999999"
                                                                       ClearButtonEnabled="True" />
                                                         <TextBlock Text="单位" Margin="0,8,0,4" />
-                                                        <ui:TextBox Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
-                                                                    PlaceholderText="如: 金币、点" />
+                                                        <ui:TextBox
+                                                            Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
+                                                            PlaceholderText="如: 金币、点" />
                                                         <TextBlock Text="变更规则 (自然语言, 指导 AI 提取变更)" Margin="0,8,0,4" />
-                                                        <ui:TextBox Text="{Binding ChangeRules, UpdateSourceTrigger=PropertyChanged}"
-                                                                    AcceptsReturn="True"
-                                                                    TextWrapping="Wrap"
-                                                                    MinHeight="60"
-                                                                    VerticalScrollBarVisibility="Auto" />
+                                                        <ui:TextBox
+                                                            Text="{Binding ChangeRules, UpdateSourceTrigger=PropertyChanged}"
+                                                            AcceptsReturn="True"
+                                                            TextWrapping="Wrap"
+                                                            MinHeight="60"
+                                                            VerticalScrollBarVisibility="Auto" />
                                                     </StackPanel>
 
                                                     <!-- enum + system -->
                                                     <StackPanel Margin="0,8,0,0"
                                                                 Visibility="{Binding IsEnumConfig, Converter={StaticResource BoolToVisibility}}">
                                                         <TextBlock Text="选项 (逗号分隔)" Margin="0,0,0,4" />
-                                                        <ui:TextBox Text="{Binding Options, UpdateSourceTrigger=PropertyChanged}"
-                                                                    PlaceholderText="如: 晴, 阴, 雨" />
+                                                        <ui:TextBox
+                                                            Text="{Binding Options, UpdateSourceTrigger=PropertyChanged}"
+                                                            PlaceholderText="如: 晴, 阴, 雨" />
                                                         <TextBlock Text="触发时机" Margin="0,8,0,4" />
-                                                        <ComboBox ItemsSource="{Binding Source={x:Type enums:SystemTrigger}, Converter={StaticResource EnumDisplay}}"
-                                                                  SelectedItem="{Binding Trigger, Converter={StaticResource EnumDisplay}}" />
+                                                        <ComboBox
+                                                            ItemsSource="{Binding Source={x:Type enums:SystemTrigger}, Converter={StaticResource EnumDisplay}}"
+                                                            SelectedItem="{Binding Trigger, Converter={StaticResource EnumDisplay}}" />
                                                     </StackPanel>
 
                                                     <!-- composite + system -->
                                                     <StackPanel Margin="0,8,0,0"
                                                                 Visibility="{Binding IsCompositeConfig, Converter={StaticResource BoolToVisibility}}">
                                                         <TextBlock Text="生成指引 (自然语言, 指导 AI 生成条目)" Margin="0,0,0,4" />
-                                                        <ui:TextBox Text="{Binding GenerationGuide, UpdateSourceTrigger=PropertyChanged}"
-                                                                    AcceptsReturn="True"
-                                                                    TextWrapping="Wrap"
-                                                                    MinHeight="60"
-                                                                    VerticalScrollBarVisibility="Auto" />
+                                                        <ui:TextBox
+                                                            Text="{Binding GenerationGuide, UpdateSourceTrigger=PropertyChanged}"
+                                                            AcceptsReturn="True"
+                                                            TextWrapping="Wrap"
+                                                            MinHeight="60"
+                                                            VerticalScrollBarVisibility="Auto" />
                                                         <TextBlock Text="重新生成时机" Margin="0,8,0,4" />
-                                                        <ComboBox ItemsSource="{Binding Source={x:Type enums:SystemTrigger}, Converter={StaticResource EnumDisplay}}"
-                                                                  SelectedItem="{Binding RegenerateTrigger, Converter={StaticResource EnumDisplay}}" />
+                                                        <ComboBox
+                                                            ItemsSource="{Binding Source={x:Type enums:SystemTrigger}, Converter={StaticResource EnumDisplay}}"
+                                                            SelectedItem="{Binding RegenerateTrigger, Converter={StaticResource EnumDisplay}}" />
                                                     </StackPanel>
 
                                                     <ui:Button Content="保存"
@@ -477,11 +494,12 @@
                                            Icon="Add24"
                                            Command="{Binding AddFlagCommand}" />
                             </Grid>
-                            <TextBlock Text="标记是布尔事件开关, 由系统 Effect 或 AI 工具在运行时设置, 用于记录某件事是否发生过 (如 met_mystery_man)。此处仅预定义标记名, 运行时由系统自动写入值。"
-                                       FontSize="12"
-                                       Foreground="Gray"
-                                       TextWrapping="Wrap"
-                                       Margin="0,0,0,8" />
+                            <TextBlock
+                                Text="标记是布尔事件开关, 由系统 Effect 或 AI 工具在运行时设置, 用于记录某件事是否发生过 (如 met_mystery_man)。此处仅预定义标记名, 运行时由系统自动写入值。"
+                                FontSize="12"
+                                Foreground="Gray"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,8" />
 
                             <ItemsControl ItemsSource="{Binding Flags}">
                                 <ItemsControl.ItemTemplate>
@@ -525,9 +543,10 @@
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,16" />
                             <TextBlock Text="模式" FontWeight="SemiBold" Margin="0,0,0,4" />
-                            <ComboBox ItemsSource="{Binding Source={x:Type enums:AuditMode}, Converter={StaticResource EnumDisplay}}"
-                                      SelectedItem="{Binding Audit.Mode, Converter={StaticResource EnumDisplay}}"
-                                      Margin="0,0,0,12" />
+                            <ComboBox
+                                ItemsSource="{Binding Source={x:Type enums:AuditMode}, Converter={StaticResource EnumDisplay}}"
+                                SelectedItem="{Binding Audit.Mode, Converter={StaticResource EnumDisplay}}"
+                                Margin="0,0,0,12" />
                             <TextBlock Text="最大重试" FontWeight="SemiBold" Margin="0,0,0,4" />
                             <ui:NumberBox Value="{Binding Audit.MaxRetries}"
                                           Minimum="0"

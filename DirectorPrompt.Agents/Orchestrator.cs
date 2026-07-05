@@ -122,9 +122,9 @@ public sealed class Orchestrator
 
     public async Task<NarrationResult> ProcessBatchAsync
     (
-        DirectiveBatch             batch,
-        Action<string, string>?    onStreamingUpdate = null,
-        CancellationToken          cancellationToken = default
+        DirectiveBatch          batch,
+        Action<string, string>? onStreamingUpdate = null,
+        CancellationToken       cancellationToken = default
     )
     {
         var project = await projectRepository.GetByIDAsync(batch.ProjectID, cancellationToken);
@@ -227,7 +227,7 @@ public sealed class Orchestrator
         return new NarrationResult
         (
             context.NarrativeOutput ?? string.Empty,
-            context.ThinkingOutput ?? string.Empty,
+            context.ThinkingOutput  ?? string.Empty,
             roundID,
             context.Violations,
             context.AuditPassed
@@ -433,17 +433,17 @@ public sealed class Orchestrator
                               .ToDictionary(g => g.Key, g => g.OrderByDescending(e => e.ID).First());
 
         var roundIDs = directorEvents.Keys
-                         .Concat(narrativeEvents.Keys)
-                         .Distinct()
-                         .Where(r => r < currentRoundID)
-                         .OrderBy(r => r)
-                         .ToList();
+                                     .Concat(narrativeEvents.Keys)
+                                     .Distinct()
+                                     .Where(r => r < currentRoundID)
+                                     .OrderBy(r => r)
+                                     .ToList();
 
         var history = new List<ChatHistoryEntry>();
 
         foreach (var roundID in roundIDs)
         {
-            var directorEntry = directorEvents.GetValueOrDefault(roundID);
+            var directorEntry  = directorEvents.GetValueOrDefault(roundID);
             var narrativeEntry = narrativeEvents.GetValueOrDefault(roundID);
 
             if (directorEntry is null || narrativeEntry is null)
@@ -507,7 +507,13 @@ public sealed class Orchestrator
         );
 
         if (type == EventType.NarrativeOutput && data.Length > 0)
-            Log.Debug("  事件数据 (NarrativeOutput): {Data}", data.Length > 500 ? data[..500] + "..." : data);
+            Log.Debug
+            (
+                "  事件数据 (NarrativeOutput): {Data}",
+                data.Length > 500 ?
+                    data[..500] + "..." :
+                    data
+            );
         else if (type == EventType.DirectorInput)
             Log.Debug("  事件数据 (DirectorInput): {Data}", data);
 

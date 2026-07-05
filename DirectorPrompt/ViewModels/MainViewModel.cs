@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,14 +14,14 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed partial class MainViewModel : ObservableObject
 {
-    private readonly Orchestrator orchestrator;
-    private readonly IProjectRepository projectRepository;
-    private readonly IEventRepository eventRepository;
-    private readonly ISceneRepository sceneRepository;
-    private readonly IStateRepository stateRepository;
+    private readonly Orchestrator         orchestrator;
+    private readonly IProjectRepository   projectRepository;
+    private readonly IEventRepository     eventRepository;
+    private readonly ISceneRepository     sceneRepository;
+    private readonly IStateRepository     stateRepository;
     private readonly ICharacterRepository characterRepository;
     private readonly IDirectiveRepository directiveRepository;
-    private readonly IServiceProvider serviceProvider;
+    private readonly IServiceProvider     serviceProvider;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsProjectSelected))]
@@ -48,24 +47,26 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<Project> Projects { get; } = [];
 
-    public MainViewModel(
-        Orchestrator orchestrator,
-        IProjectRepository projectRepository,
-        IEventRepository eventRepository,
-        ISceneRepository sceneRepository,
-        IStateRepository stateRepository,
+    public MainViewModel
+    (
+        Orchestrator         orchestrator,
+        IProjectRepository   projectRepository,
+        IEventRepository     eventRepository,
+        ISceneRepository     sceneRepository,
+        IStateRepository     stateRepository,
         ICharacterRepository characterRepository,
         IDirectiveRepository directiveRepository,
-        IServiceProvider serviceProvider)
+        IServiceProvider     serviceProvider
+    )
     {
-        this.orchestrator = orchestrator;
-        this.projectRepository = projectRepository;
-        this.eventRepository = eventRepository;
-        this.sceneRepository = sceneRepository;
-        this.stateRepository = stateRepository;
+        this.orchestrator        = orchestrator;
+        this.projectRepository   = projectRepository;
+        this.eventRepository     = eventRepository;
+        this.sceneRepository     = sceneRepository;
+        this.stateRepository     = stateRepository;
         this.characterRepository = characterRepository;
         this.directiveRepository = directiveRepository;
-        this.serviceProvider = serviceProvider;
+        this.serviceProvider     = serviceProvider;
     }
 
     [RelayCommand]
@@ -82,14 +83,10 @@ public sealed partial class MainViewModel : ObservableObject
             Projects.Clear();
 
             foreach (var project in projects)
-            {
                 Projects.Add(project);
-            }
 
             if (previousID.HasValue)
-            {
                 CurrentProject = Projects.FirstOrDefault(p => p.ID == previousID.Value);
-            }
 
             Log.Information("项目列表加载完成: 数量={Count}", Projects.Count);
         }
@@ -107,27 +104,21 @@ public sealed partial class MainViewModel : ObservableObject
         window.Owner = GetCurrentWindow();
 
         if (window.ShowDialog() == true)
-        {
             _ = LoadProjectsAsync();
-        }
     }
 
     [RelayCommand]
     private async Task EditProjectAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
         var window = serviceProvider.GetRequiredService<ProjectEditWindow>();
         await window.ViewModel.LoadFromProjectAsync(CurrentProject);
         window.Owner = GetCurrentWindow();
 
         if (window.ShowDialog() == true)
-        {
             await LoadProjectsAsync();
-        }
     }
 
     [RelayCommand]
@@ -155,14 +146,14 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        IsProcessing = true;
+        IsProcessing  = true;
         StatusMessage = "处理中…";
 
         try
         {
             var items = DirectiveInput.Directives
-                .Select(d => new DirectiveItem(d.Type, d.Content, d.Order))
-                .ToList();
+                                      .Select(d => new DirectiveItem(d.Type, d.Content, d.Order))
+                                      .ToList();
 
             var batch = new DirectiveBatch(CurrentProject.ID, items);
 
@@ -185,19 +176,13 @@ public sealed partial class MainViewModel : ObservableObject
             var dispatcher = Application.Current.Dispatcher;
 
             var result = await orchestrator.ProcessBatchAsync
-            (
-                batch,
-                onStreamingUpdate: (narrative, thinking) =>
-                {
-                    dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        streamingEntry.UpdateStreamingContent(narrative, thinking);
-                    }));
-                }
-            );
+                         (
+                             batch,
+                             (narrative, thinking) => { dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); })); }
+                         );
 
-            streamingEntry.RoundID = result.RoundID;
-            streamingEntry.Content = result.Narrative;
+            streamingEntry.RoundID  = result.RoundID;
+            streamingEntry.Content  = result.Narrative;
             streamingEntry.Thinking = result.Thinking;
             streamingEntry.RenderMarkdown();
 
@@ -218,9 +203,11 @@ public sealed partial class MainViewModel : ObservableObject
             await RefreshSidebarAsync();
 
             DirectiveInput.Clear();
-            StatusMessage = result.AuditPassed ? "完成" : $"完成 (审计警告: {result.Violations.Count} 条)";
+            StatusMessage = result.AuditPassed ?
+                                "完成" :
+                                $"完成 (审计警告: {result.Violations.Count} 条)";
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Log.Error(ex, "处理指令失败");
             StatusMessage = $"处理失败: {ex.Message}";
@@ -235,11 +222,9 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task DeleteLastRoundAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
-        IsProcessing = true;
+        IsProcessing  = true;
         StatusMessage = "回滚中…";
 
         try
@@ -261,7 +246,7 @@ public sealed partial class MainViewModel : ObservableObject
             await RefreshSidebarAsync();
             StatusMessage = "已回滚";
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Log.Error(ex, "回滚失败");
             StatusMessage = $"回滚失败: {ex.Message}";
@@ -276,11 +261,9 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task RewriteLastRoundAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
-        IsProcessing = true;
+        IsProcessing  = true;
         StatusMessage = "重写中…";
 
         try
@@ -293,7 +276,7 @@ public sealed partial class MainViewModel : ObservableObject
                 return;
             }
 
-            var events = await eventRepository.GetByRoundAsync(latestRound);
+            var events        = await eventRepository.GetByRoundAsync(latestRound);
             var directorEvent = events.FirstOrDefault(e => e.Type == EventType.DirectorInput);
 
             if (directorEvent is null)
@@ -304,7 +287,7 @@ public sealed partial class MainViewModel : ObservableObject
 
             StatusMessage = "重写功能需要原始指令批次, 请重新输入指令后发送";
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Log.Error(ex, "重写失败");
             StatusMessage = $"重写失败: {ex.Message}";
@@ -324,9 +307,7 @@ public sealed partial class MainViewModel : ObservableObject
             Log.Information("切换项目: ID={ProjectID}, 名称={Name}", value.ID, value.Name);
 
             if (!string.IsNullOrWhiteSpace(value.OpeningMessage))
-            {
                 Dialog.AddOpeningMessage(value.OpeningMessage);
-            }
 
             _ = RefreshSidebarAsync();
         }
@@ -335,9 +316,7 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task RefreshSidebarAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
         await RefreshStatePanelAsync();
         await RefreshDirectivesPanelAsync();
@@ -347,9 +326,7 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task RefreshStatePanelAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
         StatePanel.Clear();
 
@@ -358,43 +335,49 @@ public sealed partial class MainViewModel : ObservableObject
         if (scene is not null)
         {
             StatePanel.CurrentSceneLabel = scene.TimeLabel;
-            StatePanel.TimelineLabel = scene.TimelinePosition.ToString();
+            StatePanel.TimelineLabel     = scene.TimelinePosition.ToString();
         }
 
-        var values = await stateRepository.GetAllStateValuesAsync(CurrentProject.ID);
+        var values     = await stateRepository.GetAllStateValuesAsync(CurrentProject.ID);
         var attributes = await stateRepository.GetAttributesAsync(CurrentProject.ID);
 
         foreach (var attr in attributes)
         {
             var value = values.FirstOrDefault(v => v.AttributeID == attr.ID);
 
-            StatePanel.StateItems.Add(new StateItemViewModel
-            {
-                Name = attr.DisplayName,
-                Value = value?.Value ?? "—",
-                Scope = attr.Scope.ToString()
-            });
+            StatePanel.StateItems.Add
+            (
+                new StateItemViewModel
+                {
+                    Name  = attr.DisplayName,
+                    Value = value?.Value ?? "—",
+                    Scope = attr.Scope.ToString()
+                }
+            );
         }
 
         var flags = await stateRepository.GetFlagsAsync(CurrentProject.ID);
 
         foreach (var flag in flags)
         {
-            StatePanel.StateItems.Add(new StateItemViewModel
-            {
-                Name = flag.DisplayName,
-                Value = flag.Value ? "✓" : "✗",
-                Scope = "Flag"
-            });
+            StatePanel.StateItems.Add
+            (
+                new StateItemViewModel
+                {
+                    Name = flag.DisplayName,
+                    Value = flag.Value ?
+                                "✓" :
+                                "✗",
+                    Scope = "Flag"
+                }
+            );
         }
     }
 
     private async Task RefreshDirectivesPanelAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
         DirectivesPanel.Clear();
 
@@ -402,28 +385,31 @@ public sealed partial class MainViewModel : ObservableObject
 
         foreach (var d in directives)
         {
-            DirectivesPanel.Directives.Add(new DirectivePanelItemViewModel
-            {
-                Type = d.Type switch
+            DirectivesPanel.Directives.Add
+            (
+                new DirectivePanelItemViewModel
                 {
-                    DirectiveType.Tone => "🎭",
-                    DirectiveType.TemporaryConstraint => "🚫",
-                    DirectiveType.SceneChange => "🎬",
-                    _ => "📝"
-                },
-                Content = d.Content,
-                HasTTL = d.TTL.HasValue,
-                TtlLabel = d.TTL.HasValue ? $"剩余 {d.TTL} 轮" : "永久"
-            });
+                    Type = d.Type switch
+                    {
+                        DirectiveType.Tone                => "🎭",
+                        DirectiveType.TemporaryConstraint => "🚫",
+                        DirectiveType.SceneChange         => "🎬",
+                        _                                 => "📝"
+                    },
+                    Content = d.Content,
+                    HasTTL  = d.TTL.HasValue,
+                    TtlLabel = d.TTL.HasValue ?
+                                   $"剩余 {d.TTL} 轮" :
+                                   "永久"
+                }
+            );
         }
     }
 
     private async Task RefreshCharacterPanelAsync()
     {
         if (CurrentProject is null)
-        {
             return;
-        }
 
         CharacterPanel.Clear();
 
@@ -431,12 +417,15 @@ public sealed partial class MainViewModel : ObservableObject
 
         foreach (var c in characters)
         {
-            CharacterPanel.Characters.Add(new CharacterPanelItemViewModel
-            {
-                Name = c.Name,
-                Status = c.Status.ToString(),
-                Description = c.Description
-            });
+            CharacterPanel.Characters.Add
+            (
+                new CharacterPanelItemViewModel
+                {
+                    Name        = c.Name,
+                    Status      = c.Status.ToString(),
+                    Description = c.Description
+                }
+            );
         }
     }
 }

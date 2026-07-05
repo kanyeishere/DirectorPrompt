@@ -15,12 +15,10 @@ public sealed partial class CharacterPanelItemViewModel : ObservableObject
     private string description = string.Empty;
 }
 
-public sealed partial class CharacterPanelViewModel : ObservableObject
+public sealed class CharacterPanelViewModel : ObservableObject
 {
     public ObservableCollection<CharacterPanelItemViewModel> Characters { get; } = [];
 
-    public void Clear()
-    {
+    public void Clear() =>
         Characters.Clear();
-    }
 }

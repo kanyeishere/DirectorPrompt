@@ -29,6 +29,6 @@ public sealed partial class StatePanelViewModel : ObservableObject
     {
         StateItems.Clear();
         CurrentSceneLabel = "未开始";
-        TimelineLabel = "—";
+        TimelineLabel     = "—";
     }
 }

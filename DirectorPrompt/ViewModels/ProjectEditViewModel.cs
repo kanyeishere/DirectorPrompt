@@ -13,9 +13,9 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed partial class ProjectEditViewModel : ObservableObject
 {
-    private readonly IProjectRepository projectRepository;
-    private readonly IKnowledgeRepository knowledgeRepository;
-    private readonly IStateRepository stateRepository;
+    private readonly IProjectRepository     projectRepository;
+    private readonly IKnowledgeRepository   knowledgeRepository;
+    private readonly IStateRepository       stateRepository;
     private readonly IModelConnectionTester connectionTester;
 
     private long projectID;
@@ -54,7 +54,9 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
     public bool IsEditing => projectID > 0;
 
-    public string TitleText => IsEditing ? "编辑项目" : "新建项目";
+    public string TitleText => IsEditing ?
+                                   "编辑项目" :
+                                   "新建项目";
 
     public bool HasValidationMessage => !string.IsNullOrEmpty(ValidationMessage);
 
@@ -62,11 +64,13 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
     public long SavedProjectID { get; private set; }
 
-    public ProjectEditViewModel(
-        IProjectRepository projectRepository,
-        IKnowledgeRepository knowledgeRepository,
-        IStateRepository stateRepository,
-        IModelConnectionTester connectionTester)
+    public ProjectEditViewModel
+    (
+        IProjectRepository     projectRepository,
+        IKnowledgeRepository   knowledgeRepository,
+        IStateRepository       stateRepository,
+        IModelConnectionTester connectionTester
+    )
     {
         this.projectRepository   = projectRepository;
         this.knowledgeRepository = knowledgeRepository;
@@ -76,9 +80,9 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
     public async Task LoadFromProjectAsync(Project project)
     {
-        projectID = project.ID;
-        Name = project.Name;
-        Description = project.Description;
+        projectID      = project.ID;
+        Name           = project.Name;
+        Description    = project.Description;
         OpeningMessage = project.OpeningMessage;
 
         LoadEmbeddingConfig(project.EmbeddingConfig);
@@ -97,9 +101,9 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     {
         var config = JsonSerializer.Deserialize<ModelConfig>(json) ?? new ModelConfig();
 
-        Embedding.Provider = config.Provider;
-        Embedding.Endpoint = config.Endpoint;
-        Embedding.APIKey = config.APIKey ?? string.Empty;
+        Embedding.Provider  = config.Provider;
+        Embedding.Endpoint  = config.Endpoint;
+        Embedding.APIKey    = config.APIKey ?? string.Empty;
         Embedding.ModelName = config.ModelName;
     }
 
@@ -107,7 +111,7 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     {
         var config = JsonSerializer.Deserialize<AuditConfig>(json) ?? new AuditConfig();
 
-        Audit.Mode = config.Mode;
+        Audit.Mode       = config.Mode;
         Audit.MaxRetries = config.MaxRetries;
     }
 
@@ -115,9 +119,9 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     {
         var config = JsonSerializer.Deserialize<MemoryConfig>(json) ?? new MemoryConfig();
 
-        Memory.RecallTopK = config.RecallTopK;
-        Memory.TokenBudget = config.TokenBudget;
-        Memory.MinRelevance = config.MinRelevance;
+        Memory.RecallTopK      = config.RecallTopK;
+        Memory.TokenBudget     = config.TokenBudget;
+        Memory.MinRelevance    = config.MinRelevance;
         Memory.TimeDecayLambda = config.TimeDecayLambda;
     }
 
@@ -126,7 +130,7 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         var config = JsonSerializer.Deserialize<KnowledgeRetrievalConfig>(json) ?? new KnowledgeRetrievalConfig();
 
         Knowledge.SemanticTopK = config.SemanticTopK;
-        Knowledge.TokenBudget = config.TokenBudget;
+        Knowledge.TokenBudget  = config.TokenBudget;
         Knowledge.MinRelevance = config.MinRelevance;
     }
 
@@ -134,9 +138,9 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     {
         var config = new ModelConfig
         {
-            Provider = Embedding.Provider,
-            Endpoint = Embedding.Endpoint,
-            APIKey = Embedding.APIKey,
+            Provider  = Embedding.Provider,
+            Endpoint  = Embedding.Endpoint,
+            APIKey    = Embedding.APIKey,
             ModelName = Embedding.ModelName
         };
 
@@ -147,7 +151,7 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     {
         var config = new AuditConfig
         {
-            Mode = Audit.Mode,
+            Mode       = Audit.Mode,
             MaxRetries = Audit.MaxRetries
         };
 
@@ -158,9 +162,9 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     {
         var config = new MemoryConfig
         {
-            RecallTopK = Memory.RecallTopK,
-            TokenBudget = Memory.TokenBudget,
-            MinRelevance = Memory.MinRelevance,
+            RecallTopK      = Memory.RecallTopK,
+            TokenBudget     = Memory.TokenBudget,
+            MinRelevance    = Memory.MinRelevance,
             TimeDecayLambda = Memory.TimeDecayLambda
         };
 
@@ -172,82 +176,66 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         var config = new KnowledgeRetrievalConfig
         {
             SemanticTopK = Knowledge.SemanticTopK,
-            TokenBudget = Knowledge.TokenBudget,
+            TokenBudget  = Knowledge.TokenBudget,
             MinRelevance = Knowledge.MinRelevance
         };
 
         return JsonSerializer.Serialize(config);
     }
 
-    private static KnowledgeEntryEditViewModel CreateEntryVM(KnowledgeEntry entry, string groupName)
-    {
-        return new KnowledgeEntryEditViewModel
+    private static KnowledgeEntryEditViewModel CreateEntryVM(KnowledgeEntry entry, string groupName) =>
+        new()
         {
-            ID = entry.ID,
-            Title = entry.Title,
-            Content = entry.Content,
-            Tags = string.Join(", ", entry.Tags),
-            GroupID = entry.GroupID,
-            Active = entry.Active,
+            ID           = entry.ID,
+            Title        = entry.Title,
+            Content      = entry.Content,
+            Tags         = string.Join(", ", entry.Tags),
+            GroupID      = entry.GroupID,
+            Active       = entry.Active,
             GroupDisplay = groupName
         };
-    }
 
     private static void ParseStateConfig(StateAttributeEditViewModel vm, string json)
     {
         if (string.IsNullOrWhiteSpace(json) || json == "{}")
-        {
             return;
-        }
 
         try
         {
             using var doc = JsonDocument.Parse(json);
 
             if (doc.RootElement.TryGetProperty("min", out var min))
-            {
-                vm.MinValue = min.ValueKind == JsonValueKind.Null ? null : min.GetSingle();
-            }
+                vm.MinValue = min.ValueKind == JsonValueKind.Null ?
+                                  null :
+                                  min.GetSingle();
 
             if (doc.RootElement.TryGetProperty("max", out var max))
-            {
-                vm.MaxValue = max.ValueKind == JsonValueKind.Null ? null : max.GetSingle();
-            }
+                vm.MaxValue = max.ValueKind == JsonValueKind.Null ?
+                                  null :
+                                  max.GetSingle();
 
             if (doc.RootElement.TryGetProperty("unit", out var unit) && unit.ValueKind != JsonValueKind.Null)
-            {
                 vm.Unit = unit.GetString() ?? string.Empty;
-            }
 
             if (doc.RootElement.TryGetProperty("changeRules", out var rules) && rules.ValueKind != JsonValueKind.Null)
-            {
                 vm.ChangeRules = rules.GetString() ?? string.Empty;
-            }
 
             if (doc.RootElement.TryGetProperty("options", out var opts) && opts.ValueKind == JsonValueKind.Array)
-            {
                 vm.Options = string.Join(", ", opts.EnumerateArray().Select(o => o.GetString() ?? string.Empty));
-            }
 
             if (doc.RootElement.TryGetProperty("trigger", out var trigger) && trigger.ValueKind != JsonValueKind.Null)
             {
                 if (Enum.TryParse<SystemTrigger>(trigger.GetString(), out var t))
-                {
                     vm.Trigger = t;
-                }
             }
 
             if (doc.RootElement.TryGetProperty("generationGuide", out var guide) && guide.ValueKind != JsonValueKind.Null)
-            {
                 vm.GenerationGuide = guide.GetString() ?? string.Empty;
-            }
 
             if (doc.RootElement.TryGetProperty("regenerateTrigger", out var regen) && regen.ValueKind != JsonValueKind.Null)
             {
                 if (Enum.TryParse<SystemTrigger>(regen.GetString(), out var rt))
-                {
                     vm.RegenerateTrigger = rt;
-                }
             }
         }
         catch
@@ -258,45 +246,39 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     private async Task LoadKnowledgeAsync()
     {
         if (projectID <= 0)
-        {
             return;
-        }
 
         KnowledgeGroups.Clear();
 
-        var groups = await knowledgeRepository.GetGroupsAsync(projectID);
+        var groups  = await knowledgeRepository.GetGroupsAsync(projectID);
         var entries = await knowledgeRepository.GetByProjectAsync(projectID);
 
         var ungrouped = new KnowledgeGroupEditViewModel
         {
-            ID = 0,
-            Name = "未分组",
+            ID          = 0,
+            Name        = "未分组",
             Description = string.Empty,
-            Active = true
+            Active      = true
         };
 
         foreach (var group in groups)
         {
             var groupVM = new KnowledgeGroupEditViewModel
             {
-                ID = group.ID,
-                Name = group.Name,
+                ID          = group.ID,
+                Name        = group.Name,
                 Description = group.Description ?? string.Empty,
-                Active = group.Active
+                Active      = group.Active
             };
 
             foreach (var entry in entries.Where(e => e.GroupID == group.ID))
-            {
                 groupVM.Entries.Add(CreateEntryVM(entry, group.Name));
-            }
 
             KnowledgeGroups.Add(groupVM);
         }
 
         foreach (var entry in entries.Where(e => e.GroupID is null or 0))
-        {
             ungrouped.Entries.Add(CreateEntryVM(entry, "未分组"));
-        }
 
         KnowledgeGroups.Add(ungrouped);
     }
@@ -304,15 +286,13 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     private async Task LoadStateSystemAsync()
     {
         if (projectID <= 0)
-        {
             return;
-        }
 
         StateAttributes.Clear();
         Flags.Clear();
 
         var attributes = await stateRepository.GetAttributesAsync(projectID);
-        var values = await stateRepository.GetAllStateValuesAsync(projectID);
+        var values     = await stateRepository.GetAllStateValuesAsync(projectID);
 
         foreach (var attr in attributes)
         {
@@ -320,11 +300,11 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
             var attrVM = new StateAttributeEditViewModel
             {
-                ID = attr.ID,
-                Name = attr.Name,
-                DisplayName = attr.DisplayName,
-                ValueType = attr.ValueType,
-                Driver = attr.Driver,
+                ID           = attr.ID,
+                Name         = attr.Name,
+                DisplayName  = attr.DisplayName,
+                ValueType    = attr.ValueType,
+                Driver       = attr.Driver,
                 CurrentValue = value?.Value ?? string.Empty
             };
 
@@ -336,11 +316,14 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
         foreach (var flag in flags)
         {
-            Flags.Add(new FlagEditViewModel
-            {
-                Name = flag.Name,
-                DisplayName = flag.DisplayName
-            });
+            Flags.Add
+            (
+                new FlagEditViewModel
+                {
+                    Name        = flag.Name,
+                    DisplayName = flag.DisplayName
+                }
+            );
         }
     }
 
@@ -360,9 +343,7 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     private async Task SaveAsync()
     {
         if (!Validate())
-        {
             return;
-        }
 
         IsSaving = true;
 
@@ -370,13 +351,13 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         {
             var project = new Project
             {
-                ID = projectID,
-                Name = Name.Trim(),
-                Description = Description,
-                OpeningMessage = OpeningMessage,
+                ID              = projectID,
+                Name            = Name.Trim(),
+                Description     = Description,
+                OpeningMessage  = OpeningMessage,
                 EmbeddingConfig = BuildEmbeddingConfig(),
-                AuditConfig = BuildAuditConfig(),
-                MemoryConfig = BuildMemoryConfig(),
+                AuditConfig     = BuildAuditConfig(),
+                MemoryConfig    = BuildMemoryConfig(),
                 KnowledgeConfig = BuildKnowledgeConfig()
             };
 
@@ -384,14 +365,14 @@ public sealed partial class ProjectEditViewModel : ObservableObject
             {
                 await projectRepository.UpdateAsync(project);
                 SavedProjectID = projectID;
-                SaveSuccess = true;
+                SaveSuccess    = true;
             }
             else
             {
                 var created = await projectRepository.CreateAsync(project);
                 SavedProjectID = created.ID;
-                projectID = created.ID;
-                SaveSuccess = true;
+                projectID      = created.ID;
+                SaveSuccess    = true;
 
                 OnPropertyChanged(nameof(IsEditing));
                 OnPropertyChanged(nameof(TitleText));
@@ -420,10 +401,12 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         var entry = new KnowledgeEntry
         {
             ProjectID = projectID,
-            Title = "新知识条目",
-            Content = string.Empty,
-            Tags = [],
-            GroupID = group?.ID > 0 ? group.ID : null,
+            Title     = "新知识条目",
+            Content   = string.Empty,
+            Tags      = [],
+            GroupID = group?.ID > 0 ?
+                          group.ID :
+                          null,
             Active = true
         };
 
@@ -431,20 +414,18 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
         var entryVM = new KnowledgeEntryEditViewModel
         {
-            ID = created.ID,
-            Title = created.Title,
-            Content = created.Content,
-            Tags = string.Empty,
-            GroupID = created.GroupID,
-            Active = true,
+            ID           = created.ID,
+            Title        = created.Title,
+            Content      = created.Content,
+            Tags         = string.Empty,
+            GroupID      = created.GroupID,
+            Active       = true,
             GroupDisplay = group?.Name ?? "未分组",
-            IsEditing = true
+            IsEditing    = true
         };
 
         if (group is not null)
-        {
             group.Entries.Add(entryVM);
-        }
         else
         {
             var ungrouped = KnowledgeGroups.FirstOrDefault(g => g.ID == 0);
@@ -458,22 +439,21 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         try
         {
             var tags = entry.Tags
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToArray();
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var model = new KnowledgeEntry
             {
-                ID = entry.ID,
+                ID        = entry.ID,
                 ProjectID = projectID,
-                Title = entry.Title,
-                Content = entry.Content,
-                Tags = tags,
-                GroupID = entry.GroupID,
-                Active = entry.Active
+                Title     = entry.Title,
+                Content   = entry.Content,
+                Tags      = tags,
+                GroupID   = entry.GroupID,
+                Active    = entry.Active
             };
 
             await knowledgeRepository.UpdateAsync(model);
-            entry.IsEditing = false;
+            entry.IsEditing   = false;
             ValidationMessage = string.Empty;
         }
         catch (Exception ex)
@@ -529,22 +509,26 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
         var group = new KnowledgeGroup
         {
-            ProjectID = projectID,
-            Name = "新分组",
+            ProjectID   = projectID,
+            Name        = "新分组",
             Description = string.Empty,
-            Active = true
+            Active      = true
         };
 
         var created = await knowledgeRepository.CreateGroupAsync(group);
 
         var insertIndex = KnowledgeGroups.Count - 1;
-        KnowledgeGroups.Insert(insertIndex, new KnowledgeGroupEditViewModel
-        {
-            ID = created.ID,
-            Name = created.Name,
-            Description = created.Description ?? string.Empty,
-            Active = created.Active
-        });
+        KnowledgeGroups.Insert
+        (
+            insertIndex,
+            new KnowledgeGroupEditViewModel
+            {
+                ID          = created.ID,
+                Name        = created.Name,
+                Description = created.Description ?? string.Empty,
+                Active      = created.Active
+            }
+        );
     }
 
     [RelayCommand]
@@ -554,11 +538,11 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         {
             var model = new KnowledgeGroup
             {
-                ID = group.ID,
-                ProjectID = projectID,
-                Name = group.Name,
+                ID          = group.ID,
+                ProjectID   = projectID,
+                Name        = group.Name,
                 Description = group.Description,
-                Active = group.Active
+                Active      = group.Active
             };
 
             await knowledgeRepository.UpdateGroupAsync(model);
@@ -575,9 +559,7 @@ public sealed partial class ProjectEditViewModel : ObservableObject
     private async Task DeleteKnowledgeGroupAsync(KnowledgeGroupEditViewModel group)
     {
         if (group.ID <= 0)
-        {
             return;
-        }
 
         try
         {
@@ -602,26 +584,29 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
         var attribute = new StateAttribute
         {
-            ProjectID = projectID,
-            Name = "new_attribute",
+            ProjectID   = projectID,
+            Name        = "new_attribute",
             DisplayName = "新状态属性",
-            Scope = StateScope.Global,
-            ValueType = StateValueType.Numeric,
-            Driver = Driver.Narrative,
-            Config = "{}"
+            Scope       = StateScope.Global,
+            ValueType   = StateValueType.Numeric,
+            Driver      = Driver.Narrative,
+            Config      = "{}"
         };
 
         var created = await stateRepository.CreateAttributeAsync(attribute);
 
-        StateAttributes.Add(new StateAttributeEditViewModel
-        {
-            ID = created.ID,
-            Name = created.Name,
-            DisplayName = created.DisplayName,
-            ValueType = created.ValueType,
-            Driver = created.Driver,
-            IsEditing = true
-        });
+        StateAttributes.Add
+        (
+            new StateAttributeEditViewModel
+            {
+                ID          = created.ID,
+                Name        = created.Name,
+                DisplayName = created.DisplayName,
+                ValueType   = created.ValueType,
+                Driver      = created.Driver,
+                IsEditing   = true
+            }
+        );
     }
 
     [RelayCommand]
@@ -631,19 +616,19 @@ public sealed partial class ProjectEditViewModel : ObservableObject
         {
             var model = new StateAttribute
             {
-                ID = attribute.ID,
-                ProjectID = projectID,
-                Name = attribute.Name,
+                ID          = attribute.ID,
+                ProjectID   = projectID,
+                Name        = attribute.Name,
                 DisplayName = attribute.DisplayName,
-                Scope = StateScope.Global,
-                ValueType = attribute.ValueType,
-                Driver = attribute.Driver,
-                Config = attribute.BuildConfig()
+                Scope       = StateScope.Global,
+                ValueType   = attribute.ValueType,
+                Driver      = attribute.Driver,
+                Config      = attribute.BuildConfig()
             };
 
             await stateRepository.UpdateAttributeAsync(model);
             attribute.IsEditing = false;
-            ValidationMessage = string.Empty;
+            ValidationMessage   = string.Empty;
         }
         catch (Exception ex)
         {
@@ -686,11 +671,14 @@ public sealed partial class ProjectEditViewModel : ObservableObject
 
         await stateRepository.SetFlagAsync(projectID, name, false, null);
 
-        Flags.Add(new FlagEditViewModel
-        {
-            Name = name,
-            DisplayName = name
-        });
+        Flags.Add
+        (
+            new FlagEditViewModel
+            {
+                Name        = name,
+                DisplayName = name
+            }
+        );
     }
 
     [RelayCommand]

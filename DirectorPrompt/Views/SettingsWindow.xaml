@@ -18,7 +18,6 @@
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
     <ui:FluentWindow.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:EnumDisplayConverter x:Key="EnumDisplay" />
         <converters:InverseBoolConverter x:Key="InverseBool" />
         <Style TargetType="ListViewItem">
@@ -153,7 +152,8 @@
                                                         <ColumnDefinition Width="100" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="Provider" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="0" Text="Provider"
+                                                               VerticalAlignment="Center" />
                                                     <ComboBox Grid.Column="1"
                                                               ItemsSource="{x:Static vm:AgentSettingViewModel.AvailableProviders}"
                                                               SelectedItem="{Binding Provider}" />
@@ -164,7 +164,8 @@
                                                         <ColumnDefinition Width="100" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="Endpoint" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="0" Text="Endpoint"
+                                                               VerticalAlignment="Center" />
                                                     <ui:TextBox Grid.Column="1"
                                                                 Text="{Binding Endpoint, UpdateSourceTrigger=PropertyChanged}"
                                                                 PlaceholderText="留空使用默认值" />
@@ -175,7 +176,8 @@
                                                         <ColumnDefinition Width="100" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="API Key" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="0" Text="API Key"
+                                                               VerticalAlignment="Center" />
                                                     <ui:TextBox Grid.Column="1"
                                                                 Text="{Binding APIKey, UpdateSourceTrigger=PropertyChanged}"
                                                                 PlaceholderText="本地模型可留空" />
@@ -233,10 +235,12 @@
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Foreground" Value="Gray" />
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding ConnectionSuccess}" Value="True">
+                                                                <DataTrigger Binding="{Binding ConnectionSuccess}"
+                                                                             Value="True">
                                                                     <Setter Property="Foreground" Value="#107C10" />
                                                                 </DataTrigger>
-                                                                <DataTrigger Binding="{Binding ConnectionSuccess}" Value="False">
+                                                                <DataTrigger Binding="{Binding ConnectionSuccess}"
+                                                                             Value="False">
                                                                     <Setter Property="Foreground" Value="OrangeRed" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
