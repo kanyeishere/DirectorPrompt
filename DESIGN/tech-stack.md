@@ -131,7 +131,6 @@ Embedding 配置 {
 | Provider | 接入方式 | 说明 |
 |----------|----------|------|
 | OpenAI 兼容 | `OpenAI` 包 → `AsChatClient()` | 覆盖 OpenAI 官方及大量第三方兼容服务 |
-| Anthropic | 待定 | 需确认官方/社区 `IChatClient` 实现是否可用, 不排除自写适配层 |
 | Ollama (本地) | `OllamaSharp` 或社区包 | 本地模型, 离线可用 |
 
 ### Embedding 模型 Provider
