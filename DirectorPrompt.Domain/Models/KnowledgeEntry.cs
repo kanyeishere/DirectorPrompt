@@ -1,0 +1,22 @@
+namespace DirectorPrompt.Domain.Models;
+
+public record KnowledgeEntry
+{
+    public long ID { get; init; }
+
+    public long ProjectID { get; init; }
+
+    public string Title { get; init; } = string.Empty;
+
+    public string Content { get; init; } = string.Empty;
+
+    public string[] Tags { get; init; } = [];
+
+    public long? GroupID { get; init; }
+
+    public bool Active { get; init; } = true;
+
+    public DateTime CreatedAt { get; init; }
+
+    public DateTime UpdatedAt { get; init; }
+}
