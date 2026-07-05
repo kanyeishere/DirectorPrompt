@@ -65,8 +65,8 @@ public sealed class SchemaMigrator
         versionCommand.CommandText = "SELECT MAX(version) FROM schema_version";
         var versionResult = await versionCommand.ExecuteScalarAsync(cancellationToken);
 
-        return versionResult is int maxVersion ?
-                   maxVersion :
+        return versionResult is long maxVersion ?
+                   (int)maxVersion :
                    0;
     }
 
@@ -76,8 +76,11 @@ public sealed class SchemaMigrator
                 .Select
                 (name =>
                     {
-                        var fileName   = Path.GetFileNameWithoutExtension(name);
-                        var versionStr = fileName.Split('_')[0];
+                        var withoutPrefix = name["DirectorPrompt.Infrastructure.Schema.".Length..];
+                        var withoutSuffix = withoutPrefix.EndsWith(".sql", StringComparison.Ordinal)
+                                                ? withoutPrefix[..^4]
+                                                : withoutPrefix;
+                        var versionStr = withoutSuffix.Split('_')[0];
                         return (version: int.Parse(versionStr), scriptName: name);
                     }
                 )

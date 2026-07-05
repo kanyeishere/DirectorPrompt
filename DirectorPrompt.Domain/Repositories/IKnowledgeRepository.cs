@@ -24,6 +24,8 @@ public interface IKnowledgeRepository
 
     Task UpdateGroupAsync(KnowledgeGroup group, CancellationToken cancellationToken = default);
 
+    Task DeleteGroupAsync(long id, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<KnowledgeEntityIndex>> GetEntityIndexAsync(long projectID, CancellationToken cancellationToken = default);
 
     Task AddEntityIndexAsync(long entryID, string entityName, CancellationToken cancellationToken = default);

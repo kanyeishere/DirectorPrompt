@@ -1,16 +1,17 @@
 using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
+using Serilog;
 
 namespace DirectorPrompt.Infrastructure;
 
 public sealed class SqliteConnectionFactory
 {
     private readonly string connectionString;
-    private readonly bool   enableVecExtension;
+    private readonly bool enableVecExtension;
 
     public SqliteConnectionFactory(string connectionString, bool enableVecExtension = true)
     {
-        this.connectionString   = connectionString;
+        this.connectionString = connectionString;
         this.enableVecExtension = enableVecExtension;
     }
 
@@ -20,21 +21,30 @@ public sealed class SqliteConnectionFactory
         await connection.OpenAsync(cancellationToken);
 
         if (enableVecExtension)
-            await LoadVecExtensionAsync(connection, cancellationToken);
+        {
+            TryLoadVecExtension(connection);
+        }
 
         return connection;
     }
 
-    private static async Task LoadVecExtensionAsync(SqliteConnection connection, CancellationToken cancellationToken)
+    private static void TryLoadVecExtension(SqliteConnection connection)
     {
         var vecPath = FindVecLibrary();
 
-        if (vecPath is not null)
+        if (vecPath is null)
         {
-            await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT load_extension($path)";
-            command.Parameters.AddWithValue("$path", vecPath);
-            await command.ExecuteScalarAsync(cancellationToken);
+            Log.Warning("sqlite-vec 原生库未找到, 向量检索功能不可用");
+            return;
+        }
+
+        try
+        {
+            connection.LoadExtension(vecPath);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "sqlite-vec 扩展加载失败, 向量检索功能不可用");
         }
     }
 
@@ -50,7 +60,7 @@ public sealed class SqliteConnectionFactory
         {
             Path.Combine(baseDir, fileName),
             Path.Combine(baseDir, "runtimes", rid, "native", fileName),
-            Path.Combine(baseDir, "native",   fileName)
+            Path.Combine(baseDir, "native", fileName)
         };
 
         return candidates.FirstOrDefault(File.Exists);

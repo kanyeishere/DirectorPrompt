@@ -131,6 +131,16 @@ public sealed class StateRepository : IStateRepository
         );
     }
 
+    public async Task DeleteAttributeAsync(long id, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        await connection.ExecuteAsync("DELETE FROM state_values WHERE attribute_id = @id", new { id });
+        await connection.ExecuteAsync("DELETE FROM composite_items WHERE attribute_id = @id", new { id });
+        await connection.ExecuteAsync("DELETE FROM state_change_logs WHERE attribute_id = @id", new { id });
+        await connection.ExecuteAsync("DELETE FROM state_attributes WHERE id = @id", new { id });
+    }
+
     public async Task<StateValue?> GetStateValueAsync(long attributeID, CancellationToken cancellationToken = default)
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
@@ -353,6 +363,17 @@ public sealed class StateRepository : IStateRepository
                    );
 
         return rows.Select(r => r.ToFlag()).ToList();
+    }
+
+    public async Task DeleteFlagAsync(long projectID, string name, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        await connection.ExecuteAsync
+        (
+            "DELETE FROM flags WHERE project_id = @projectID AND name = @name",
+            new { projectID, name }
+        );
     }
 
     public async Task SetFlagAsync(long projectID, string name, bool value, long? sceneID, CancellationToken cancellationToken = default)

@@ -24,6 +24,18 @@ public sealed class ProjectRepository : IProjectRepository
         return row?.ToProject();
     }
 
+    public async Task<IReadOnlyList<Project>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<ProjectRow>
+        (
+            "SELECT * FROM projects ORDER BY updated_at DESC"
+        );
+
+        return rows.Select(r => r.ToProject()).ToList();
+    }
+
     public async Task<Project> CreateAsync(Project project, CancellationToken cancellationToken = default)
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);

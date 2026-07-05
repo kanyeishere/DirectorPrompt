@@ -15,6 +15,8 @@ public interface IStateRepository
 
     Task UpdateAttributeAsync(StateAttribute attribute, CancellationToken cancellationToken = default);
 
+    Task DeleteAttributeAsync(long id, CancellationToken cancellationToken = default);
+
     Task<StateValue?> GetStateValueAsync(long attributeID, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<StateValue>> GetAllStateValuesAsync(long projectID, CancellationToken cancellationToken = default);
@@ -31,6 +33,8 @@ public interface IStateRepository
     Task RemoveCompositeItemAsync(long itemID, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Flag>> GetFlagsAsync(long projectID, CancellationToken cancellationToken = default);
+
+    Task DeleteFlagAsync(long projectID, string name, CancellationToken cancellationToken = default);
 
     Task SetFlagAsync(long projectID, string name, bool value, long? sceneID, CancellationToken cancellationToken = default);
 

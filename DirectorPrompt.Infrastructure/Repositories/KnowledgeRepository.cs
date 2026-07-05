@@ -224,6 +224,23 @@ public sealed class KnowledgeRepository : IKnowledgeRepository
         );
     }
 
+    public async Task DeleteGroupAsync(long id, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        await connection.ExecuteAsync
+        (
+            "UPDATE knowledge_entries SET group_id = NULL WHERE group_id = @id",
+            new { id }
+        );
+
+        await connection.ExecuteAsync
+        (
+            "DELETE FROM knowledge_groups WHERE id = @id",
+            new { id }
+        );
+    }
+
     public async Task<IReadOnlyList<KnowledgeEntityIndex>> GetEntityIndexAsync(long projectID, CancellationToken cancellationToken = default)
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
