@@ -1,0 +1,222 @@
+using System.Text.Json;
+using DirectorPrompt.Domain.Enums;
+using DirectorPrompt.Domain.Repositories;
+using Microsoft.Extensions.AI;
+
+namespace DirectorPrompt.Agents.Tools;
+
+public sealed class StateTools
+{
+    private readonly IStateRepository stateRepository;
+
+    public StateTools(IStateRepository stateRepository) =>
+        this.stateRepository = stateRepository;
+
+    public IList<AIFunction> Create(ToolExecutionContext context) =>
+    [
+        AIFunctionFactory.Create
+        (
+            (string attribute) => GetStateAsync(context, attribute),
+            "get_state",
+            "查询单个状态属性的当前值。attribute: 属性名"
+        ),
+        AIFunctionFactory.Create
+        (
+            () => GetAllStateAsync(context),
+            "get_all_state",
+            "查询所有全局状态属性的当前值"
+        ),
+        AIFunctionFactory.Create
+        (
+            () => GetFlagsAsync(context),
+            "get_flags",
+            "查询所有标记的当前值"
+        ),
+        AIFunctionFactory.Create
+        (
+            (string attribute) => GetCompositeItemsAsync(context, attribute),
+            "get_composite_items",
+            "查询复合类型状态属性的所有条目。attribute: 属性名"
+        ),
+        AIFunctionFactory.Create
+        (
+            (string attribute, double delta, string reason) =>
+                UpdateStateAsync(context, attribute, delta, reason),
+            "update_state",
+            "数值增减状态属性。attribute: 属性名; delta: 变化量 (正为增, 负为减); reason: 变更原因"
+        ),
+        AIFunctionFactory.Create
+        (
+            (string attribute, string value, string reason) =>
+                SetStateAsync(context, attribute, value, reason),
+            "set_state",
+            "设置状态属性为指定值。attribute: 属性名; value: 新值; reason: 变更原因"
+        ),
+        AIFunctionFactory.Create
+        (
+            (string name, string reason) => SetFlagAsync(context, name, reason),
+            "set_flag",
+            "设置全局标记。name: 标记名; reason: 原因"
+        )
+    ];
+
+    private async Task<string> GetStateAsync(ToolExecutionContext context, string attribute)
+    {
+        var attributes = await stateRepository.GetAttributesAsync(context.ProjectID);
+        var attr       = attributes.FirstOrDefault(a => a.Name == attribute);
+
+        if (attr is null)
+            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 不存在" });
+
+        var value = await stateRepository.GetStateValueAsync(attr.ID);
+
+        return JsonSerializer.Serialize
+        (
+            new
+            {
+                attribute = attr.Name,
+                value     = value?.Value,
+                updatedAt = value?.UpdatedAt
+            }
+        );
+    }
+
+    private async Task<string> GetAllStateAsync(ToolExecutionContext context)
+    {
+        var attributes = await stateRepository.GetAttributesAsync(context.ProjectID, StateScope.Global);
+        var result     = new List<object>();
+
+        foreach (var attr in attributes)
+        {
+            var value = await stateRepository.GetStateValueAsync(attr.ID);
+            result.Add
+            (
+                new
+                {
+                    attribute = attr.Name,
+                    value     = value?.Value ?? string.Empty
+                }
+            );
+        }
+
+        return JsonSerializer.Serialize(result);
+    }
+
+    private async Task<string> GetFlagsAsync(ToolExecutionContext context)
+    {
+        var flags = await stateRepository.GetFlagsAsync(context.ProjectID);
+        var result = flags.Select
+        (f => new
+            {
+                name  = f.Name,
+                value = f.Value
+            }
+        );
+
+        return JsonSerializer.Serialize(result);
+    }
+
+    private async Task<string> GetCompositeItemsAsync(ToolExecutionContext context, string attribute)
+    {
+        var attributes = await stateRepository.GetAttributesAsync(context.ProjectID);
+        var attr       = attributes.FirstOrDefault(a => a.Name == attribute);
+
+        if (attr is null)
+            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 不存在" });
+
+        var items = await stateRepository.GetCompositeItemsAsync(attr.ID);
+        var result = items.Select
+        (i => new
+            {
+                id          = i.ID,
+                description = i.Description,
+                current     = i.Current,
+                target      = i.Target,
+                status      = i.Status.ToString()
+            }
+        );
+
+        return JsonSerializer.Serialize(result);
+    }
+
+    private async Task<string> UpdateStateAsync
+    (
+        ToolExecutionContext context,
+        string               attribute,
+        double               delta,
+        string               reason
+    )
+    {
+        var attributes = await stateRepository.GetAttributesAsync(context.ProjectID);
+        var attr       = attributes.FirstOrDefault(a => a.Name == attribute);
+
+        if (attr is null)
+            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 不存在" });
+
+        var currentValue = await stateRepository.GetStateValueAsync(attr.ID);
+        var currentNum   = double.Parse(currentValue?.Value ?? "0");
+        var newValue     = currentNum + delta;
+
+        await stateRepository.SetStateValueAsync
+        (
+            attr.ID,
+            newValue.ToString(),
+            StateChangeSource.StateAgent,
+            reason,
+            context.SceneID ?? 0,
+            context.RoundID
+        );
+
+        return JsonSerializer.Serialize
+        (
+            new
+            {
+                oldValue = currentValue?.Value,
+                newValue = newValue.ToString()
+            }
+        );
+    }
+
+    private async Task<string> SetStateAsync
+    (
+        ToolExecutionContext context,
+        string               attribute,
+        string               value,
+        string               reason
+    )
+    {
+        var attributes = await stateRepository.GetAttributesAsync(context.ProjectID);
+        var attr       = attributes.FirstOrDefault(a => a.Name == attribute);
+
+        if (attr is null)
+            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 不存在" });
+
+        var oldValue = await stateRepository.GetStateValueAsync(attr.ID);
+
+        await stateRepository.SetStateValueAsync
+        (
+            attr.ID,
+            value,
+            StateChangeSource.StateAgent,
+            reason,
+            context.SceneID ?? 0,
+            context.RoundID
+        );
+
+        return JsonSerializer.Serialize
+        (
+            new
+            {
+                oldValue = oldValue?.Value,
+                newValue = value
+            }
+        );
+    }
+
+    private async Task<string> SetFlagAsync(ToolExecutionContext context, string name, string reason)
+    {
+        await stateRepository.SetFlagAsync(context.ProjectID, name, true, context.SceneID);
+
+        return JsonSerializer.Serialize(new { name, value = true });
+    }
+}
