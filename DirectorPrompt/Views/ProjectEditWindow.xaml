@@ -57,49 +57,49 @@
                       SelectedIndex="0">
                 <ListViewItem Tag="basic" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="DocumentEdit24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="DocumentEdit24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [Project.Basic.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
                 <ListViewItem Tag="embedding" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="DataLine24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="DataLine24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [Project.Embedding.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
                 <ListViewItem Tag="knowledge" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Book24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="Book24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [Knowledge.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
                 <ListViewItem Tag="state" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Gauge24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="Gauge24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [State.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
                 <ListViewItem Tag="audit" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Shield24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="Shield24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [Audit.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
                 <ListViewItem Tag="memory" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Brain24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="Brain24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [Memory.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
                 <ListViewItem Tag="retrieval" Padding="12,10">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Search24" Margin="0,0,12,0" />
+                        <ui:SymbolIcon Symbol="Search24" Width="24" Margin="0,0,12,0" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding [Knowledge.Retrieval.Title], Source={x:Static loc:Loc.Instance}}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
