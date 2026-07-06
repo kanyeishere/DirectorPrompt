@@ -174,18 +174,18 @@ public partial class App : Application
     {
         var langDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "Langs");
 
-        var preferredLanguage = configuration["Localization:Language"] ?? "en";
+        var preferredLanguage = configuration["Localization:Language"] ?? "zh-CN";
 
         var options = new LocalizationOptions
         {
-            DefaultLanguage  = "en",
+            DefaultLanguage  = "zh-CN",
             FileNameResolver = static language => $"{language}.json",
             Source           = new FileLocalizationSource(langDirectory),
             Parser           = new JSONDictionaryLocalizationParser(),
             FallbackResolver = static language => language switch
             {
-                "zh-CN" => ["en"],
-                _       => []
+                "en" => ["zh-CN"],
+                _    => []
             },
             EnableHotReload = true,
             ReloadDebounce  = TimeSpan.FromSeconds(3),

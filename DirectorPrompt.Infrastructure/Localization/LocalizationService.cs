@@ -69,25 +69,25 @@ public sealed class LocalizationService : ILocalizationService, IDisposable
 
     public string NormalizeLanguage(string requestedLanguage, string preferredLanguage)
     {
-        var snapshot = GetSnapshot();
+        var options             = GetConfiguredState().Options!;
+        var discoveredLanguages = options.Source.DiscoverLanguages();
+        var availableLanguages  = BuildAvailableLanguages(options, discoveredLanguages);
 
-        if (snapshot.AvailableLanguages.ContainsKey(requestedLanguage))
+        if (availableLanguages.ContainsKey(requestedLanguage))
             return requestedLanguage;
 
-        if (snapshot.AvailableLanguages.ContainsKey(preferredLanguage))
+        if (availableLanguages.ContainsKey(preferredLanguage))
             return preferredLanguage;
-
-        var options = GetConfiguredState().Options!;
 
         foreach (var fallbackLanguage in EnumerateFallbackLanguages(options, requestedLanguage))
         {
-            if (snapshot.AvailableLanguages.ContainsKey(fallbackLanguage))
+            if (availableLanguages.ContainsKey(fallbackLanguage))
                 return fallbackLanguage;
         }
 
         foreach (var fallbackLanguage in EnumerateFallbackLanguages(options, preferredLanguage))
         {
-            if (snapshot.AvailableLanguages.ContainsKey(fallbackLanguage))
+            if (availableLanguages.ContainsKey(fallbackLanguage))
                 return fallbackLanguage;
         }
 
@@ -96,14 +96,13 @@ public sealed class LocalizationService : ILocalizationService, IDisposable
 
     public void LoadLanguage(string language)
     {
-        var state    = GetConfiguredState();
-        var options  = state.Options!;
-        var snapshot = GetSnapshot();
+        var state       = GetConfiguredState();
+        var options     = state.Options!;
+        var newSnapshot = BuildSnapshot(options, language);
 
-        if (!snapshot.AvailableLanguages.ContainsKey(language))
+        if (!newSnapshot.AvailableLanguages.ContainsKey(language))
             throw new ArgumentOutOfRangeException(nameof(language), $"Language {language} not found in available languages");
 
-        var newSnapshot = BuildSnapshot(options, language);
         Interlocked.Exchange(ref currentSnapshot, newSnapshot);
         LanguageChanged?.Invoke();
     }
@@ -223,13 +222,7 @@ public sealed class LocalizationService : ILocalizationService, IDisposable
 
             try
             {
-                var currentLang = CurrentLanguage;
-                var newSnapshot = BuildSnapshot(currentState.Options, currentLang);
-
-                if (!newSnapshot.AvailableLanguages.ContainsKey(currentLang))
-                    currentLang = currentState.Options.DefaultLanguage;
-
-                var normalized = NormalizeLanguage(currentLang, currentState.Options.DefaultLanguage);
+                var normalized = NormalizeLanguage(CurrentLanguage, currentState.Options.DefaultLanguage);
                 LoadLanguage(normalized);
             }
             catch (Exception ex)
@@ -409,7 +402,7 @@ public sealed class LocalizationService : ILocalizationService, IDisposable
     )
     {
         public static LanguageSnapshot Empty { get; } =
-            new("en", [], FrozenDictionary<string, string>.Empty, [], nameof(LocalizationService));
+            new("zh-CN", [], FrozenDictionary<string, string>.Empty, [], nameof(LocalizationService));
 
         public string Language { get; } = language;
 

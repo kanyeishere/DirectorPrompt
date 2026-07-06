@@ -13,7 +13,7 @@ public sealed class Loc : INotifyPropertyChanged
 
     public string this[string key] => service?.Get(key) ?? key;
 
-    public static string CurrentLanguage => Instance.service?.CurrentLanguage ?? "en";
+    public static string CurrentLanguage => Instance.service?.CurrentLanguage ?? "zh-CN";
 
     public static IReadOnlyDictionary<string, string> AvailableLanguages =>
         Instance.service?.AvailableLanguages ?? new Dictionary<string, string>();

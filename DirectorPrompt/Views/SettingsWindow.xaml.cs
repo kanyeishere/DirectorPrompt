@@ -33,6 +33,9 @@ public partial class SettingsWindow : FluentWindow
         AgentsPanel.Visibility = tag == "agents" ?
                                      Visibility.Visible :
                                      Visibility.Collapsed;
+        LanguagePanel.Visibility = tag == "language" ?
+                                       Visibility.Visible :
+                                       Visibility.Collapsed;
     }
 
     private async void OnSaveClick(object sender, RoutedEventArgs e) =>

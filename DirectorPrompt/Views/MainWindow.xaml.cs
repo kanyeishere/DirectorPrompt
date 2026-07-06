@@ -6,7 +6,7 @@ using DirectorPrompt.ViewModels;
 using Wpf.Ui.Controls;
 using MenuItem = System.Windows.Controls.MenuItem;
 
-namespace DirectorPrompt;
+namespace DirectorPrompt.Views;
 
 public partial class MainWindow : FluentWindow
 {

@@ -63,6 +63,13 @@
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </ListViewItem>
+                <ListViewItem Tag="language" Padding="12,10">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="LocalLanguage24" Margin="0,0,12,0" />
+                        <TextBlock Text="{Binding [Settings.Language.Title], Source={x:Static loc:Loc.Instance}}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListViewItem>
             </ListView>
 
             <Border Grid.Column="1"
@@ -268,6 +275,32 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel x:Name="LanguagePanel" Visibility="Collapsed">
+                            <TextBlock Text="{Binding [Settings.Language.Title], Source={x:Static loc:Loc.Instance}}"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,4" />
+                            <TextBlock
+                                Text="{Binding [Settings.Language.Description], Source={x:Static loc:Loc.Instance}}"
+                                FontSize="12"
+                                Foreground="Gray"
+                                Margin="0,0,0,16" />
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding [Settings.Language.Language], Source={x:Static loc:Loc.Instance}}"
+                                           VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding AvailableLanguages}"
+                                          DisplayMemberPath="Value"
+                                          SelectedValuePath="Key"
+                                          SelectedValue="{Binding SelectedLanguage, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

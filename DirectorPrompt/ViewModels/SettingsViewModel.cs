@@ -16,6 +16,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly IConfiguration         configuration;
     private readonly IModelConnectionTester connectionTester;
+    private readonly ILocalizationService   localizationService;
 
     private readonly Dictionary<string, string[]> agentTools = new(StringComparer.OrdinalIgnoreCase);
 
@@ -31,12 +32,19 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private int snapshotInterval;
 
+    [ObservableProperty]
+    private string selectedLanguage = string.Empty;
+
     public ObservableCollection<AgentSettingViewModel> Agents { get; } = [];
 
-    public SettingsViewModel(IConfiguration configuration, IModelConnectionTester connectionTester)
+    public IReadOnlyDictionary<string, string> AvailableLanguages =>
+        localizationService.AvailableLanguages;
+
+    public SettingsViewModel(IConfiguration configuration, IModelConnectionTester connectionTester, ILocalizationService localizationService)
     {
-        this.configuration    = configuration;
-        this.connectionTester = connectionTester;
+        this.configuration       = configuration;
+        this.connectionTester    = connectionTester;
+        this.localizationService = localizationService;
         LoadSettings();
     }
 
@@ -44,8 +52,18 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         DatabasePath     = configuration["Database:Path"] ?? "data/director.db";
         SnapshotInterval = configuration.GetValue<int>("Orchestrator:SnapshotInterval");
+        SelectedLanguage = configuration["Localization:Language"] ?? localizationService.CurrentLanguage;
 
         LoadAgents();
+    }
+
+    partial void OnSelectedLanguageChanged(string value)
+    {
+        if (string.IsNullOrEmpty(value) || !AvailableLanguages.ContainsKey(value))
+            return;
+
+        if (localizationService.CurrentLanguage != value)
+            localizationService.LoadLanguage(value);
     }
 
     private void LoadAgents()
@@ -117,6 +135,10 @@ public sealed partial class SettingsViewModel : ObservableObject
                 ["Endpoint"]  = configuration["Embedding:Endpoint"]  ?? string.Empty,
                 ["ApiKey"]    = configuration["Embedding:ApiKey"]    ?? string.Empty,
                 ["ModelName"] = configuration["Embedding:ModelName"] ?? "text-embedding-3-small"
+            },
+            ["Localization"] = new JsonObject
+            {
+                ["Language"] = SelectedLanguage
             }
         };
 
