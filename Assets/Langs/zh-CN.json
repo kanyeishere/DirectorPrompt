@@ -13,6 +13,8 @@
     "Navigation.EditProject": "编辑项目",
     "Navigation.RenameSession": "重命名对话",
     "Navigation.Settings": "设置",
+    "Navigation.CollapseSidebar": "收起侧边栏",
+    "Navigation.ExpandSidebar": "展开侧边栏",
     "Dialog.Rewrite": "重写",
     "Dialog.DeleteRound": "删除此轮",
     "Dialog.Edit": "编辑",

@@ -43,6 +43,9 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool isProcessing;
 
+    [ObservableProperty]
+    private bool isSessionSidebarExpanded = true;
+
     public bool IsProjectSelected => CurrentProject is not null;
 
     public bool IsSessionSelected => CurrentSession is not null;
@@ -281,6 +284,10 @@ public sealed partial class MainViewModel : ObservableObject
             StatusMessage = Loc.Get("Status.RenameSessionFailed", ex.Message);
         }
     }
+
+    [RelayCommand]
+    private void ToggleSessionSidebar() =>
+        IsSessionSidebarExpanded = !IsSessionSidebarExpanded;
 
     [RelayCommand]
     private void OpenSettings()

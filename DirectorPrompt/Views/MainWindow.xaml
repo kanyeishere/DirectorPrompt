@@ -21,6 +21,42 @@
     <ui:FluentWindow.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
 
+        <Style x:Key="SidebarToggleStyle" TargetType="ui:Button">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ui:Button">
+                        <Border x:Name="PART_Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter x:Name="PART_Content"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              TextElement.Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PART_Border" Property="BorderBrush"
+                                        Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                                <Setter TargetName="PART_Content" Property="TextElement.Foreground"
+                                        Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="PART_Border" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <ContextMenu x:Key="ProjectItemContextMenu" x:Shared="False">
             <MenuItem
                 Header="{Binding [Common.Edit], Source={x:Static loc:Loc.Instance}}"
@@ -64,9 +100,6 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -75,7 +108,7 @@
                     <TextBlock Text="{Binding [Navigation.Project], Source={x:Static loc:Loc.Instance}}"
                                VerticalAlignment="Center"
                                Margin="0,0,6,0" />
-                    <ComboBox Width="180"
+                    <ComboBox Width="300"
                               Margin="0,0,4,0"
                               ItemsSource="{Binding Projects}"
                               DisplayMemberPath="Name"
@@ -94,40 +127,7 @@
                     </ui:Button>
                 </StackPanel>
 
-                <Border Grid.Column="1"
-                        Width="1"
-                        Background="{DynamicResource ControlElevationBorderBrush}"
-                        Margin="12,2"
-                        VerticalAlignment="Stretch" />
-
-                <TextBlock Grid.Column="2"
-                           Text="{Binding [Navigation.Session], Source={x:Static loc:Loc.Instance}}"
-                           VerticalAlignment="Center"
-                           Margin="0,0,6,0" />
-
-                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                    <ComboBox Width="180"
-                              Margin="0,0,4,0"
-                              ItemsSource="{Binding Sessions}"
-                              DisplayMemberPath="Title"
-                              SelectedItem="{Binding CurrentSession}"
-                              IsEnabled="{Binding IsProjectSelected}">
-                        <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
-                                <Setter Property="ContextMenu" Value="{StaticResource SessionItemContextMenu}" />
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
-                    <ui:Button Appearance="Secondary"
-                               Padding="8,6"
-                               Command="{Binding NewSessionCommand}"
-                               IsEnabled="{Binding IsProjectSelected}"
-                               ToolTip="{Binding [Navigation.NewSession], Source={x:Static loc:Loc.Instance}}">
-                        <ui:SymbolIcon Symbol="Add24" />
-                    </ui:Button>
-                </StackPanel>
-
-                <ui:Button Grid.Column="5"
+                <ui:Button Grid.Column="2"
                            Content="{Binding [Navigation.Settings], Source={x:Static loc:Loc.Instance}}"
                            Icon="Settings24"
                            Appearance="Secondary"
@@ -138,12 +138,54 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" MinWidth="400" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="320" MinWidth="260" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0">
+            <Border Grid.Column="0"
+                    Width="240"
+                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                    BorderThickness="0,0,1,0"
+                    Visibility="{Binding IsSessionSidebarExpanded, Converter={StaticResource BoolToVisibility}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <ui:Button Grid.Row="0"
+                               Content="{Binding [Navigation.NewSession], Source={x:Static loc:Loc.Instance}}"
+                               Icon="Add24"
+                               Appearance="Primary"
+                               Command="{Binding NewSessionCommand}"
+                               IsEnabled="{Binding IsProjectSelected}"
+                               Margin="0,8,8,12"
+                               HorizontalAlignment="Stretch" />
+
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding Sessions}"
+                             SelectedItem="{Binding CurrentSession}"
+                             IsEnabled="{Binding IsProjectSelected}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Padding="0,0,0,8">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                <Setter Property="ContextMenu" Value="{StaticResource SessionItemContextMenu}" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -478,13 +520,13 @@
                 </Border>
             </Grid>
 
-            <GridSplitter Grid.Column="1"
+            <GridSplitter Grid.Column="2"
                           Width="3"
                           Background="{DynamicResource ControlElevationBorderBrush}"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch" />
 
-            <ScrollViewer Grid.Column="2"
+            <ScrollViewer Grid.Column="3"
                           VerticalScrollBarVisibility="Auto"
                           Padding="8,8,8,8">
                 <StackPanel>
@@ -585,6 +627,32 @@
                     </ui:CardExpander>
                 </StackPanel>
             </ScrollViewer>
+
+            <ui:Button Grid.Column="0"
+                       Style="{StaticResource SidebarToggleStyle}"
+                       Width="20"
+                       Height="36"
+                       Command="{Binding ToggleSessionSidebarCommand}"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       Margin="236,0,0,0"
+                       Visibility="{Binding IsSessionSidebarExpanded, Converter={StaticResource BoolToVisibility}}"
+                       ToolTip="{Binding [Navigation.CollapseSidebar], Source={x:Static loc:Loc.Instance}}">
+                <ui:SymbolIcon Symbol="ChevronLeft24" FontSize="12" />
+            </ui:Button>
+
+            <ui:Button Grid.Column="0"
+                       Style="{StaticResource SidebarToggleStyle}"
+                       Width="20"
+                       Height="36"
+                       Command="{Binding ToggleSessionSidebarCommand}"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       Margin="4,0,0,0"
+                       Visibility="{Binding IsSessionSidebarExpanded, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}"
+                       ToolTip="{Binding [Navigation.ExpandSidebar], Source={x:Static loc:Loc.Instance}}">
+                <ui:SymbolIcon Symbol="ChevronRight24" FontSize="12" />
+            </ui:Button>
         </Grid>
 
     </Grid>
