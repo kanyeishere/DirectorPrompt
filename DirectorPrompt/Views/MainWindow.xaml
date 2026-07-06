@@ -121,6 +121,14 @@
                     </ComboBox>
                     <ui:Button Appearance="Secondary"
                                Padding="8,6"
+                               Margin="0,0,4,0"
+                               Command="{Binding EditProjectCommand}"
+                               IsEnabled="{Binding IsProjectSelected}"
+                               ToolTip="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                    </ui:Button>
+                    <ui:Button Appearance="Secondary"
+                               Padding="8,6"
                                Command="{Binding NewProjectCommand}"
                                ToolTip="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="Add24" />
