@@ -480,56 +480,79 @@ Click="OnRollbackRound"
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <Grid Margin="0,4,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="140" />
-                                <ColumnDefinition Width="80" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ComboBox Grid.Column="0"
-                                      Margin="0,0,4,0"
-                                      SelectedIndex="0"
-                                      SelectionChanged="OnDirectiveTypeChanged">
-                                <ComboBoxItem
-                                    Content="{Binding [Directive.Type.Plot], Source={x:Static loc:Loc.Instance}}" />
-                                <ComboBoxItem
-                                    Content="{Binding [Directive.Type.Tone], Source={x:Static loc:Loc.Instance}}" />
-                                <ComboBoxItem
-                                    Content="{Binding [Directive.Type.TemporaryConstraint], Source={x:Static loc:Loc.Instance}}" />
-                                <ComboBoxItem
-                                    Content="{Binding [Directive.Type.SceneChange], Source={x:Static loc:Loc.Instance}}" />
-                            </ComboBox>
-                            <ui:NumberBox Grid.Column="1"
-                                          Margin="4,0"
-                                          Value="{Binding DirectiveInput.InputTTL, TargetNullValue=5}"
-                                          Minimum="1"
-                                          Maximum="999"
-                                          SmallChange="1"
-                                          LargeChange="5"
-                                          Visibility="{Binding DirectiveInput.InputHasTTL, Converter={StaticResource BoolToVisibility}}"
-                                          ToolTip="生效轮数" />
-                            <ui:TextBox Grid.Column="2"
-                                        Margin="4,0"
-                                        PlaceholderText="{Binding [Dialog.InputPlaceholder], Source={x:Static loc:Loc.Instance}}"
+                        <StackPanel Margin="0,4,0,0">
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          Width="200"
+                                          SelectedIndex="0"
+                                          SelectionChanged="OnDirectiveTypeChanged">
+                                    <ComboBoxItem
+                                        Content="{Binding [Directive.Type.Plot], Source={x:Static loc:Loc.Instance}}" />
+                                    <ComboBoxItem
+                                        Content="{Binding [Directive.Type.Tone], Source={x:Static loc:Loc.Instance}}" />
+                                    <ComboBoxItem
+                                        Content="{Binding [Directive.Type.TemporaryConstraint], Source={x:Static loc:Loc.Instance}}" />
+                                    <ComboBoxItem
+                                        Content="{Binding [Directive.Type.SceneChange], Source={x:Static loc:Loc.Instance}}" />
+                                </ComboBox>
+
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal" 
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding DirectiveInput.InputHasTTL, Converter={StaticResource BoolToVisibility}}">
+                                    <Border
+                                        Width="1"
+                                        Margin="8,2"
+                                        Background="{DynamicResource ControlElevationBorderBrush}" />
+                                    
+                                    <TextBlock Text="{Binding [Navigation.InputTTL], Source={x:Static loc:Loc.Instance}}"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,6,0" />
+
+                                    <ui:NumberBox
+                                        Width="150"
+                                        Value="{Binding DirectiveInput.InputTTL, TargetNullValue=5}"
+                                        Minimum="1"
+                                        Maximum="999"
+                                        SmallChange="1"
+                                        LargeChange="5" />
+                                </StackPanel>
+                            </Grid>
+
+                            <ui:TextBox Margin="0,0,0,4"
                                         Text="{Binding DirectiveInput.InputContent, UpdateSourceTrigger=PropertyChanged}"
-                                        KeyDown="OnInputKeyDown" />
-                            <ui:Button Grid.Column="3"
-                                       Content="{Binding [Dialog.AddDirective], Source={x:Static loc:Loc.Instance}}"
-                                       Icon="Add24"
-                                       Margin="4,0"
-                                       Padding="12,6"
-                                       Command="{Binding DirectiveInput.AddDirectiveCommand}" />
-                            <ui:Button Grid.Column="4"
-                                       Content="{Binding [Dialog.SendDirective], Source={x:Static loc:Loc.Instance}}"
-                                       Icon="Send24"
-                                       Appearance="Primary"
-                                       Margin="4,0,0,0"
-                                       Padding="16,6"
-                                       Command="{Binding SendDirectivesCommand}"
-                                       IsEnabled="{Binding IsProcessing, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
-                        </Grid>
+                                        TextWrapping="Wrap"
+                                        MaxHeight="300"
+                                        AcceptsReturn="True" />
+
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Right"
+                                        Margin="0, 4 ,0 ,0">
+                                <ui:Button Content="{Binding [Dialog.AddDirective], Source={x:Static loc:Loc.Instance}}"
+                                           Icon="Add24"
+                                           Width="150"
+                                           Margin="0,0,4,0"
+                                           Padding="12,6"
+                                           Command="{Binding DirectiveInput.AddDirectiveCommand}" />
+                                <Border Width="1"
+                                        Margin="4,4"
+                                        Background="{DynamicResource ControlElevationBorderBrush}" />
+                                <ui:Button Content="{Binding [Dialog.SendDirective], Source={x:Static loc:Loc.Instance}}"
+                                           Icon="Send24"
+                                           Width="150"
+                                           Appearance="Primary"
+                                           Margin="4,0,0,0"
+                                           Padding="16,6"
+                                           Command="{Binding SendDirectivesCommand}"
+                                           IsEnabled="{Binding IsProcessing, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>

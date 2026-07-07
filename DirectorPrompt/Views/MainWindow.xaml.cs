@@ -44,15 +44,6 @@ public partial class MainWindow : FluentWindow
         };
     }
 
-    private void OnInputKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && !string.IsNullOrWhiteSpace(viewModel.DirectiveInput.InputContent))
-        {
-            viewModel.DirectiveInput.AddDirectiveCommand.Execute(null);
-            e.Handled = true;
-        }
-    }
-
 private void OnRollbackRound(object sender, RoutedEventArgs e)
 {
     if (sender is MenuItem { Tag: DialogEntryViewModel })
