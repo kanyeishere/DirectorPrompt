@@ -15,4 +15,8 @@ public interface IRoundChangeRepository
     Task RollbackRoundAsync(long roundID, CancellationToken cancellationToken = default);
 
     Task RemoveByRoundAsync(long roundID, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CapturedChange>> CaptureRoundDataAsync(long roundID, CancellationToken cancellationToken = default);
+
+    Task ReplayChangesAsync(long targetRoundID, IReadOnlyList<CapturedChange> changes, CancellationToken cancellationToken = default);
 }

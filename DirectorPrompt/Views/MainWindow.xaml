@@ -319,8 +319,12 @@
                                                             Click="OnRewriteRound"
                                                             Tag="{Binding}" />
                                                         <MenuItem
-                                                            Header="{Binding [Dialog.DeleteRound], Source={x:Static loc:Loc.Instance}}"
-                                                            Click="OnDeleteRound"
+                                                            Header="{Binding [Dialog.Correct], Source={x:Static loc:Loc.Instance}}"
+                                                            Click="OnCorrectRound"
+                                                            Tag="{Binding}" />
+                                                        <MenuItem
+Header="{Binding [Dialog.Rollback], Source={x:Static loc:Loc.Instance}}"
+Click="OnRollbackRound"
                                                             Tag="{Binding}" />
                                                     </ContextMenu>
                                                 </Button.ContextMenu>

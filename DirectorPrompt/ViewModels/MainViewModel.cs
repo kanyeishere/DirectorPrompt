@@ -32,7 +32,9 @@ public sealed partial class MainViewModel
 )
     : ObservableObject
 {
-    private bool pendingRewrite;
+    private long pendingCorrectionOriginalRoundID;
+    private long pendingCorrectionTempRoundID;
+    private string? pendingCorrectionOriginalNarrative;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsProjectSelected))]
@@ -348,11 +350,7 @@ public sealed partial class MainViewModel
             Action<string, string>      streamingUpdate = (narrative, thinking) => dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); }));
             Action<PipelineStageUpdate> stageUpdate     = update => dispatcher.BeginInvoke(new Action(() => { UpdatePipelineStage(update.Stage, update.Status, update.Detail); }));
 
-            var result = await (pendingRewrite ?
-                                   orchestrator.RewriteAsync(batch, CurrentSession.ID, streamingUpdate, stageUpdate) :
-                                   orchestrator.ProcessBatchAsync(batch, CurrentSession.ID, streamingUpdate, stageUpdate));
-
-            pendingRewrite = false;
+            var result = await orchestrator.ProcessBatchAsync(batch, CurrentSession.ID, streamingUpdate, stageUpdate);
 
             streamingEntry.RoundID  = result.RoundID;
             streamingEntry.Content  = result.Narrative;
@@ -392,7 +390,7 @@ public sealed partial class MainViewModel
     }
 
     [RelayCommand]
-    private async Task DeleteLastRoundAsync()
+    private async Task RollbackLastRoundAsync()
     {
         if (CurrentSession is null)
             return;
@@ -410,18 +408,32 @@ public sealed partial class MainViewModel
                 return;
             }
 
-            Log.Information("用户回滚轮次: 对话={SessionID}, 轮次={RoundID}", CurrentSession.ID, latestRound);
+            var events        = await eventRepository.GetByRoundAsync(latestRound);
+            var directorEvent = events.FirstOrDefault(e => e.Type == EventType.DirectorInput);
+
+            Log.Information("用户回退轮次: 对话={SessionID}, 轮次={RoundID}", CurrentSession.ID, latestRound);
 
             await orchestrator.DeleteRoundAsync(CurrentSession.ID, latestRound);
 
             Dialog.RemoveEntriesByRound(latestRound);
 
             await RefreshSidebarAsync();
+
+            if (directorEvent is not null)
+            {
+                DirectiveInput.Clear();
+
+                var directives = ParseDirectivesFromEvent(directorEvent.Data);
+
+                foreach (var d in directives)
+                    DirectiveInput.Directives.Add(new DirectiveItemViewModel { Type = d.Type, Content = d.Content, Order = d.Order });
+            }
+
             StatusMessage = Loc.Get("Status.RolledBack");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "回滚失败");
+            Log.Error(ex, "回退失败");
             StatusMessage = Loc.Get("Status.RollbackFailed", ex.Message);
         }
         finally
@@ -436,8 +448,12 @@ public sealed partial class MainViewModel
         if (CurrentSession is null)
             return;
 
+        if (CurrentProject is null)
+            return;
+
         IsProcessing  = true;
         StatusMessage = Loc.Get("Status.Rewriting");
+        ResetPipelineStages();
 
         try
         {
@@ -449,7 +465,7 @@ public sealed partial class MainViewModel
                 return;
             }
 
-            var events        = await eventRepository.GetByRoundAsync(latestRound);
+            var events = await eventRepository.GetByRoundAsync(latestRound);
             var directorEvent = events.FirstOrDefault(e => e.Type == EventType.DirectorInput);
 
             if (directorEvent is null)
@@ -458,42 +474,172 @@ public sealed partial class MainViewModel
                 return;
             }
 
-            DirectiveInput.Clear();
+            var directives = ParseDirectivesFromEvent(directorEvent.Data);
 
-            try
-            {
-                using var doc = JsonDocument.Parse(directorEvent.Data);
-
-                var order = 1;
-                foreach (var element in doc.RootElement.EnumerateArray())
-                {
-                    var typeStr = element.GetProperty("type").GetString() ?? "Plot";
-                    var content = element.GetProperty("content").GetString() ?? string.Empty;
-
-                    var type = typeStr switch
-                    {
-                        "Tone"                => DirectiveType.Tone,
-                        "TemporaryConstraint" => DirectiveType.TemporaryConstraint,
-                        "SceneChange"         => DirectiveType.SceneChange,
-                        _                     => DirectiveType.Plot
-                    };
-
-                    DirectiveInput.Directives.Add(new DirectiveItemViewModel { Type = type, Content = content, Order = order++ });
-                }
-            }
-            catch
+            if (directives.Count == 0)
             {
                 StatusMessage = Loc.Get("Status.OriginalDirectiveNotFound");
                 return;
             }
 
-            pendingRewrite = true;
-            StatusMessage  = Loc.Get("Status.RewriteNeedReinput");
+            var batch = new DirectiveBatch(CurrentProject.ID, directives);
+
+            Dialog.RemoveEntriesByRound(latestRound);
+
+            var directorContent = string.Join("\n", directives.Select(d => $"[{d.Type}] {d.Content}"));
+            Dialog.AddDirectorEntry(0, directorContent);
+
+            var streamingEntry = Dialog.BeginStreamingNarrative(0);
+
+            var dispatcher = Application.Current.Dispatcher;
+
+            Action<string, string>      streamingUpdate = (narrative, thinking) => dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); }));
+            Action<PipelineStageUpdate> stageUpdate     = update => dispatcher.BeginInvoke(new Action(() => { UpdatePipelineStage(update.Stage, update.Status, update.Detail); }));
+
+            var result = await orchestrator.RewriteAsync(batch, CurrentSession.ID, streamingUpdate, stageUpdate);
+
+            streamingEntry.RoundID  = result.RoundID;
+            streamingEntry.Content  = result.Narrative;
+            streamingEntry.Thinking = result.Thinking;
+            streamingEntry.RenderMarkdown();
+
+            await RefreshSidebarAsync();
+
+            DirectiveInput.Clear();
+            StatusMessage = result.AuditPassed ?
+                                Loc.Get("Status.Complete") :
+                                Loc.Get("Status.CompleteWithWarnings", result.Violations.Count);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "重写失败");
             StatusMessage = Loc.Get("Status.RewriteFailed", ex.Message);
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task CorrectLastRoundAsync()
+    {
+        if (CurrentSession is null)
+            return;
+
+        var latestRound = await eventRepository.GetLatestRoundIDAsync(CurrentSession.ID);
+
+        if (latestRound <= 0)
+        {
+            StatusMessage = Loc.Get("Status.NoRoundToCorrect");
+            return;
+        }
+
+        var guidance = PromptDialog.MultilineInput
+        (
+            GetCurrentWindow(),
+            Loc.Get("Dialog.CorrectTitle"),
+            Loc.Get("Dialog.CorrectPrompt"),
+            string.Empty
+        );
+
+        if (string.IsNullOrWhiteSpace(guidance))
+            return;
+
+        IsProcessing  = true;
+        StatusMessage = Loc.Get("Status.Correcting");
+        ResetPipelineStages();
+
+        try
+        {
+            var events = await eventRepository.GetByRoundAsync(latestRound);
+            var narrativeEvent = events.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
+
+            pendingCorrectionOriginalRoundID = latestRound;
+            pendingCorrectionOriginalNarrative = narrativeEvent?.Data;
+
+            var streamingEntry = Dialog.BeginStreamingNarrative(0);
+
+            var dispatcher = Application.Current.Dispatcher;
+
+            Action<string, string>      streamingUpdate = (narrative, thinking) => dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); }));
+            Action<PipelineStageUpdate> stageUpdate     = update => dispatcher.BeginInvoke(new Action(() => { UpdatePipelineStage(update.Stage, update.Status, update.Detail); }));
+
+            var result = await orchestrator.CorrectAsync
+            (
+                CurrentSession.ID,
+                latestRound,
+                guidance,
+                streamingUpdate,
+                stageUpdate
+            );
+
+            pendingCorrectionTempRoundID = result.RoundID;
+
+            streamingEntry.RoundID  = result.RoundID;
+            streamingEntry.Content  = result.Narrative;
+            streamingEntry.Thinking = result.Thinking;
+            streamingEntry.RenderMarkdown();
+
+            await RefreshSidebarAsync();
+
+            var accept = CorrectionCompareWindow.Show
+            (
+                GetCurrentWindow(),
+                pendingCorrectionOriginalNarrative ?? string.Empty,
+                result.Narrative,
+                Loc.Get("Dialog.CorrectOriginal"),
+                Loc.Get("Dialog.CorrectRevised")
+            );
+
+            if (accept)
+            {
+                StatusMessage = Loc.Get("Status.CommittingCorrection");
+
+                await orchestrator.AcceptCorrectionAsync
+                (
+                    CurrentSession.ID,
+                    pendingCorrectionOriginalRoundID,
+                    pendingCorrectionTempRoundID
+                );
+
+                var originalNarrativeEntry = Dialog.Entries.FirstOrDefault
+                (
+                    e => e.RoundID == pendingCorrectionOriginalRoundID && e.IsNarrative
+                );
+
+                if (originalNarrativeEntry is not null)
+                    Dialog.Entries.Remove(originalNarrativeEntry);
+
+                streamingEntry.RoundID = pendingCorrectionOriginalRoundID;
+
+                await RefreshSidebarAsync();
+                StatusMessage = Loc.Get("Status.CorrectionAccepted");
+            }
+            else
+            {
+                StatusMessage = Loc.Get("Status.RejectingCorrection");
+
+                await orchestrator.RejectCorrectionAsync
+                (
+                    CurrentSession.ID,
+                    pendingCorrectionTempRoundID
+                );
+
+                Dialog.RemoveEntriesByRound(pendingCorrectionTempRoundID);
+
+                await RefreshSidebarAsync();
+                StatusMessage = Loc.Get("Status.CorrectionRejected");
+            }
+
+            pendingCorrectionOriginalRoundID = 0;
+            pendingCorrectionTempRoundID     = 0;
+            pendingCorrectionOriginalNarrative = null;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "修正失败");
+            StatusMessage = Loc.Get("Status.CorrectionFailed", ex.Message);
         }
         finally
         {
@@ -626,6 +772,33 @@ public sealed partial class MainViewModel
         {
             Log.Error(ex, "加载对话历史失败: 对话={SessionID}", sessionID);
         }
+    }
+
+    private static IReadOnlyList<DirectiveItem> ParseDirectivesFromEvent(string jsonData)
+    {
+        var result = new List<DirectiveItem>();
+
+        using var doc = JsonDocument.Parse(jsonData);
+
+        var order = 1;
+
+        foreach (var element in doc.RootElement.EnumerateArray())
+        {
+            var typeStr = element.GetProperty("type").GetString() ?? "Plot";
+            var content = element.GetProperty("content").GetString() ?? string.Empty;
+
+            var type = typeStr switch
+            {
+                "Tone"                => DirectiveType.Tone,
+                "TemporaryConstraint" => DirectiveType.TemporaryConstraint,
+                "SceneChange"         => DirectiveType.SceneChange,
+                _                     => DirectiveType.Plot
+            };
+
+            result.Add(new DirectiveItem(type, content, order++, null));
+        }
+
+        return result;
     }
 
     private static string ParseDirectorInputData(string json)

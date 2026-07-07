@@ -30,6 +30,10 @@ public sealed class PipelineContext
 
     public string? ThinkingOutput { get; set; }
 
+    public string? OriginalNarrative { get; set; }
+
+    public string? CorrectionGuidance { get; set; }
+
     public List<Violation> Violations { get; } = [];
 
     public bool AuditPassed { get; set; }

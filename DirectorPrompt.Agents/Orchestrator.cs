@@ -322,6 +322,281 @@ public sealed class Orchestrator
         return await ProcessBatchAsync(batch, sessionID, onStreamingUpdate, onStageUpdate, cancellationToken);
     }
 
+    public async Task<NarrationResult> CorrectAsync
+    (
+        long                         sessionID,
+        long                         originalRoundID,
+        string                       correctionGuidance,
+        Action<string, string>?      onStreamingUpdate = null,
+        Action<PipelineStageUpdate>? onStageUpdate     = null,
+        CancellationToken            cancellationToken = default
+    )
+    {
+        var project = await projectRepository.GetByIDAsync
+                      (
+                          (await sessionRepository.GetByIDAsync(sessionID, cancellationToken))?.ProjectID ?? 0,
+                          cancellationToken
+                      );
+
+        if (project is null)
+            throw new ArgumentException("项目不存在");
+
+        var originalEvents = await eventRepository.GetByRoundAsync(originalRoundID, cancellationToken);
+        var directorEvent  = originalEvents.FirstOrDefault(e => e.Type == EventType.DirectorInput);
+        var narrativeEvent = originalEvents.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
+
+        if (directorEvent is null || narrativeEvent is null)
+            throw new ArgumentException("原始轮次事件不完整");
+
+        var originalDirectives = ParseOriginalDirectives(directorEvent.Data);
+        var batch              = new DirectiveBatch(project.ID, originalDirectives);
+
+        var tempRoundID     = await eventRepository.GetLatestRoundIDAsync(sessionID, cancellationToken) + 1;
+        var activeScene     = await sceneRepository.GetActiveSceneAsync(sessionID, cancellationToken);
+
+        if (activeScene is null)
+            throw new InvalidOperationException("修正需要已有活跃场景");
+
+        var timelinePosition = activeScene.TimelinePosition;
+        var history          = await BuildHistoryAsync(sessionID, tempRoundID, cancellationToken);
+
+        Log.Information
+        (
+            "Orchestrator 开始修正: 对话={SessionID}, 原轮次={OriginalRoundID}, 临时轮次={TempRoundID}, 修正指引={Guidance}",
+            sessionID,
+            originalRoundID,
+            tempRoundID,
+            correctionGuidance
+        );
+
+        var embeddingConfig = JsonSerializer.Deserialize<ModelConfig>(project.EmbeddingConfig) ?? new ModelConfig();
+
+        using (RoundContext.Enter(tempRoundID))
+        {
+            var context = new PipelineContext
+            {
+                DirectiveBatch          = batch,
+                RoundID                 = tempRoundID,
+                SessionID               = sessionID,
+                CurrentSceneID          = activeScene.ID,
+                CurrentTimelinePosition = timelinePosition,
+                Project                 = project,
+                EmbeddingConfig         = embeddingConfig,
+                History                 = history,
+                OriginalNarrative       = narrativeEvent.Data,
+                CorrectionGuidance      = correctionGuidance,
+                OnStreamingUpdate       = onStreamingUpdate,
+                OnStageUpdate           = onStageUpdate
+            };
+
+            onStageUpdate?.Invoke(new PipelineStageUpdate(PipelineStageKind.Retrieval, PipelineStageStatus.Running));
+            await retrievalStage.ExecuteAsync(context, cancellationToken);
+            onStageUpdate?.Invoke
+            (
+                new PipelineStageUpdate
+                (
+                    PipelineStageKind.Retrieval,
+                    PipelineStageStatus.Complete,
+                    $"知识长度={context.KnowledgeContext?.Length ?? 0}, 记忆长度={context.MemoryContext?.Length ?? 0}"
+                )
+            );
+
+            onStageUpdate?.Invoke(new PipelineStageUpdate(PipelineStageKind.Generation, PipelineStageStatus.Running));
+            await generationStage.ExecuteAsync(context, cancellationToken);
+            onStageUpdate?.Invoke
+            (
+                new PipelineStageUpdate
+                (
+                    PipelineStageKind.Generation,
+                    PipelineStageStatus.Complete,
+                    $"叙事长度={context.NarrativeOutput?.Length ?? 0}"
+                )
+            );
+
+            await RecordEventAsync
+            (
+                project.ID,
+                sessionID,
+                tempRoundID,
+                EventType.DirectorInput,
+                directorEvent.Data,
+                cancellationToken
+            );
+
+            await RecordEventAsync
+            (
+                project.ID,
+                sessionID,
+                tempRoundID,
+                EventType.NarrativeOutput,
+                context.NarrativeOutput ?? string.Empty,
+                cancellationToken
+            );
+
+            onStageUpdate?.Invoke(new PipelineStageUpdate(PipelineStageKind.Audit, PipelineStageStatus.Running));
+            await RunAuditLoopAsync(context, cancellationToken);
+            onStageUpdate?.Invoke
+            (
+                new PipelineStageUpdate
+                (
+                    PipelineStageKind.Audit,
+                    PipelineStageStatus.Complete,
+                    context.AuditPassed ?
+                        "通过" :
+                        $"违规数={context.Violations.Count}"
+                )
+            );
+
+            if (context.AuditPassed)
+            {
+                onStageUpdate?.Invoke(new PipelineStageUpdate(PipelineStageKind.PostProcessing, PipelineStageStatus.Running));
+                await postProcessingStage.ExecuteAsync(context, cancellationToken);
+                onStageUpdate?.Invoke(new PipelineStageUpdate(PipelineStageKind.PostProcessing, PipelineStageStatus.Complete));
+            }
+
+            await directiveRepository.DecrementTTLAsync(sessionID, cancellationToken);
+
+            Log.Information
+            (
+                "Orchestrator 修正完成: 对话={SessionID}, 临时轮次={TempRoundID}, 审计通过={Passed}",
+                sessionID,
+                tempRoundID,
+                context.AuditPassed
+            );
+
+            return new NarrationResult
+            (
+                context.NarrativeOutput ?? string.Empty,
+                context.ThinkingOutput  ?? string.Empty,
+                tempRoundID,
+                context.Violations,
+                context.AuditPassed
+            );
+        }
+    }
+
+    public async Task AcceptCorrectionAsync
+    (
+        long              sessionID,
+        long              originalRoundID,
+        long              tempRoundID,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Log.Information
+        (
+            "接受修正: 对话={SessionID}, 原轮次={OriginalRoundID}, 临时轮次={TempRoundID}",
+            sessionID,
+            originalRoundID,
+            tempRoundID
+        );
+
+        var capturedChanges      = await roundChangeRepository.CaptureRoundDataAsync(tempRoundID, cancellationToken);
+        var tempStateChanges     = await stateRepository.CaptureStateChangesAsync(sessionID, tempRoundID, cancellationToken);
+        var originalStateChanges = await stateRepository.CaptureStateChangesAsync(sessionID, originalRoundID, cancellationToken);
+
+        Log.Information
+        (
+            "修正数据捕获: 临时轮次变更数={ChangeCount}, 临时状态变更数={TempStateCount}, 原始状态变更数={OrigStateCount}",
+            capturedChanges.Count,
+            tempStateChanges.Count,
+            originalStateChanges.Count
+        );
+
+        var tempEvents            = await eventRepository.GetByRoundAsync(tempRoundID, cancellationToken);
+        var tempNarrativeEvent    = tempEvents.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
+        var originalEvents        = await eventRepository.GetByRoundAsync(originalRoundID, cancellationToken);
+        var originalDirectorEvent = originalEvents.FirstOrDefault(e => e.Type == EventType.DirectorInput);
+
+        var projectID = originalDirectorEvent?.ProjectID ?? 0;
+
+        Log.Information("修正: 删除临时轮次 {TempRoundID}", tempRoundID);
+        await DeleteRoundAsync(sessionID, tempRoundID, cancellationToken);
+
+        Log.Information("修正: 删除原始轮次 {OriginalRoundID}", originalRoundID);
+        await DeleteRoundAsync(sessionID, originalRoundID, cancellationToken);
+
+        Log.Information("修正: 重放临时轮次数据变更到原轮次, 变更数={ChangeCount}", capturedChanges.Count);
+        await roundChangeRepository.ReplayChangesAsync(originalRoundID, capturedChanges, cancellationToken);
+
+        Log.Information("修正: 重放状态变更, 临时状态变更数={TempStateCount}", tempStateChanges.Count);
+        await stateRepository.ReplayStateChangesAsync
+        (
+            sessionID,
+            originalRoundID,
+            tempStateChanges,
+            originalStateChanges,
+            cancellationToken
+        );
+
+        if (originalDirectorEvent is not null)
+        {
+            await RecordEventAsync
+            (
+                projectID,
+                sessionID,
+                originalRoundID,
+                EventType.DirectorInput,
+                originalDirectorEvent.Data,
+                cancellationToken
+            );
+        }
+
+        if (tempNarrativeEvent is not null)
+        {
+            await RecordEventAsync
+            (
+                projectID,
+                sessionID,
+                originalRoundID,
+                EventType.NarrativeOutput,
+                tempNarrativeEvent.Data,
+                cancellationToken
+            );
+        }
+
+        Log.Information("修正已接受, 原轮次 {OriginalRoundID} 已替换", originalRoundID);
+    }
+
+    public async Task RejectCorrectionAsync
+    (
+        long              sessionID,
+        long              tempRoundID,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Log.Information("拒绝修正: 对话={SessionID}, 临时轮次={TempRoundID}", sessionID, tempRoundID);
+        await DeleteRoundAsync(sessionID, tempRoundID, cancellationToken);
+        Log.Information("修正已拒绝, 临时轮次 {TempRoundID} 已删除", tempRoundID);
+    }
+
+    private static IReadOnlyList<DirectiveItem> ParseOriginalDirectives(string jsonData)
+    {
+        var result = new List<DirectiveItem>();
+
+        using var doc = JsonDocument.Parse(jsonData);
+
+        var order = 1;
+
+        foreach (var element in doc.RootElement.EnumerateArray())
+        {
+            var typeStr = element.GetProperty("type").GetString() ?? "Plot";
+            var content = element.GetProperty("content").GetString() ?? string.Empty;
+
+            var type = typeStr switch
+            {
+                "Tone"                => DirectiveType.Tone,
+                "TemporaryConstraint" => DirectiveType.TemporaryConstraint,
+                "SceneChange"         => DirectiveType.SceneChange,
+                _                     => DirectiveType.Plot
+            };
+
+            result.Add(new DirectiveItem(type, content, order++, null));
+        }
+
+        return result;
+    }
+
     private async Task ProcessDirectivesAsync
     (
         DirectiveBatch    batch,

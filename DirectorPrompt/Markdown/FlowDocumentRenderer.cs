@@ -5,6 +5,9 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Block = Markdig.Syntax.Block;
 using Inline = Markdig.Syntax.Inlines.Inline;
+using MarkdownTable = Markdig.Extensions.Tables.Table;
+using MarkdownTableRow = Markdig.Extensions.Tables.TableRow;
+using MarkdownTableCell = Markdig.Extensions.Tables.TableCell;
 
 namespace DirectorPrompt.Markdown;
 
@@ -38,6 +41,9 @@ internal sealed class FlowDocumentRenderer
                 break;
             case ThematicBreakBlock:
                 document!.Blocks.Add(new Paragraph(new Run("────────────────") { Foreground = Brushes.Gray }));
+                break;
+            case MarkdownTable table:
+                RenderTable(table);
                 break;
             default:
                 if (block is ParagraphBlock p)
@@ -139,6 +145,74 @@ internal sealed class FlowDocumentRenderer
 
             document!.Blocks.Add(paragraph);
         }
+    }
+
+    private void RenderTable(MarkdownTable table)
+    {
+        var borderBrush = new SolidColorBrush(Color.FromRgb(80, 80, 80));
+        var headerBg    = new SolidColorBrush(Color.FromRgb(45, 45, 48));
+
+        var flowTable = new Table
+        {
+            BorderBrush     = borderBrush,
+            BorderThickness = new Thickness(1),
+            CellSpacing     = 0,
+            Margin          = new Thickness(0, 4, 0, 4)
+        };
+
+        var columnCount = 0;
+
+        foreach (var item in table)
+        {
+            if (item is not MarkdownTableRow row)
+                continue;
+
+            var isHeaderRow = row.IsHeader;
+            var flowRow     = new TableRow();
+
+            if (isHeaderRow)
+                flowRow.Background = headerBg;
+
+            var cellCount = 0;
+
+            foreach (var cell in row)
+            {
+                if (cell is not MarkdownTableCell tableCell)
+                    continue;
+
+                cellCount++;
+
+                var cellContent = new Paragraph { Margin = new Thickness(2) };
+
+                foreach (var subBlock in tableCell)
+                {
+                    if (subBlock is ParagraphBlock p && p.Inline is not null)
+                        RenderInlines(cellContent, p.Inline);
+                }
+
+                var flowCell = new TableCell(cellContent)
+                {
+                    BorderBrush     = borderBrush,
+                    BorderThickness = new Thickness(1),
+                    Padding         = new Thickness(4, 2, 4, 2)
+                };
+
+                if (isHeaderRow)
+                    flowCell.FontWeight = FontWeights.Bold;
+
+                flowRow.Cells.Add(flowCell);
+            }
+
+            if (cellCount > columnCount)
+                columnCount = cellCount;
+
+            flowTable.RowGroups.Add(new TableRowGroup { Rows = { flowRow } });
+        }
+
+        for (var i = 0; i < columnCount; i++)
+            flowTable.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Auto) });
+
+        document!.Blocks.Add(flowTable);
     }
 
     private void RenderInlines(Paragraph paragraph, ContainerInline container)

@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using DirectorPrompt.Localization;
 using Wpf.Ui.Controls;
@@ -50,13 +51,18 @@ public partial class PromptDialog : FluentWindow
 
     public static bool Confirm(Window owner, string title, string message, bool danger = false)
     {
+        return Confirm(owner, title, message, Loc.Get("Common.Delete"), Loc.Get("Common.Cancel"), danger);
+    }
+
+    public static bool Confirm(Window owner, string title, string message, string primaryText, string secondaryText, bool danger = false)
+    {
         var dialog = new PromptDialog();
         dialog.Configure
         (
             title,
             message,
-            Loc.Get("Common.Delete"),
-            Loc.Get("Common.Cancel"),
+            primaryText,
+            secondaryText,
             danger ?
                 ControlAppearance.Danger :
                 ControlAppearance.Primary
@@ -90,6 +96,40 @@ public partial class PromptDialog : FluentWindow
         };
         dialog.InputBox.KeyDown += dialog.OnInputBoxKeyDown;
         dialog.Owner            =  owner;
+        dialog.ShowDialog();
+
+        return dialog.DialogResult == true ?
+                   dialog.result :
+                   null;
+    }
+
+    public static string? MultilineInput(Window owner, string title, string prompt, string defaultValue)
+    {
+        var dialog = new PromptDialog();
+        dialog.Configure
+        (
+            title,
+            prompt,
+            Loc.Get("Common.Save"),
+            Loc.Get("Common.Cancel"),
+            ControlAppearance.Primary
+        );
+        dialog.isInputMode              = true;
+        dialog.InputBox.Text            = defaultValue;
+        dialog.InputBox.PlaceholderText = prompt;
+        dialog.InputBox.Visibility      = Visibility.Visible;
+        dialog.InputBox.AcceptsReturn   = true;
+        dialog.InputBox.TextWrapping    = TextWrapping.Wrap;
+        dialog.InputBox.MinHeight       = 120;
+        dialog.InputBox.MaxHeight       = 300;
+        dialog.InputBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+        dialog.MessageText.Visibility   = Visibility.Collapsed;
+        dialog.InputBox.Loaded += (_, _) =>
+        {
+            dialog.InputBox.Focus();
+            dialog.InputBox.SelectAll();
+        };
+        dialog.Owner = owner;
         dialog.ShowDialog();
 
         return dialog.DialogResult == true ?
