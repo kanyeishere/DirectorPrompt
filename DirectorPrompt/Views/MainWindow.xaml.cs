@@ -1,7 +1,10 @@
-﻿using System.Windows;
+﻿using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Localization;
@@ -21,11 +24,43 @@ public partial class MainWindow : FluentWindow
         DataContext    = viewModel;
         InitializeComponent();
 
+        viewModel.Dialog.Entries.CollectionChanged += OnDialogEntriesChanged;
         Loaded += OnLoaded;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e) =>
         await viewModel.LoadProjectsCommand.ExecuteAsync(null);
+
+    private void OnDialogEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems is not null)
+        {
+            foreach (DialogEntryViewModel entry in e.NewItems)
+                entry.PropertyChanged += OnEntryPropertyChanged;
+        }
+        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems is not null)
+        {
+            foreach (DialogEntryViewModel entry in e.OldItems)
+                entry.PropertyChanged -= OnEntryPropertyChanged;
+        }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+            return;
+
+        ScrollDialogToBottom();
+    }
+
+    private void OnEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(DialogEntryViewModel.Document))
+            return;
+
+        if (sender is DialogEntryViewModel entry && ReferenceEquals(entry, viewModel.Dialog.Entries.LastOrDefault()))
+            ScrollDialogToBottom();
+    }
+
+    private void ScrollDialogToBottom() =>
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, DialogScrollViewer.ScrollToBottom);
 
     private void OnDirectiveTypeChanged(object sender, SelectionChangedEventArgs e)
     {

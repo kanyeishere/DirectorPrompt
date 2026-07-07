@@ -342,6 +342,8 @@ public sealed partial class MainViewModel
 
             Dialog.AddDirectorEntry(0, items.Select(d => (d.Type, d.Content)).ToList());
 
+            DirectiveInput.Clear();
+
             var streamingEntry = Dialog.BeginStreamingNarrative(0);
 
             var dispatcher = Application.Current.Dispatcher;
@@ -372,7 +374,6 @@ public sealed partial class MainViewModel
 
             await RefreshSidebarAsync();
 
-            DirectiveInput.Clear();
             StatusMessage = result.AuditPassed ?
                                 Loc.Get("Status.Complete") :
                                 Loc.Get("Status.CompleteWithWarnings", result.Violations.Count);
