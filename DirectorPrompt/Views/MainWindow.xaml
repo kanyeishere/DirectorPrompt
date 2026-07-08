@@ -61,6 +61,10 @@
                 Click="OnEditProjectItem"
                 Tag="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
             <MenuItem
+                Header="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}"
+                Click="OnExportProjectItem"
+                Tag="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+            <MenuItem
                 Header="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}"
                 Click="OnDeleteProjectItem"
                 Tag="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
@@ -132,6 +136,21 @@
                                Command="{Binding NewProjectCommand}"
                                ToolTip="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="Add24" />
+                    </ui:Button>
+                    <ui:Button Appearance="Secondary"
+                               Padding="8,6"
+                               Margin="4,0,0,0"
+                               Command="{Binding ExportProjectCommand}"
+                               IsEnabled="{Binding IsProjectSelected}"
+                               ToolTip="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}">
+                        <ui:SymbolIcon Symbol="ArrowExportUp24" />
+                    </ui:Button>
+                    <ui:Button Appearance="Secondary"
+                               Padding="8,6"
+                               Margin="4,0,0,0"
+                               Command="{Binding ImportProjectCommand}"
+                               ToolTip="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}">
+                        <ui:SymbolIcon Symbol="ArrowImport24" />
                     </ui:Button>
                 </StackPanel>
 

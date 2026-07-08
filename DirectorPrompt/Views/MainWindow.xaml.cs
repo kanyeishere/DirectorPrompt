@@ -107,6 +107,15 @@ public partial class MainWindow : FluentWindow
         viewModel.EditProjectCommand.Execute(null);
     }
 
+    private void OnExportProjectItem(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: Project project })
+            return;
+
+        viewModel.CurrentProject = project;
+        viewModel.ExportProjectCommand.Execute(null);
+    }
+
     private void OnDeleteProjectItem(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem { Tag: Project project })

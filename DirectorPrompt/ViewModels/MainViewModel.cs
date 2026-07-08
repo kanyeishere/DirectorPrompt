@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Windows;
+using Microsoft.Win32;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DirectorPrompt.Agents;
@@ -31,7 +32,8 @@ public sealed partial class MainViewModel
     IMemoryRepository          memoryRepository,
     IServiceProvider           serviceProvider,
     UserSettings               userSettings,
-    ICharacterCategoryResolver categoryResolver
+    ICharacterCategoryResolver categoryResolver,
+    IProjectPortService        projectPortService
 )
     : ObservableObject
 {
@@ -242,6 +244,89 @@ public sealed partial class MainViewModel
         {
             Log.Error(ex, "删除项目失败: ID={ProjectID}", project.ID);
             StatusMessage = Loc.Get("Status.DeleteProjectFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportProjectAsync()
+    {
+        if (CurrentProject is null)
+        {
+            StatusMessage = Loc.Get("Status.SelectProjectFirst");
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Filter   = $"DirectorPrompt {Loc.Get("Project.Package")}|*.dppkg",
+            FileName = $"{CurrentProject.Name}.dppkg"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        IsProcessing  = true;
+        StatusMessage = Loc.Get("Status.Exporting");
+
+        try
+        {
+            await projectPortService.ExportAsync(CurrentProject.ID, dialog.FileName);
+
+            Log.Information("导出项目: ID={ProjectID}, 路径={Path}", CurrentProject.ID, dialog.FileName);
+            StatusMessage = Loc.Get("Status.ExportComplete");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "导出项目失败");
+            StatusMessage = Loc.Get("Status.ExportFailed", ex.Message);
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportProjectAsync()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = $"DirectorPrompt {Loc.Get("Project.Package")}|*.dppkg"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        IsProcessing  = true;
+        StatusMessage = Loc.Get("Status.Importing");
+
+        try
+        {
+            var result = await projectPortService.ImportAsync(dialog.FileName);
+
+            Log.Information
+            (
+                "导入项目: ID={ProjectID}, 名称={Name}, 知识={Knowledge}, 属性={State}, 人物={Character}",
+                result.ProjectID,
+                result.ProjectName,
+                result.KnowledgeEntryCount,
+                result.StateAttributeCount,
+                result.CharacterCount
+            );
+
+            await LoadProjectsAsync();
+            CurrentProject = Projects.FirstOrDefault(p => p.ID == result.ProjectID);
+
+            StatusMessage = Loc.Get("Status.ImportComplete", result.ProjectName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "导入项目失败");
+            StatusMessage = Loc.Get("Status.ImportFailed", ex.Message);
+        }
+        finally
+        {
+            IsProcessing = false;
         }
     }
 

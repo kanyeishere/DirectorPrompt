@@ -169,6 +169,8 @@ public partial class App : Application
         services.AddSingleton<IDirectiveRepository, DirectiveRepository>();
         services.AddSingleton<IRoundChangeRepository, RoundChangeRepository>();
 
+        services.AddSingleton<IProjectPortService, ProjectPortService>();
+
         services.AddSingleton<ITimelineCalculator, TimelineCalculator>();
         services.AddSingleton<IConditionEngine, ConditionEngine>();
         services.AddSingleton<ICharacterCategoryResolver, CharacterCategoryResolver>();
