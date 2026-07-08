@@ -218,5 +218,14 @@
     "Agent.Role.Memory": "记忆管理",
     "Agent.Role.State": "状态管理",
     "Agent.Role.Audit": "内容审计",
-    "Agent.Role.Scene": "场景管理"
+    "Agent.Role.Scene": "场景管理",
+    "Update.Title": "DirectorPrompt 更新",
+    "Update.Checking": "正在检查更新…",
+    "Update.Downloading": "正在下载更新…",
+    "Update.Installing": "正在安装更新…",
+    "Update.FailedTitle": "更新失败",
+    "Update.FailedMessage": "更新失败: {0}",
+    "Update.FailedHint": "请检查网络连接后重试",
+    "Update.FailedTimeout": "更新请求超时",
+    "Update.FailedCancelled": "更新请求已被取消"
 }

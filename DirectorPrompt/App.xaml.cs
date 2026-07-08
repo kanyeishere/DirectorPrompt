@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿﻿using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using DirectorPrompt.Agents;
@@ -13,12 +13,14 @@ using DirectorPrompt.Infrastructure.Localization;
 using DirectorPrompt.Infrastructure.Logging;
 using DirectorPrompt.Infrastructure.Repositories;
 using DirectorPrompt.Localization;
+using DirectorPrompt.Update;
 using DirectorPrompt.ViewModels;
 using DirectorPrompt.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Velopack;
 
 namespace DirectorPrompt;
 
@@ -26,8 +28,10 @@ public partial class App : Application
 {
     private IHost? host;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
+        VelopackApp.Build().Run();
+
         base.OnStartup(e);
 
         Log.Logger = LoggingConfiguration.CreateLogger();
@@ -48,13 +52,20 @@ public partial class App : Application
                        .ConfigureServices(ConfigureServices)
                        .Build();
 
-            host.StartAsync().GetAwaiter().GetResult();
+            await host.StartAsync();
 
             var localizationService = host.Services.GetRequiredService<ILocalizationService>();
             Loc.Instance.SetService(localizationService);
 
             var migrator = host.Services.GetRequiredService<SchemaMigrator>();
-            migrator.MigrateAsync().GetAwaiter().GetResult();
+            await migrator.MigrateAsync();
+
+#if RELEASE
+            var shouldContinue = await CheckForUpdatesAsync();
+
+            if (!shouldContinue)
+                return;
+#endif
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
@@ -87,6 +98,29 @@ public partial class App : Application
         Log.CloseAndFlush();
         base.OnExit(e);
     }
+
+#if RELEASE
+    private async Task<bool> CheckForUpdatesAsync()
+    {
+        var updateWindow = new UpdateWindow();
+        updateWindow.Show();
+
+        try
+        {
+            var orchestrator = new UpdateOrchestrator();
+
+            return await orchestrator.RunAsync
+            (
+                status   => updateWindow.UpdateStatus(status),
+                progress => updateWindow.UpdateProgress(progress)
+            );
+        }
+        finally
+        {
+            updateWindow.Close();
+        }
+    }
+#endif
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {

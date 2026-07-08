@@ -32,6 +32,7 @@
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions"/>
         <PackageReference Include="Serilog"/>
         <PackageReference Include="Serilog.Extensions.Hosting"/>
+        <PackageReference Include="Velopack"/>
         <PackageReference Include="WPF-UI"/>
     </ItemGroup>
 

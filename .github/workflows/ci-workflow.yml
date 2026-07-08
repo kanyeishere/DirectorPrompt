@@ -1,0 +1,117 @@
+name: Build DirectorPrompt
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build-release:
+    name: Build Release on Windows
+    runs-on: windows-latest
+    if: "startsWith(github.ref, 'refs/tags/')"
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Restore Nuget Packages
+        run: dotnet restore DirectorPrompt.slnx
+
+      - name: Define VERSION
+        run: |
+          $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
+          $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
+          $env:BRANCH = $env:GITHUB_REF -replace '.*/'
+
+          ($env:REPO_NAME) >> VERSION
+          ($env:BRANCH) >> VERSION
+          ($env:COMMIT) >> VERSION
+
+      - name: Build Release
+        run: dotnet build DirectorPrompt.slnx -c Release
+
+      - name: Generate Hashes File
+        run: .\scripts\CreateHashList.ps1 .\bin\Release\net10.0-windows
+
+      - name: Velopack Build and Upload
+        id: build-velopack
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          $refver = $env:GITHUB_REF -replace '.*/'
+          echo "::set-output name=version::$refver"
+
+          .\scripts\ci-velopack-upload.ps1
+
+      - name: Purge CF cache after R2 upload
+        if: success()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        shell: pwsh
+        run: |
+          $body = '{"files":["https://dp-distribute.atmoomen.top/releases.win.json"]}'
+          Invoke-RestMethod -Uri "https://api.cloudflare.com/client/v4/zones/$env:CLOUDFLARE_ZONE_ID/purge_cache" `
+            -Method Post `
+            -Headers @{ Authorization = "Bearer $env:CLOUDFLARE_API_TOKEN" } `
+            -ContentType 'application/json' `
+            -Body $body
+          Write-Host "Purged: /releases.win.json"
+
+  build:
+    name: Build on Windows
+    runs-on: windows-latest
+    if: "!startsWith(github.ref, 'refs/tags/')"
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore Nuget Packages
+        run: dotnet restore DirectorPrompt.slnx
+
+      - name: Define VERSION
+        run: |
+          $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
+          $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
+          $env:BRANCH = $env:GITHUB_REF -replace '.*/'
+
+          ($env:REPO_NAME) >> VERSION
+          ($env:BRANCH) >> VERSION
+          ($env:COMMIT) >> VERSION
+
+      - name: Build Release
+        run: dotnet build DirectorPrompt.slnx -c Release
+
+      - name: Generate Hashes File
+        run: .\scripts\CreateHashList.ps1 .\bin\Release\net10.0-windows
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: directorprompt-artifact
+          path: bin\Release\net10.0-windows\
