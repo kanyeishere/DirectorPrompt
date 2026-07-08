@@ -24,10 +24,11 @@ param(
     [string]$PackDir    = '.\bin\Release\net10.0-windows',
     [string]$OutputDir  = '.\Releases',
     [string]$MainExe    = 'DirectorPrompt.exe',
-    [string]$PackAuthors = 'OmenCorp',
-    [string]$IconPath   = '.\Assets\Images\Icon.ico',
-    [string]$Framework  = 'net10.0-x64-desktop',
-    [int]$MaxVersions   = 10
+    [string]$PackAuthors     = 'OmenCorp',
+    [string]$IconPath        = '.\Assets\Images\Icon.ico',
+    [string]$ReleaseNotesPath = '.\Assets\CHANGELOG.md',
+    [string]$Framework       = 'net10.0-x64-desktop',
+    [int]$MaxVersions        = 10
 )
 
 $ErrorActionPreference = 'Stop'
@@ -67,6 +68,7 @@ $packArgs = @(
     '-e', $MainExe,
     '--channel', $Channel,
     '--packAuthors', $PackAuthors,
+    '--releaseNotes', $ReleaseNotesPath,
     '--icon', $IconPath,
     '--framework', $Framework,
     '--noInst'
@@ -147,10 +149,12 @@ Write-Host "Done: $($keepAssets.Count) nupkgs, $($keepVersions.Count) versions."
 Write-Step 'Creating GitHub Release...'
 $portableZip = Get-ChildItem "$OutputDir\*-Portable.zip" -File | Select-Object -First 1
 
+$releaseNotes = Get-Content -LiteralPath $ReleaseNotesPath -Encoding utf8 -Raw
+
 $ghArgs = @(
     'release', 'create', $version,
     '--title', "Release $version",
-    '--notes', "DirectorPrompt $version"
+    '--notes', $releaseNotes
 )
 if ($portableZip) {
     $ghArgs += $portableZip.FullName

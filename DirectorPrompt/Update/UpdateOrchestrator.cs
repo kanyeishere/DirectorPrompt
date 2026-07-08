@@ -11,8 +11,9 @@ internal class UpdateOrchestrator
 
     public async Task<(bool ShouldContinue, string? ErrorMessage)> RunAsync
     (
-        Action<string>? onStatus  = null,
-        Action<int>?    onProgress = null
+        Action<string>?            onStatus          = null,
+        Action<int>?               onProgress         = null,
+        Func<string, string, Task>? onChangelogReady = null
     )
     {
         try
@@ -46,6 +47,15 @@ internal class UpdateOrchestrator
                     onProgress?.Invoke(progress);
                 }
             );
+
+            var changelog = newRelease.TargetFullRelease.NotesMarkdown;
+            var version   = newRelease.TargetFullRelease.Version.ToString();
+
+            if (onChangelogReady is not null && !string.IsNullOrEmpty(changelog))
+            {
+                onStatus?.Invoke(Loc.Get("Update.Ready"));
+                await onChangelogReady(changelog, version);
+            }
 
             onStatus?.Invoke(Loc.Get("Update.Installing"));
             onProgress?.Invoke(100);

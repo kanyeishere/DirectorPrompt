@@ -45,6 +45,10 @@
             <Link>Assets\Langs\%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Include="..\Assets\CHANGELOG.md">
+            <Link>Assets\CHANGELOG.md</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

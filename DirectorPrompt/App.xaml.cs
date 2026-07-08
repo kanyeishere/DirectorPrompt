@@ -112,7 +112,17 @@ public partial class App : Application
             var (shouldContinue, errorMessage) = await orchestrator.RunAsync
             (
                 status   => updateWindow.UpdateStatus(status),
-                progress => updateWindow.UpdateProgress(progress)
+                progress => updateWindow.UpdateProgress(progress),
+                (changelog, version) =>
+                {
+                    updateWindow.Hide();
+
+                    var changelogWindow = new ChangelogWindow(changelog, version);
+                    changelogWindow.Owner = updateWindow;
+                    changelogWindow.ShowDialog();
+
+                    return Task.CompletedTask;
+                }
             );
 
             if (errorMessage is not null)
