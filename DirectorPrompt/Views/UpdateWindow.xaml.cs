@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Threading.Tasks;
 using DirectorPrompt.Localization;
 using Wpf.Ui.Controls;
 
@@ -16,15 +15,18 @@ public partial class UpdateWindow : FluentWindow
     }
 
     public void UpdateStatus(string status) =>
-        StatusText.Text = status;
+        Dispatcher.Invoke(() => StatusText.Text = status);
 
-    public void UpdateProgress(int progress)
-    {
-        ProgressBar.IsIndeterminate = false;
-        ProgressBar.Value           = progress;
-        ProgressText.Visibility      = Visibility.Visible;
-        ProgressText.Text            = $"{progress}%";
-    }
+    public void UpdateProgress(int progress) =>
+        Dispatcher.Invoke
+        (() =>
+            {
+                ProgressBar.IsIndeterminate = false;
+                ProgressBar.Value           = progress;
+                ProgressText.Visibility     = Visibility.Visible;
+                ProgressText.Text           = $"{progress}%";
+            }
+        );
 
     public void ShowError(string message)
     {
