@@ -106,10 +106,29 @@ public sealed partial class CharacterCategoryEditViewModel : ObservableObject
     }
 }
 
+public sealed partial class CharacterCategoryGroupViewModel : ObservableObject
+{
+    [ObservableProperty]
+    public partial string CategoryName { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsExpanded { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int ItemCount { get; set; }
+
+    public ObservableCollection<CharacterPanelItemViewModel> Items { get; } = [];
+
+    public CharacterCategoryGroupViewModel()
+    {
+        Items.CollectionChanged += (_, _) => ItemCount = Items.Count;
+    }
+}
+
 public sealed class CharacterPanelViewModel : ObservableObject
 {
-    public ObservableCollection<CharacterPanelItemViewModel> Characters { get; } = [];
+    public ObservableCollection<CharacterCategoryGroupViewModel> Groups { get; } = [];
 
     public void Clear() =>
-        Characters.Clear();
+        Groups.Clear();
 }

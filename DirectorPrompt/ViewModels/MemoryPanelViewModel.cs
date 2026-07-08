@@ -58,10 +58,43 @@ public sealed partial class MemoryPanelItemViewModel : ObservableObject
     }
 }
 
+public sealed partial class MemorySceneGroupViewModel : ObservableObject
+{
+    [ObservableProperty]
+    public partial string SceneLabel { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsExpanded { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int ItemCount { get; set; }
+
+    public ObservableCollection<MemoryPanelItemViewModel> Items { get; } = [];
+
+    public MemorySceneGroupViewModel()
+    {
+        Items.CollectionChanged += (_, _) => ItemCount = Items.Count;
+    }
+}
+
 public sealed class MemoryPanelViewModel : ObservableObject
 {
-    public ObservableCollection<MemoryPanelItemViewModel> Memories { get; } = [];
+    public ObservableCollection<MemorySceneGroupViewModel> Groups { get; } = [];
 
     public void Clear() =>
-        Memories.Clear();
+        Groups.Clear();
+
+    public void RemoveItem(MemoryPanelItemViewModel item)
+    {
+        foreach (var group in Groups)
+        {
+            if (!group.Items.Remove(item))
+                continue;
+
+            if (group.Items.Count == 0)
+                Groups.Remove(group);
+
+            break;
+        }
+    }
 }

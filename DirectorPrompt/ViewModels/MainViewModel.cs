@@ -968,6 +968,10 @@ public sealed partial class MainViewModel
         var categoryAttrs = await stateRepository.GetAttributesAsync(CurrentProject.ID, StateScope.Category);
         var charLookup    = characters.ToDictionary(c => c.ID);
 
+        var categoryLookup = categories.ToDictionary(c => c.ID);
+
+        var items = new List<(CharacterPanelItemViewModel Item, long[] CategoryIDs)>();
+
         foreach (var c in characters)
         {
             var item = new CharacterPanelItemViewModel
@@ -1021,7 +1025,32 @@ public sealed partial class MainViewModel
                 );
             }
 
-            CharacterPanel.Characters.Add(item);
+            items.Add((item, c.CategoryIDs));
+        }
+
+        var grouped = items
+                      .SelectMany(it => it.CategoryIDs.Length > 0 ?
+                                            it.CategoryIDs.Select(catID => (CatID: catID, it.Item)) :
+                                            [(-1L, it.Item)])
+                      .GroupBy(x => x.CatID)
+                      .OrderBy(g => g.Key)
+                      .ToList();
+
+        foreach (var grp in grouped)
+        {
+            var groupName = grp.Key >= 0 && categoryLookup.TryGetValue(grp.Key, out var cat) ?
+                                 cat.Name :
+                                 Loc.Get("Character.Panel.Uncategorized");
+
+            var group = new CharacterCategoryGroupViewModel
+            {
+                CategoryName = groupName
+            };
+
+            foreach (var (_, item) in grp)
+                group.Items.Add(item);
+
+            CharacterPanel.Groups.Add(group);
         }
     }
 
@@ -1039,38 +1068,63 @@ public sealed partial class MainViewModel
         var sceneLookup = scenes.ToDictionary(s => s.ID);
         var charLookup  = characters.ToDictionary(c => c.ID);
 
-        foreach (var m in memories)
+        var grouped = memories
+                      .GroupBy(m => m.SceneID)
+                      .Select(g =>
+                      {
+                          var scene = sceneLookup.GetValueOrDefault(g.Key);
+                          var label = scene is not null ?
+                                          scene.TimeLabel :
+                                          $"ID:{g.Key}";
+
+                          return new
+                          {
+                              Label       = label,
+                              TimelinePos = scene?.TimelinePosition ?? 0,
+                              Items       = g
+                          };
+                      })
+                      .OrderBy(x => x.TimelinePos)
+                      .ToList();
+
+        foreach (var grp in grouped)
         {
-            var sceneLabel = sceneLookup.TryGetValue(m.SceneID, out var scene) ?
-                                 scene.TimeLabel :
-                                 $"ID:{m.SceneID}";
+            var group = new MemorySceneGroupViewModel
+            {
+                SceneLabel = grp.Label
+            };
 
-            var charNames = m.RelatedCharacterIDs
-                             .Where(id => charLookup.ContainsKey(id))
-                             .Select(id => charLookup[id].Name)
-                             .ToList();
+            foreach (var m in grp.Items)
+            {
+                var charNames = m.RelatedCharacterIDs
+                                 .Where(id => charLookup.ContainsKey(id))
+                                 .Select(id => charLookup[id].Name)
+                                 .ToList();
 
-            MemoryPanel.Memories.Add
-            (
-                new MemoryPanelItemViewModel
-                {
-                    ID                    = m.ID,
-                    Content               = m.Content,
-                    TagsDisplay           = string.Join(", ", m.Tags),
-                    SceneLabel            = sceneLabel,
-                    TimelinePos           = m.TimelinePos,
-                    RelatedCharacters     = string.Join(", ", charNames),
-                    HasRelatedCharacters  = charNames.Count > 0,
-                    UpdatedAtDisplay      = m.UpdatedAt.ToLocalTime().ToString("MM-dd HH:mm")
-                }
-            );
+                group.Items.Add
+                (
+                    new MemoryPanelItemViewModel
+                    {
+                        ID                    = m.ID,
+                        Content               = m.Content,
+                        TagsDisplay           = string.Join(", ", m.Tags),
+                        SceneLabel            = grp.Label,
+                        TimelinePos           = m.TimelinePos,
+                        RelatedCharacters     = string.Join(", ", charNames),
+                        HasRelatedCharacters  = charNames.Count > 0,
+                        UpdatedAtDisplay      = m.UpdatedAt.ToLocalTime().ToString("MM-dd HH:mm")
+                    }
+                );
+            }
+
+            MemoryPanel.Groups.Add(group);
         }
 
         Log.Information
         (
             "记忆面板刷新完成: 对话={SessionID}, 记忆数={Count}",
             CurrentSession.ID,
-            MemoryPanel.Memories.Count
+            MemoryPanel.Groups.Sum(g => g.Items.Count)
         );
     }
 
@@ -1114,7 +1168,7 @@ public sealed partial class MainViewModel
         {
             await memoryRepository.DeleteAsync(item.ID);
 
-            MemoryPanel.Memories.Remove(item);
+            MemoryPanel.RemoveItem(item);
 
             Log.Information("记忆已删除: ID={MemoryID}", item.ID);
             StatusMessage = Loc.Get("Status.MemoryDeleted");

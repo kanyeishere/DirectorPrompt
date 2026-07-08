@@ -95,6 +95,7 @@
     "State.Panel.Timeline": "时间线",
     "State.Panel.NotStarted": "未开始",
     "Character.Panel.Title": "人物列表",
+    "Character.Panel.Uncategorized": "未分类",
     "Memory.Panel.Title": "记忆",
     "Memory.Panel.TagsPlaceholder": "标签 (逗号分隔)",
     "Settings.Title": "全局设置",
