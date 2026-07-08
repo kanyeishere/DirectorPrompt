@@ -37,8 +37,9 @@ function Write-Step([string]$Msg) {
 }
 
 # ---- Extract version ----
-$refver = $env:GITHUB_REF -replace '.*/'
-Write-Step "Release version: $refver"
+$tagName = $env:GITHUB_REF -replace '.*/'
+$refver  = $tagName -replace '^v', ''
+Write-Step "Release version: $refver (tag: $tagName)"
 
 # ---- Ensure tools ----
 if (-not (Get-Command vpk -ErrorAction SilentlyContinue)) {
@@ -53,6 +54,9 @@ New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 # ---- 1. Download previous release from Worker (for delta) ----
 Write-Step 'Downloading previous release feed...'
 vpk download http --url $WorkerUrl --channel $Channel --timeout 30
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '  No previous release found (first release), skipping delta generation.'
+}
 
 # ---- 2. Pack new release ----
 Write-Step "Packing release $refver..."
@@ -146,9 +150,9 @@ Write-Step 'Creating GitHub Release...'
 $portableZip = Get-ChildItem "$OutputDir\*-Portable.zip" -File | Select-Object -First 1
 
 $ghArgs = @(
-    'release', 'create', $refver,
-    '--title', "Release $refver",
-    '--notes', "DirectorPrompt $refver"
+    'release', 'create', $tagName,
+    '--title', "Release $tagName",
+    '--notes', "DirectorPrompt $tagName"
 )
 if ($portableZip) {
     $ghArgs += $portableZip.FullName
@@ -162,9 +166,9 @@ if ($LASTEXITCODE -ne 0) {
     Write-Warning "GitHub Release creation failed (exit=$LASTEXITCODE), continuing."
 }
 else {
-    Write-Host "  GitHub Release created: $refver"
+    Write-Host "  GitHub Release created: $tagName"
 
     Write-Host "  Uploading releases.win.json..."
-    gh release upload $refver "$OutputDir\releases.win.json" --repo $env:GITHUB_REPOSITORY
+    gh release upload $tagName "$OutputDir\releases.win.json" --repo $env:GITHUB_REPOSITORY
     if ($LASTEXITCODE -ne 0) { Write-Warning "Upload of releases.win.json to GitHub Release failed (exit=$LASTEXITCODE)" }
 }
