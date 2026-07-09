@@ -21,10 +21,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Velopack;
+#if RELEASE
+using DirectorPrompt.Update;
+#endif
 
 namespace DirectorPrompt;
 
-public partial class App : Application
+public partial class App
 {
     private IHost? host;
 
@@ -105,7 +108,7 @@ public partial class App : Application
     }
 
 #if RELEASE
-    private async Task<bool> CheckForUpdatesAsync()
+    private static async Task<bool> CheckForUpdatesAsync()
     {
         var updateWindow = new UpdateWindow();
         updateWindow.Show();
@@ -114,16 +117,18 @@ public partial class App : Application
         {
             var orchestrator = new UpdateOrchestrator();
 
-            var (shouldContinue, errorMessage) = await orchestrator.RunAsync
+            var (shouldContinue, errorMessage) = await UpdateOrchestrator.RunAsync
                                                  (
-                                                     status => updateWindow.UpdateStatus(status),
-                                                     progress => updateWindow.UpdateProgress(progress),
+                                                     updateWindow.UpdateStatus,
+                                                     updateWindow.UpdateProgress,
                                                      (changelog, version) =>
                                                      {
                                                          updateWindow.Hide();
 
-                                                         var changelogWindow = new ChangelogWindow(changelog, version);
-                                                         changelogWindow.Owner = updateWindow;
+                                                         var changelogWindow = new ChangelogWindow(changelog, version)
+                                                         {
+                                                             Owner = updateWindow
+                                                         };
                                                          changelogWindow.ShowDialog();
 
                                                          return Task.CompletedTask;

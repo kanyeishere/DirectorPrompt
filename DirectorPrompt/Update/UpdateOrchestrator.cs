@@ -1,3 +1,4 @@
+#if RELEASE
 using DirectorPrompt.Localization;
 using Serilog;
 using Velopack;
@@ -9,7 +10,7 @@ internal class UpdateOrchestrator
 {
     private const string DISTRIBUTE_BASE_URL = "https://dp-distribute.atmoomen.top";
 
-    public async Task<(bool ShouldContinue, string? ErrorMessage)> RunAsync
+    public static async Task<(bool ShouldContinue, string? ErrorMessage)> RunAsync
     (
         Action<string>?             onStatus         = null,
         Action<int>?                onProgress       = null,
@@ -82,3 +83,4 @@ internal class UpdateOrchestrator
             _                          => exception.Message
         };
 }
+#endif
