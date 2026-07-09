@@ -23,7 +23,7 @@ public sealed partial class ModelSettingViewModel : ObservableObject
     public partial float Temperature { get; set; } = 0.8f;
 
     [ObservableProperty]
-    public partial ReasoningEffort ReasoningEffort { get; set; } = ReasoningEffort.None;
+    public partial string ReasoningEffort { get; set; } = "high";
 
     [ObservableProperty]
     public partial string ExtraParameters { get; set; } = string.Empty;
@@ -35,11 +35,25 @@ public sealed partial class ModelSettingViewModel : ObservableObject
     public partial bool IsFetchingModels { get; set; }
 
     [ObservableProperty]
+    public partial bool IsTestingConnection { get; set; }
+
+    [ObservableProperty]
     public partial string ModelFetchMessage { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string ConnectionMessage { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool? ConnectionSuccess { get; set; }
 
     public ObservableCollection<string> AvailableModels { get; } = [];
 
-    public static ReasoningEffort[] AvailableReasoningEfforts { get; } = Enum.GetValues<ReasoningEffort>();
-
-    public string ReasoningEffortDisplay => Loc.Get($"ReasoningEffort.{ReasoningEffort}");
+    public ReasoningEffort ResolvedReasoningEffort =>
+        ReasoningEffort.ToString().ToLowerInvariant() switch
+        {
+            "high"   => Domain.Enums.ReasoningEffort.High,
+            "medium" => Domain.Enums.ReasoningEffort.Medium,
+            "low"    => Domain.Enums.ReasoningEffort.Low,
+            _        => Domain.Enums.ReasoningEffort.None
+        };
 }

@@ -7,6 +7,7 @@
                  xmlns:vm="clr-namespace:DirectorPrompt.ViewModels"
                  xmlns:converters="clr-namespace:DirectorPrompt.Converters"
                  xmlns:loc="clr-namespace:DirectorPrompt.Localization"
+                 xmlns:components="clr-namespace:DirectorPrompt.Views.Components"
                  mc:Ignorable="d"
                  d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
                  Title="{Binding [Settings.Title], Source={x:Static loc:Loc.Instance}}"
@@ -104,26 +105,52 @@
                     <Grid>
                         <!-- 提供商面板 -->
                         <StackPanel x:Name="ProvidersPanel" Visibility="Visible">
-                            <TextBlock Text="{Binding [Settings.Provider.Title], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
-                            <TextBlock
-                                Text="{Binding [Settings.Provider.Description], Source={x:Static loc:Loc.Instance}}"
-                                FontSize="12" Foreground="Gray" Margin="0,0,0,16" />
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding [Settings.Provider.Title], Source={x:Static loc:Loc.Instance}}"
+                                               FontSize="20"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+                                <ui:Button Grid.Column="1"
+                                           Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
+                                           Icon="Add24"
+                                           Appearance="Primary"
+                                           VerticalAlignment="Center"
+                                           Command="{Binding AddProviderCommand}" />
+                            </Grid>
 
-                            <ItemsControl ItemsSource="{Binding Providers}">
+                            <ItemsControl ItemsSource="{Binding Providers}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ui:CardExpander Margin="0,0,0,8" IsExpanded="True">
                                             <ui:CardExpander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding DisplayName}"
-                                                               FontWeight="SemiBold"
-                                                               VerticalAlignment="Center"
-                                                               Margin="0,0,8,0" />
-                                                    <TextBlock Text="{Binding Provider}"
-                                                               Foreground="#569CD6"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0" />
+                                                        <TextBlock Text="{Binding Provider}"
+                                                                   Foreground="#569CD6"
+                                                                   VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <ui:Button Grid.Column="1"
+                                                               Content="{Binding [Common.Remove], Source={x:Static loc:Loc.Instance}}"
+                                                               Appearance="Caution"
+                                                               Icon="Delete24"
+                                                               Padding="6,4"
+                                                               Margin="0,0,8,0"
+                                                               Click="OnRemoveProvider"
+                                                               Tag="{Binding}" />
+                                                </Grid>
                                             </ui:CardExpander.Header>
 
                                             <StackPanel>
@@ -177,83 +204,61 @@
                                                                 Text="{Binding APIKey, UpdateSourceTrigger=PropertyChanged}"
                                                                 PlaceholderText="{Binding [Settings.Agent.Placeholder.APIKey], Source={x:Static loc:Loc.Instance}}" />
                                                 </Grid>
-
-                                                <Grid Margin="0,8,0,0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <ui:Button Grid.Column="0"
-                                                               Content="{Binding [Settings.Agent.TestConnection], Source={x:Static loc:Loc.Instance}}"
-                                                               Icon="PlugConnected24"
-                                                               Appearance="Secondary"
-                                                               Command="{Binding DataContext.TestProviderConnectionCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                               CommandParameter="{Binding}"
-                                                               IsEnabled="{Binding IsTestingConnection, Converter={StaticResource InverseBool}}" />
-                                                    <TextBlock Grid.Column="1"
-                                                               Text="{Binding ConnectionMessage}"
-                                                               Margin="8,0,0,0"
-                                                               TextWrapping="Wrap"
-                                                               VerticalAlignment="Center"
-                                                               FontSize="12">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Foreground" Value="Gray" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding ConnectionSuccess}"
-                                                                            Value="True">
-                                                                        <Setter Property="Foreground" Value="#107C10" />
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding ConnectionSuccess}"
-                                                                            Value="False">
-                                                                        <Setter Property="Foreground" Value="OrangeRed" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                    <ui:Button Grid.Column="2"
-                                                               Content="{Binding [Common.Remove], Source={x:Static loc:Loc.Instance}}"
-                                                               Appearance="Caution"
-                                                               Margin="8,0,0,0"
-                                                               Command="{Binding DataContext.RemoveProviderCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                               CommandParameter="{Binding}" />
-                                                </Grid>
                                             </StackPanel>
                                         </ui:CardExpander>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-
-                            <ui:Button Content="{Binding [Settings.Provider.Add], Source={x:Static loc:Loc.Instance}}"
-                                       Icon="Add24"
-                                       Appearance="Secondary"
-                                       Command="{Binding AddProviderCommand}" />
                         </StackPanel>
 
                         <!-- 模型面板 -->
                         <StackPanel x:Name="ModelsPanel" Visibility="Collapsed">
-                            <TextBlock Text="{Binding [Settings.Model.Title], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
-                            <TextBlock
-                                Text="{Binding [Settings.Model.Description], Source={x:Static loc:Loc.Instance}}"
-                                FontSize="12" Foreground="Gray" Margin="0,0,0,16" />
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding [Settings.Model.Title], Source={x:Static loc:Loc.Instance}}"
+                                               FontSize="20"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+                                <ui:Button Grid.Column="1"
+                                           Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
+                                           Icon="Add24"
+                                           Appearance="Primary"
+                                           VerticalAlignment="Center"
+                                           Command="{Binding AddModelCommand}" />
+                            </Grid>
 
-                            <ItemsControl ItemsSource="{Binding Models}">
+                            <ItemsControl ItemsSource="{Binding Models}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ui:CardExpander Margin="0,0,0,8" IsExpanded="True">
                                             <ui:CardExpander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding DisplayName}"
-                                                               FontWeight="SemiBold"
-                                                               VerticalAlignment="Center"
-                                                               Margin="0,0,8,0" />
-                                                    <TextBlock Text="{Binding ModelName}"
-                                                               Foreground="#569CD6"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0" />
+                                                        <TextBlock Text="{Binding ModelName}"
+                                                                   Foreground="#569CD6"
+                                                                   VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <ui:Button Grid.Column="1"
+                                                               Content="{Binding [Common.Remove], Source={x:Static loc:Loc.Instance}}"
+                                                               Appearance="Caution"
+                                                               Icon="Delete24"
+                                                               Padding="6,4"
+                                                               Margin="0,0,8,0"
+                                                               Click="OnRemoveModel"
+                                                               Tag="{Binding}" />
+                                                </Grid>
                                             </ui:CardExpander.Header>
 
                                             <StackPanel>
@@ -277,11 +282,11 @@
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.Provider], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
-                                                    <ComboBox Grid.Column="1"
-                                                              ItemsSource="{Binding DataContext.Providers, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                              DisplayMemberPath="DisplayName"
-                                                              SelectedValuePath="ID"
-                                                              SelectedValue="{Binding ProviderID, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <components:SearchableComboBox Grid.Column="1"
+                                                                                   ItemsSource="{Binding DataContext.Providers, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                                                   DisplayMemberPath="DisplayName"
+                                                                                   SelectedValuePath="ID"
+                                                                                   SelectedValue="{Binding ProviderID, UpdateSourceTrigger=PropertyChanged}" />
                                                 </Grid>
 
                                                 <Grid Margin="0,0,0,8">
@@ -293,14 +298,14 @@
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Agent.ModelName], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
-                                                    <ComboBox Grid.Column="1"
-                                                              IsEditable="True"
-                                                              ItemsSource="{Binding AvailableModels}"
-                                                              Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <components:SearchableComboBox Grid.Column="1"
+                                                                                   ItemsSource="{Binding AvailableModels}"
+                                                                                   Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
                                                     <ui:Button Grid.Column="2"
                                                                Content="{Binding [Settings.Agent.FetchModels], Source={x:Static loc:Loc.Instance}}"
                                                                Icon="ArrowDownload24"
                                                                Appearance="Secondary"
+                                                               Padding="6,4"
                                                                Margin="8,0,0,0"
                                                                Command="{Binding DataContext.FetchModelsCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
                                                                CommandParameter="{Binding}"
@@ -325,6 +330,8 @@
                                                                   Value="{Binding Temperature}"
                                                                   Minimum="0"
                                                                   Maximum="2"
+                                                                  SmallChange="0.1"
+                                                                  LargeChange="0.5"
                                                                   SpinButtonPlacementMode="Compact" />
                                                 </Grid>
 
@@ -336,23 +343,22 @@
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.ReasoningEffort], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
-                                                    <ComboBox Grid.Column="1"
-                                                              ItemsSource="{x:Static vm:ModelSettingViewModel.AvailableReasoningEfforts}"
-                                                              SelectedItem="{Binding ReasoningEffort}" />
+                                                    <ui:TextBox Grid.Column="1"
+                                                                Text="{Binding ReasoningEffort, UpdateSourceTrigger=PropertyChanged}"
+                                                                PlaceholderText="high" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               Text="{Binding [Settings.Model.ExtraParameters], Source={x:Static loc:Loc.Instance}}"
-                                                               VerticalAlignment="Center" />
-                                                    <ui:TextBox Grid.Column="1"
-                                                                Text="{Binding ExtraParameters, UpdateSourceTrigger=PropertyChanged}"
-                                                                PlaceholderText='{}{"top_p": 0.9}' />
-                                                </Grid>
+                                                <TextBlock Text="{Binding [Settings.Model.ExtraParameters], Source={x:Static loc:Loc.Instance}}"
+                                                           FontWeight="SemiBold"
+                                                           Margin="0,0,0,4" />
+                                                <ui:TextBox Text="{Binding ExtraParameters, UpdateSourceTrigger=PropertyChanged}"
+                                                            AcceptsReturn="True"
+                                                            TextWrapping="Wrap"
+                                                            MinHeight="120"
+                                                            MaxHeight="300"
+                                                            VerticalScrollBarVisibility="Auto"
+                                                            Margin="0,0,0,8"
+                                                            PlaceholderText='{}{"top_p": 0.9}' />
 
                                                 <Grid Margin="0,0,0,8">
                                                     <Grid.ColumnDefinitions>
@@ -363,55 +369,109 @@
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.Prompt], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
-                                                    <ComboBox Grid.Column="1"
-                                                              ItemsSource="{Binding DataContext.Prompts, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                              DisplayMemberPath="DisplayName"
-                                                              SelectedValuePath="ID"
-                                                              SelectedValue="{Binding PromptID, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <components:SearchableComboBox Grid.Column="1"
+                                                                                   ItemsSource="{Binding DataContext.Prompts, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                                                   DisplayMemberPath="DisplayName"
+                                                                                   SelectedValuePath="ID"
+                                                                                   SelectedValue="{Binding PromptID, UpdateSourceTrigger=PropertyChanged}" />
                                                     <ui:Button Grid.Column="2"
-                                                               Content="{Binding [Common.Remove], Source={x:Static loc:Loc.Instance}}"
-                                                               Appearance="Caution"
+                                                               Content="{Binding [Common.Clear], Source={x:Static loc:Loc.Instance}}"
+                                                               Appearance="Secondary"
+                                                               Padding="6,4"
                                                                Margin="8,0,0,0"
-                                                               Command="{Binding DataContext.RemoveModelCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                               Command="{Binding DataContext.ClearModelPromptCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
                                                                CommandParameter="{Binding}" />
                                                 </Grid>
+
+                                                <Grid Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="100" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ui:Button Grid.Column="1"
+                                                               Content="{Binding [Settings.Agent.TestConnection], Source={x:Static loc:Loc.Instance}}"
+                                                               Icon="PlugConnected24"
+                                                               Appearance="Secondary"
+                                                               Padding="8,4"
+                                                               Command="{Binding DataContext.TestModelConnectionCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                               CommandParameter="{Binding}"
+                                                               IsEnabled="{Binding IsTestingConnection, Converter={StaticResource InverseBool}}" />
+                                                </Grid>
+
+                                                <TextBlock Text="{Binding ConnectionMessage}"
+                                                           Margin="0,0,0,8"
+                                                           TextWrapping="Wrap"
+                                                           FontSize="12">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="Gray" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ConnectionSuccess}"
+                                                                             Value="True">
+                                                                    <Setter Property="Foreground" Value="#107C10" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding ConnectionSuccess}"
+                                                                             Value="False">
+                                                                    <Setter Property="Foreground" Value="OrangeRed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
                                             </StackPanel>
                                         </ui:CardExpander>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-
-                            <ui:Button Content="{Binding [Settings.Model.Add], Source={x:Static loc:Loc.Instance}}"
-                                       Icon="Add24"
-                                       Appearance="Secondary"
-                                       Command="{Binding AddModelCommand}" />
                         </StackPanel>
 
                         <!-- 提示词面板 -->
                         <StackPanel x:Name="PromptsPanel" Visibility="Collapsed">
-                            <TextBlock Text="{Binding [Settings.Prompt.Title], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
-                            <TextBlock
-                                Text="{Binding [Settings.Prompt.Description], Source={x:Static loc:Loc.Instance}}"
-                                FontSize="12" Foreground="Gray" Margin="0,0,0,16" />
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding [Settings.Prompt.Title], Source={x:Static loc:Loc.Instance}}"
+                                               FontSize="20"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding [Settings.Prompt.Description], Source={x:Static loc:Loc.Instance}}"
+                                               FontSize="12"
+                                               Foreground="Gray"
+                                               Margin="0,2,0,0" />
+                                </StackPanel>
+                                <ui:Button Grid.Column="1"
+                                           Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
+                                           Icon="Add24"
+                                           Appearance="Primary"
+                                           VerticalAlignment="Center"
+                                           Command="{Binding AddPromptCommand}" />
+                            </Grid>
 
-                            <ItemsControl ItemsSource="{Binding Prompts}">
+                            <ItemsControl ItemsSource="{Binding Prompts}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ui:CardExpander Margin="0,0,0,8">
                                             <ui:CardExpander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding DisplayName}"
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding DisplayName}"
                                                                FontWeight="SemiBold"
-                                                               VerticalAlignment="Center"
-                                                               Margin="0,0,8,0" />
-                                                    <ui:Button
-                                                        Content="{Binding [Common.Remove], Source={x:Static loc:Loc.Instance}}"
-                                                        Appearance="Caution"
-                                                        Margin="8,0,0,0"
-                                                        Command="{Binding DataContext.RemovePromptCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                        CommandParameter="{Binding}" />
-                                                </StackPanel>
+                                                               VerticalAlignment="Center" />
+                                                    <ui:Button Grid.Column="1"
+                                                               Content="{Binding [Common.Remove], Source={x:Static loc:Loc.Instance}}"
+                                                               Appearance="Caution"
+                                                               Icon="Delete24"
+                                                               Padding="6,4"
+                                                               Margin="0,0,8,0"
+                                                               Click="OnRemovePrompt"
+                                                               Tag="{Binding}" />
+                                                </Grid>
                                             </ui:CardExpander.Header>
 
                                             <StackPanel>
@@ -448,33 +508,27 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-
-                            <ui:Button Content="{Binding [Settings.Prompt.Add], Source={x:Static loc:Loc.Instance}}"
-                                       Icon="Add24"
-                                       Appearance="Secondary"
-                                       Command="{Binding AddPromptCommand}" />
                         </StackPanel>
 
                         <!-- 代理任务面板 -->
                         <StackPanel x:Name="TasksPanel" Visibility="Collapsed">
                             <TextBlock Text="{Binding [Settings.Task.Title], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,4" />
                             <TextBlock Text="{Binding [Settings.Task.Description], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="12" Foreground="Gray" Margin="0,0,0,16" />
+                                       FontSize="12"
+                                       Foreground="Gray"
+                                       Margin="0,0,0,16" />
 
                             <ItemsControl ItemsSource="{Binding AgentTasks}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ui:CardExpander Margin="0,0,0,8" IsExpanded="True">
                                             <ui:CardExpander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding TaskTypeDisplay}"
-                                                               FontWeight="SemiBold"
-                                                               VerticalAlignment="Center"
-                                                               Margin="0,0,8,0" />
-                                                    <ui:ToggleSwitch IsChecked="{Binding Enabled}"
-                                                                     Margin="8,0,0,0" />
-                                                </StackPanel>
+                                                <TextBlock Text="{Binding TaskTypeDisplay}"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center" />
                                             </ui:CardExpander.Header>
 
                                             <StackPanel>
@@ -484,41 +538,36 @@
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0"
-                                                               Text="{Binding [Settings.Task.TaskType], Source={x:Static loc:Loc.Instance}}"
-                                                               VerticalAlignment="Center" />
-                                                    <TextBlock Grid.Column="1"
-                                                               Text="{Binding TaskTypeDisplay}"
-                                                               VerticalAlignment="Center" />
-                                                </Grid>
-
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Task.Model], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
-                                                    <ComboBox Grid.Column="1"
-                                                              ItemsSource="{Binding DataContext.Models, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                              DisplayMemberPath="DisplayName"
-                                                              SelectedValuePath="ID"
-                                                              SelectedValue="{Binding ModelConfigID, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <components:SearchableComboBox Grid.Column="1"
+                                                                                   ItemsSource="{Binding DataContext.Models, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                                                   DisplayMemberPath="DisplayName"
+                                                                                   SelectedValuePath="ID"
+                                                                                   SelectedValue="{Binding ModelConfigID, UpdateSourceTrigger=PropertyChanged}" />
                                                 </Grid>
 
                                                 <Grid Margin="0,0,0,8">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="100" />
                                                         <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Task.Prompt], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
-                                                    <ComboBox Grid.Column="1"
-                                                              ItemsSource="{Binding DataContext.Prompts, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                                                              DisplayMemberPath="DisplayName"
-                                                              SelectedValuePath="ID"
-                                                              SelectedValue="{Binding PromptID, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <components:SearchableComboBox Grid.Column="1"
+                                                                                   ItemsSource="{Binding DataContext.Prompts, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                                                   DisplayMemberPath="DisplayName"
+                                                                                   SelectedValuePath="ID"
+                                                                                   SelectedValue="{Binding PromptID, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <ui:Button Grid.Column="2"
+                                                               Content="{Binding [Common.Clear], Source={x:Static loc:Loc.Instance}}"
+                                                               Appearance="Secondary"
+                                                               Padding="6,4"
+                                                               Margin="8,0,0,0"
+                                                               Command="{Binding DataContext.ClearTaskPromptCommand, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                                               CommandParameter="{Binding}" />
                                                 </Grid>
                                             </StackPanel>
                                         </ui:CardExpander>
@@ -543,11 +592,11 @@
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Model.Provider], Source={x:Static loc:Loc.Instance}}"
                                            VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="1"
-                                          ItemsSource="{Binding Providers}"
-                                          DisplayMemberPath="DisplayName"
-                                          SelectedValuePath="ID"
-                                          SelectedValue="{Binding Embedding.ProviderID, UpdateSourceTrigger=PropertyChanged}" />
+                                <components:SearchableComboBox Grid.Column="1"
+                                                               ItemsSource="{Binding Providers}"
+                                                               DisplayMemberPath="DisplayName"
+                                                               SelectedValuePath="ID"
+                                                               SelectedValue="{Binding Embedding.ProviderID, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
 
                             <Grid Margin="0,0,0,8">
@@ -559,10 +608,9 @@
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Agent.ModelName], Source={x:Static loc:Loc.Instance}}"
                                            VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="1"
-                                          IsEditable="True"
-                                          ItemsSource="{Binding Embedding.AvailableModels}"
-                                          Text="{Binding Embedding.ModelName, UpdateSourceTrigger=PropertyChanged}" />
+                                <components:SearchableComboBox Grid.Column="1"
+                                                               ItemsSource="{Binding Embedding.AvailableModels}"
+                                                               Text="{Binding Embedding.ModelName, UpdateSourceTrigger=PropertyChanged}" />
                                 <ui:Button Grid.Column="2"
                                            Content="{Binding [Settings.Agent.FetchModels], Source={x:Static loc:Loc.Instance}}"
                                            Icon="ArrowDownload24"
@@ -628,11 +676,11 @@
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Language.Language], Source={x:Static loc:Loc.Instance}}"
                                            VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="1"
-                                          ItemsSource="{Binding AvailableLanguages}"
-                                          DisplayMemberPath="Value"
-                                          SelectedValuePath="Key"
-                                          SelectedValue="{Binding SelectedLanguage, UpdateSourceTrigger=PropertyChanged}" />
+                                <components:SearchableComboBox Grid.Column="1"
+                                                               ItemsSource="{Binding AvailableLanguages}"
+                                                               DisplayMemberPath="Value"
+                                                               SelectedValuePath="Key"
+                                                               SelectedValue="{Binding SelectedLanguage, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
                         </StackPanel>
                     </Grid>

@@ -118,7 +118,7 @@
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Margin="0,4,0,0">
-                <ui:Button Content="{Binding [Dialog.AddDirective], Source={x:Static loc:Loc.Instance}}"
+                <ui:Button Content="{Binding [Common.AddDirective], Source={x:Static loc:Loc.Instance}}"
                            Icon="Add24"
                            Width="150"
                            Margin="0,0,4,0"

@@ -19,14 +19,5 @@ public sealed partial class ProviderSettingViewModel : ObservableObject
     [ObservableProperty]
     public partial string APIKey { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial bool IsTestingConnection { get; set; }
-
-    [ObservableProperty]
-    public partial string ConnectionMessage { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    public partial bool? ConnectionSuccess { get; set; }
-
     public static string[] AvailableProviders { get; } = ["openai", "ollama", "anthropic"];
 }

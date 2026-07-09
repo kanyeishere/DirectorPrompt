@@ -101,14 +101,14 @@ public sealed partial class SettingsViewModel : ObservableObject
             (
                 new ModelSettingViewModel
                 {
-                    ID              = config.ID,
-                    DisplayName     = config.DisplayName,
-                    ProviderID      = config.ProviderID,
-                    ModelName       = config.ModelName,
-                    Temperature     = config.Temperature,
-                    ReasoningEffort = config.ReasoningEffort,
-                    ExtraParameters = config.ExtraParameters ?? string.Empty,
-                    PromptID        = config.PromptID
+                    ID               = config.ID,
+                    DisplayName      = config.DisplayName,
+                    ProviderID       = config.ProviderID,
+                    ModelName        = config.ModelName,
+                    Temperature      = config.Temperature,
+                    ReasoningEffort  = config.ReasoningEffort.ToString().ToLowerInvariant(),
+                    ExtraParameters  = config.ExtraParameters ?? string.Empty,
+                    PromptID         = config.PromptID
                 }
             );
         }
@@ -148,8 +148,7 @@ public sealed partial class SettingsViewModel : ObservableObject
                     {
                         TaskType      = taskType,
                         ModelConfigID = config.ModelConfigID,
-                        PromptID      = config.PromptID,
-                        Enabled       = config.Enabled
+                        PromptID      = config.PromptID
                     }
                 );
             }
@@ -159,8 +158,7 @@ public sealed partial class SettingsViewModel : ObservableObject
                 (
                     new AgentTaskSettingViewModel
                     {
-                        TaskType = taskType,
-                        Enabled  = false
+                        TaskType = taskType
                     }
                 );
             }
@@ -223,7 +221,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         try
         {
             var providers = Providers.Select
-            (p => new ProviderConfig
+            (
+                p => new ProviderConfig
                 {
                     ID          = p.ID,
                     DisplayName = p.DisplayName,
@@ -234,14 +233,15 @@ public sealed partial class SettingsViewModel : ObservableObject
             ).ToList();
 
             var models = Models.Select
-            (m => new ModelConfig
+            (
+                m => new ModelConfig
                 {
                     ID              = m.ID,
                     DisplayName     = m.DisplayName,
                     ProviderID      = m.ProviderID,
                     ModelName       = m.ModelName,
                     Temperature     = m.Temperature,
-                    ReasoningEffort = m.ReasoningEffort,
+                    ReasoningEffort = m.ResolvedReasoningEffort,
                     ExtraParameters = string.IsNullOrWhiteSpace(m.ExtraParameters) ?
                                           null :
                                           m.ExtraParameters,
@@ -250,7 +250,8 @@ public sealed partial class SettingsViewModel : ObservableObject
             ).ToList();
 
             var prompts = Prompts.Select
-            (p => new PromptConfig
+            (
+                p => new PromptConfig
                 {
                     ID          = p.ID,
                     DisplayName = p.DisplayName,
@@ -259,12 +260,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             ).ToList();
 
             var tasks = AgentTasks.Select
-            (t => new AgentTaskConfig
+            (
+                t => new AgentTaskConfig
                 {
                     TaskType      = t.TaskType,
                     ModelConfigID = t.ModelConfigID,
                     PromptID      = t.PromptID,
-                    Enabled       = t.Enabled
+                    Enabled       = true
                 }
             ).ToList();
 
@@ -339,34 +341,50 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task TestProviderConnectionAsync(ProviderSettingViewModel? provider)
+    private async Task TestModelConnectionAsync(ModelSettingViewModel? model)
     {
+        if (model is null)
+            return;
+
+        var provider = Providers.FirstOrDefault(p => p.ID == model.ProviderID);
+
         if (provider is null)
             return;
 
-        provider.IsTestingConnection = true;
-        provider.ConnectionSuccess   = null;
-        provider.ConnectionMessage   = Loc.Get("Settings.TestingConnection");
+        model.IsTestingConnection = true;
+        model.ConnectionSuccess   = null;
+        model.ConnectionMessage   = Loc.Get("Settings.TestingConnection");
 
         try
         {
-            var firstModel = Models.FirstOrDefault(m => m.ProviderID == provider.ID);
-            var modelName  = firstModel?.ModelName ?? "gpt-4o-mini";
+            await connectionTester.TestChatAsync(provider.Provider, provider.Endpoint, provider.APIKey, model.ModelName);
 
-            await connectionTester.TestChatAsync(provider.Provider, provider.Endpoint, provider.APIKey, modelName);
-
-            provider.ConnectionSuccess = true;
-            provider.ConnectionMessage = Loc.Get("Settings.ConnectionSuccess", provider.DisplayName);
+            model.ConnectionSuccess = true;
+            model.ConnectionMessage = Loc.Get("Settings.ConnectionSuccess", model.ModelName);
         }
         catch (Exception ex)
         {
-            provider.ConnectionSuccess = false;
-            provider.ConnectionMessage = Loc.Get("Settings.ConnectionFailed", ex.Message);
+            model.ConnectionSuccess = false;
+            model.ConnectionMessage = Loc.Get("Settings.ConnectionFailed", ex.Message);
         }
         finally
         {
-            provider.IsTestingConnection = false;
+            model.IsTestingConnection = false;
         }
+    }
+
+    [RelayCommand]
+    private void ClearModelPrompt(ModelSettingViewModel? model)
+    {
+        if (model is not null)
+            model.PromptID = null;
+    }
+
+    [RelayCommand]
+    private void ClearTaskPrompt(AgentTaskSettingViewModel? task)
+    {
+        if (task is not null)
+            task.PromptID = null;
     }
 
     [RelayCommand]

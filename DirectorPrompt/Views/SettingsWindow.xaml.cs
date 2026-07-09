@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
 using Wpf.Ui.Controls;
 using ListViewItem = System.Windows.Controls.ListViewItem;
@@ -50,6 +51,39 @@ public partial class SettingsWindow : FluentWindow
         LanguagePanel.Visibility = tag == "language" ?
                                        Visibility.Visible :
                                        Visibility.Collapsed;
+    }
+
+    private void OnRemoveProvider(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: ProviderSettingViewModel provider })
+            return;
+
+        if (!PromptDialog.Confirm(this, Loc.Get("Common.Remove"), Loc.Get("Dialog.ConfirmRemoveProvider", provider.DisplayName), true))
+            return;
+
+        viewModel.RemoveProviderCommand.Execute(provider);
+    }
+
+    private void OnRemoveModel(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: ModelSettingViewModel model })
+            return;
+
+        if (!PromptDialog.Confirm(this, Loc.Get("Common.Remove"), Loc.Get("Dialog.ConfirmRemoveModel", model.DisplayName), true))
+            return;
+
+        viewModel.RemoveModelCommand.Execute(model);
+    }
+
+    private void OnRemovePrompt(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: PromptSettingViewModel prompt })
+            return;
+
+        if (!PromptDialog.Confirm(this, Loc.Get("Common.Remove"), Loc.Get("Dialog.ConfirmRemovePrompt", prompt.DisplayName), true))
+            return;
+
+        viewModel.RemovePromptCommand.Execute(prompt);
     }
 
     private async void OnSaveClick(object sender, RoutedEventArgs e)

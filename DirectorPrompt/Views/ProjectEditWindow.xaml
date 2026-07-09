@@ -155,7 +155,7 @@
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                                 <ui:Button Grid.Column="1"
-                                           Content="{Binding [Knowledge.AddGroup], Source={x:Static loc:Loc.Instance}}"
+                                           Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="Add24"
                                            Command="{Binding AddKnowledgeGroupCommand}" />
                             </Grid>
@@ -178,7 +178,7 @@
                                                                 Margin="0, 0, 8, 0"
                                                                 Orientation="Horizontal">
                                                         <ui:Button
-                                                            Content="{Binding [Knowledge.AddEntry], Source={x:Static loc:Loc.Instance}}"
+                                                            Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                                             Appearance="Secondary"
                                                             Icon="Add24"
                                                             Padding="6,4"
@@ -310,7 +310,7 @@
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                                 <ui:Button Grid.Column="1"
-                                           Content="{Binding [State.AddAttribute], Source={x:Static loc:Loc.Instance}}"
+                                           Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="Add24"
                                            Appearance="Primary"
                                            Command="{Binding AddStateAttributeCommand}" />
