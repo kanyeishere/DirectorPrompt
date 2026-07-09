@@ -41,6 +41,8 @@ public sealed class GenerationStage
 
         var messages = BuildMessages(systemPrompt, resolved.ModelPrompt, context);
 
+        messages.Add(new ChatMessage(ChatRole.User, userMessage));
+
         var options = new ChatOptions
         {
             Temperature = resolved.ModelConfig.Temperature,
@@ -48,12 +50,13 @@ public sealed class GenerationStage
             Tools       = [.. tools]
         };
 
-        var narrativeBuilder = new StringBuilder();
-        var reasoningBuilder = new StringBuilder();
-        var updateCount      = 0;
-        var hasFunctionCall  = false;
+        var narrativeBuilder  = new StringBuilder();
+        var reasoningBuilder  = new StringBuilder();
+        var updateCount       = 0;
+        var hasFunctionCall   = false;
+        var streamingAttempted = context.OnStreamingUpdate is not null;
 
-        if (context.OnStreamingUpdate is not null)
+        if (streamingAttempted)
         {
             var updates = client.GetStreamingResponseAsync(messages, options, cancellationToken);
 
@@ -82,28 +85,31 @@ public sealed class GenerationStage
         var apiReasoning = reasoningBuilder.ToString();
         var rawText      = narrativeBuilder.ToString();
 
-        if (hasFunctionCall || string.IsNullOrWhiteSpace(rawText))
+        if (!streamingAttempted || hasFunctionCall || string.IsNullOrWhiteSpace(rawText))
         {
-            if (hasFunctionCall)
+            if (streamingAttempted)
             {
-                Log.Warning
-                (
-                    "流式响应包含工具调用, 回退到非流式以完成工具调用闭环: 流式更新数={Updates}, 流式文本长度={TextLen}",
-                    updateCount,
-                    rawText.Length
-                );
-            }
-            else
-            {
-                Log.Warning
-                (
-                    "流式响应叙事文本为空, 回退到非流式: 流式更新数={Updates}",
-                    updateCount
-                );
-            }
+                if (hasFunctionCall)
+                {
+                    Log.Warning
+                    (
+                        "流式响应包含工具调用, 回退到非流式以完成工具调用闭环: 流式更新数={Updates}, 流式文本长度={TextLen}",
+                        updateCount,
+                        rawText.Length
+                    );
+                }
+                else
+                {
+                    Log.Warning
+                    (
+                        "流式响应叙事文本为空, 回退到非流式: 流式更新数={Updates}",
+                        updateCount
+                    );
+                }
 
-            narrativeBuilder.Clear();
-            reasoningBuilder.Clear();
+                narrativeBuilder.Clear();
+                reasoningBuilder.Clear();
+            }
 
             var response         = await client.GetResponseAsync(messages, options, cancellationToken);
             var assistantMessage = response.Messages.LastOrDefault();
