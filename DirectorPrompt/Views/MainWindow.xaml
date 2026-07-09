@@ -116,7 +116,8 @@
                               Margin="0,0,4,0"
                               ItemsSource="{Binding Projects}"
                               DisplayMemberPath="Name"
-                              SelectedItem="{Binding CurrentProject}">
+                              SelectedItem="{Binding CurrentProject}"
+                              IsEnabled="{Binding IsNotProcessing}">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                                 <Setter Property="ContextMenu" Value="{StaticResource ProjectItemContextMenu}" />
@@ -127,13 +128,14 @@
                                Padding="8,6"
                                Margin="0,0,4,0"
                                Command="{Binding EditProjectCommand}"
-                               IsEnabled="{Binding IsProjectSelected}"
+                               IsEnabled="{Binding CanInteractProject}"
                                ToolTip="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="Edit24" />
                     </ui:Button>
                     <ui:Button Appearance="Secondary"
                                Padding="8,6"
                                Command="{Binding NewProjectCommand}"
+                               IsEnabled="{Binding IsNotProcessing}"
                                ToolTip="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="Add24" />
                     </ui:Button>
@@ -141,7 +143,7 @@
                                Padding="8,6"
                                Margin="4,0,0,0"
                                Command="{Binding ExportProjectCommand}"
-                               IsEnabled="{Binding IsProjectSelected}"
+                               IsEnabled="{Binding CanInteractProject}"
                                ToolTip="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="ArrowExportUp24" />
                     </ui:Button>
@@ -149,6 +151,7 @@
                                Padding="8,6"
                                Margin="4,0,0,0"
                                Command="{Binding ImportProjectCommand}"
+                               IsEnabled="{Binding IsNotProcessing}"
                                ToolTip="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="ArrowImport24" />
                     </ui:Button>
@@ -187,14 +190,14 @@
                                Icon="{ui:SymbolIcon Symbol=Add24}"
                                Appearance="Primary"
                                Command="{Binding NewSessionCommand}"
-                               IsEnabled="{Binding IsProjectSelected}"
+                               IsEnabled="{Binding CanInteractProject}"
                                Margin="0,8,8,12"
                                HorizontalAlignment="Stretch" />
 
                     <ListBox Grid.Row="1"
                              ItemsSource="{Binding Sessions}"
                              SelectedItem="{Binding CurrentSession}"
-                             IsEnabled="{Binding IsProjectSelected}"
+                             IsEnabled="{Binding CanInteractProject}"
                              Background="Transparent"
                              BorderThickness="0"
                              Padding="0,0,0,8">

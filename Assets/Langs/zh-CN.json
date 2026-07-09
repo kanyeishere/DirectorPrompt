@@ -225,6 +225,7 @@
     "State.Title": "状态系统",
     "Status.AddAtLeastOneDirective": "请至少添加一条指令",
     "Status.CommittingCorrection": "提交修正中…",
+    "Status.Cancelled": "已取消",
     "Status.Complete": "完成",
     "Status.CompleteWithWarnings": "完成 (审计警告: {0} 条)",
     "Status.Correcting": "修正中…",

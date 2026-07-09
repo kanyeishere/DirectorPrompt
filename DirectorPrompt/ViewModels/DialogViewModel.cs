@@ -194,7 +194,7 @@ public sealed class DialogViewModel
         DeferredRender(entry);
     }
 
-    public void AddDirectorEntry(long roundID, IReadOnlyList<(DirectiveType Type, string Content)> directives)
+    public DialogEntryViewModel AddDirectorEntry(long roundID, IReadOnlyList<(DirectiveType Type, string Content)> directives)
     {
         ClearLastFlag();
 
@@ -223,6 +223,7 @@ public sealed class DialogViewModel
 
         Entries.Add(entry);
         DeferredRender(entry);
+        return entry;
     }
 
     public DialogEntryViewModel BeginStreamingNarrative(long roundID)

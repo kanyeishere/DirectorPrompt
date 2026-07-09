@@ -40,8 +40,12 @@ public sealed partial class MainViewModel
     private long    pendingCorrectionTempRoundID;
     private string? pendingCorrectionOriginalNarrative;
 
+    private CancellationTokenSource? generationCts;
+    private CancellationTokenSource? sessionLoadCts;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsProjectSelected))]
+    [NotifyPropertyChangedFor(nameof(CanInteractProject))]
     public partial Project? CurrentProject { get; set; }
 
     [ObservableProperty]
@@ -52,12 +56,18 @@ public sealed partial class MainViewModel
     public partial string StatusMessage { get; set; } = Loc.Get("Status.Ready");
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotProcessing))]
+    [NotifyPropertyChangedFor(nameof(CanInteractProject))]
     public partial bool IsProcessing { get; set; }
 
     [ObservableProperty]
     public partial bool IsSessionSidebarExpanded { get; set; } = true;
 
     public bool IsProjectSelected => CurrentProject is not null;
+
+    public bool IsNotProcessing => !IsProcessing;
+
+    public bool CanInteractProject => IsProjectSelected && !IsProcessing;
 
     public bool IsSessionSelected => CurrentSession is not null;
 
@@ -427,9 +437,19 @@ public sealed partial class MainViewModel
             return;
         }
 
+        CancelGeneration();
+        generationCts = new CancellationTokenSource();
+        var token = generationCts.Token;
+
+        var sessionID = CurrentSession.ID;
+
         IsProcessing  = true;
         StatusMessage = Loc.Get("Status.Processing");
         ResetPipelineStages();
+
+        DialogEntryViewModel? streamingEntry = null;
+        DialogEntryViewModel? directorEntry  = null;
+        long expectedRoundID = 0;
 
         try
         {
@@ -444,19 +464,27 @@ public sealed partial class MainViewModel
                 "用户发送指令: 项目={ProjectID} ({ProjectName}), 对话={SessionID}, 指令数={Count}",
                 CurrentProject.ID,
                 CurrentProject.Name,
-                CurrentSession.ID,
+                sessionID,
                 items.Count
             );
 
-            Dialog.AddDirectorEntry(0, items.Select(d => (d.Type, d.Content)).ToList());
+            directorEntry  = Dialog.AddDirectorEntry(0, items.Select(d => (d.Type, d.Content)).ToList());
 
             DirectiveInput.Clear();
 
-            var streamingEntry = Dialog.BeginStreamingNarrative(0);
+            streamingEntry = Dialog.BeginStreamingNarrative(0);
 
             var dispatcher = Application.Current.Dispatcher;
 
-            var result = await orchestrator.ProcessBatchAsync(batch, CurrentSession.ID, StreamingUpdate, StageUpdate);
+            expectedRoundID = await eventRepository.GetLatestRoundIDAsync(sessionID, token) + 1;
+
+            var result = await orchestrator.ProcessBatchAsync(batch, sessionID, StreamingUpdate, StageUpdate, token);
+
+            if (CurrentSession?.ID != sessionID)
+            {
+                await orchestrator.DeleteRoundAsync(sessionID, result.RoundID);
+                return;
+            }
 
             streamingEntry.RoundID  = result.RoundID;
             streamingEntry.Content  = result.Narrative;
@@ -484,10 +512,23 @@ public sealed partial class MainViewModel
                                 Loc.Get("Status.CompleteWithWarnings", result.Violations.Count);
 
             void StreamingUpdate(string narrative, string thinking) =>
-                dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); }));
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (CurrentSession?.ID == sessionID)
+                        streamingEntry.UpdateStreamingContent(narrative, thinking);
+                }));
 
             void StageUpdate(PipelineStageUpdate update) =>
-                dispatcher.BeginInvoke(new Action(() => { UpdatePipelineStage(update.Stage, update.Status, update.Detail); }));
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (CurrentSession?.ID == sessionID)
+                        UpdatePipelineStage(update.Stage, update.Status, update.Detail);
+                }));
+        }
+        catch (OperationCanceledException)
+        {
+            await RollbackRoundAsync(sessionID, expectedRoundID, streamingEntry, directorEntry);
+            StatusMessage = Loc.Get("Status.Cancelled");
         }
         catch (Exception ex)
         {
@@ -496,7 +537,8 @@ public sealed partial class MainViewModel
         }
         finally
         {
-            IsProcessing = false;
+            if (CurrentSession?.ID == sessionID)
+                IsProcessing = false;
         }
     }
 
@@ -562,13 +604,23 @@ public sealed partial class MainViewModel
         if (CurrentProject is null)
             return;
 
+        CancelGeneration();
+        generationCts = new CancellationTokenSource();
+        var token = generationCts.Token;
+
+        var sessionID = CurrentSession.ID;
+
         IsProcessing  = true;
         StatusMessage = Loc.Get("Status.Rewriting");
         ResetPipelineStages();
 
+        DialogEntryViewModel? streamingEntry = null;
+        DialogEntryViewModel? directorEntry  = null;
+        long expectedRoundID = 0;
+
         try
         {
-            var latestRound = await eventRepository.GetLatestRoundIDAsync(CurrentSession.ID);
+            var latestRound = await eventRepository.GetLatestRoundIDAsync(sessionID, token);
 
             if (latestRound <= 0)
             {
@@ -576,7 +628,7 @@ public sealed partial class MainViewModel
                 return;
             }
 
-            var events        = await eventRepository.GetByRoundAsync(latestRound);
+            var events        = await eventRepository.GetByRoundAsync(latestRound, token);
             var directorEvent = events.FirstOrDefault(e => e.Type == EventType.DirectorInput);
 
             if (directorEvent is null)
@@ -597,13 +649,21 @@ public sealed partial class MainViewModel
 
             Dialog.RemoveEntriesByRound(latestRound);
 
-            Dialog.AddDirectorEntry(0, directives.Select(d => (d.Type, d.Content)).ToList());
+            directorEntry  = Dialog.AddDirectorEntry(0, directives.Select(d => (d.Type, d.Content)).ToList());
 
-            var streamingEntry = Dialog.BeginStreamingNarrative(0);
+            streamingEntry = Dialog.BeginStreamingNarrative(0);
 
             var dispatcher = Application.Current.Dispatcher;
 
-            var result = await orchestrator.RewriteAsync(batch, CurrentSession.ID, StreamingUpdate, StageUpdate);
+            expectedRoundID = latestRound;
+
+            var result = await orchestrator.RewriteAsync(batch, sessionID, StreamingUpdate, StageUpdate, token);
+
+            if (CurrentSession?.ID != sessionID)
+            {
+                await orchestrator.DeleteRoundAsync(sessionID, result.RoundID);
+                return;
+            }
 
             streamingEntry.RoundID  = result.RoundID;
             streamingEntry.Content  = result.Narrative;
@@ -617,10 +677,23 @@ public sealed partial class MainViewModel
                                 Loc.Get("Status.CompleteWithWarnings", result.Violations.Count);
 
             void StreamingUpdate(string narrative, string thinking) =>
-                dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); }));
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (CurrentSession?.ID == sessionID)
+                        streamingEntry.UpdateStreamingContent(narrative, thinking);
+                }));
 
             void StageUpdate(PipelineStageUpdate update) =>
-                dispatcher.BeginInvoke(new Action(() => { UpdatePipelineStage(update.Stage, update.Status, update.Detail); }));
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (CurrentSession?.ID == sessionID)
+                        UpdatePipelineStage(update.Stage, update.Status, update.Detail);
+                }));
+        }
+        catch (OperationCanceledException)
+        {
+            await RollbackRoundAsync(sessionID, expectedRoundID, streamingEntry, directorEntry);
+            StatusMessage = Loc.Get("Status.Cancelled");
         }
         catch (Exception ex)
         {
@@ -629,7 +702,8 @@ public sealed partial class MainViewModel
         }
         finally
         {
-            IsProcessing = false;
+            if (CurrentSession?.ID == sessionID)
+                IsProcessing = false;
         }
     }
 
@@ -658,30 +732,49 @@ public sealed partial class MainViewModel
         if (string.IsNullOrWhiteSpace(guidance))
             return;
 
+        CancelGeneration();
+        generationCts = new CancellationTokenSource();
+        var token = generationCts.Token;
+
+        var sessionID = CurrentSession.ID;
+
         IsProcessing  = true;
         StatusMessage = Loc.Get("Status.Correcting");
         ResetPipelineStages();
 
+        DialogEntryViewModel? streamingEntry = null;
+        var expectedRoundID = latestRound + 1;
+
         try
         {
-            var events         = await eventRepository.GetByRoundAsync(latestRound);
+            var events         = await eventRepository.GetByRoundAsync(latestRound, token);
             var narrativeEvent = events.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
 
             pendingCorrectionOriginalRoundID   = latestRound;
             pendingCorrectionOriginalNarrative = narrativeEvent?.Data;
 
-            var streamingEntry = Dialog.BeginStreamingNarrative(0);
+            streamingEntry = Dialog.BeginStreamingNarrative(0);
 
             var dispatcher = Application.Current.Dispatcher;
 
             var result = await orchestrator.CorrectAsync
                          (
-                             CurrentSession.ID,
+                             sessionID,
                              latestRound,
                              guidance,
                              StreamingUpdate,
-                             StageUpdate
+                             StageUpdate,
+                             token
                          );
+
+            if (CurrentSession?.ID != sessionID)
+            {
+                await orchestrator.RejectCorrectionAsync(sessionID, result.RoundID);
+                pendingCorrectionOriginalRoundID   = 0;
+                pendingCorrectionTempRoundID       = 0;
+                pendingCorrectionOriginalNarrative = null;
+                return;
+            }
 
             pendingCorrectionTempRoundID = result.RoundID;
 
@@ -707,7 +800,7 @@ public sealed partial class MainViewModel
 
                 await orchestrator.AcceptCorrectionAsync
                 (
-                    CurrentSession.ID,
+                    sessionID,
                     pendingCorrectionOriginalRoundID,
                     pendingCorrectionTempRoundID
                 );
@@ -730,7 +823,7 @@ public sealed partial class MainViewModel
 
                 await orchestrator.RejectCorrectionAsync
                 (
-                    CurrentSession.ID,
+                    sessionID,
                     pendingCorrectionTempRoundID
                 );
 
@@ -745,10 +838,27 @@ public sealed partial class MainViewModel
             pendingCorrectionOriginalNarrative = null;
 
             void StreamingUpdate(string narrative, string thinking) =>
-                dispatcher.BeginInvoke(new Action(() => { streamingEntry.UpdateStreamingContent(narrative, thinking); }));
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (CurrentSession?.ID == sessionID)
+                        streamingEntry.UpdateStreamingContent(narrative, thinking);
+                }));
 
             void StageUpdate(PipelineStageUpdate update) =>
-                dispatcher.BeginInvoke(new Action(() => { UpdatePipelineStage(update.Stage, update.Status, update.Detail); }));
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (CurrentSession?.ID == sessionID)
+                        UpdatePipelineStage(update.Stage, update.Status, update.Detail);
+                }));
+        }
+        catch (OperationCanceledException)
+        {
+            pendingCorrectionOriginalRoundID   = 0;
+            pendingCorrectionTempRoundID       = 0;
+            pendingCorrectionOriginalNarrative = null;
+
+            await RollbackRoundAsync(sessionID, expectedRoundID, streamingEntry);
+            StatusMessage = Loc.Get("Status.Cancelled");
         }
         catch (Exception ex)
         {
@@ -757,7 +867,8 @@ public sealed partial class MainViewModel
         }
         finally
         {
-            IsProcessing = false;
+            if (CurrentSession?.ID == sessionID)
+                IsProcessing = false;
         }
     }
 
@@ -788,6 +899,9 @@ public sealed partial class MainViewModel
 
     partial void OnCurrentProjectChanged(Project? value)
     {
+        CancelGeneration();
+        sessionLoadCts?.Cancel();
+
         CurrentSession = null;
         Sessions.Clear();
         Dialog.Clear();
@@ -801,6 +915,12 @@ public sealed partial class MainViewModel
 
     partial void OnCurrentSessionChanged(Session? value)
     {
+        CancelGeneration();
+
+        sessionLoadCts?.Cancel();
+        sessionLoadCts = new CancellationTokenSource();
+        var token = sessionLoadCts.Token;
+
         Dialog.Clear();
         DirectiveInput.Clear();
         ResetPipelineStages();
@@ -820,8 +940,59 @@ public sealed partial class MainViewModel
         if (CurrentProject is not null && !string.IsNullOrWhiteSpace(CurrentProject.OpeningMessage))
             Dialog.AddOpeningMessage(CurrentProject.OpeningMessage);
 
-        _ = LoadDialogHistoryAsync(value.ID);
-        _ = RefreshSidebarAsync();
+        _ = LoadSessionDataAsync(value.ID, token);
+    }
+
+    private void CancelGeneration() =>
+        generationCts?.Cancel();
+
+    private async Task LoadSessionDataAsync(long sessionID, CancellationToken token)
+    {
+        try
+        {
+            await LoadDialogHistoryAsync(sessionID, token);
+
+            if (token.IsCancellationRequested)
+                return;
+
+            await RefreshSidebarAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task RollbackRoundAsync
+    (
+        long                  sessionID,
+        long                  expectedRoundID,
+        DialogEntryViewModel? streamingEntry = null,
+        DialogEntryViewModel? directorEntry  = null
+    )
+    {
+        try
+        {
+            if (expectedRoundID > 0)
+            {
+                var events = await eventRepository.GetByRoundAsync(expectedRoundID);
+
+                if (events.Count > 0)
+                    await orchestrator.DeleteRoundAsync(sessionID, expectedRoundID);
+            }
+
+            if (CurrentSession?.ID == sessionID)
+            {
+                if (streamingEntry is not null)
+                    Dialog.Entries.Remove(streamingEntry);
+
+                if (directorEntry is not null)
+                    Dialog.Entries.Remove(directorEntry);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "回退失败: 对话={SessionID}, 轮次={RoundID}", sessionID, expectedRoundID);
+        }
     }
 
     private async Task SaveSessionStateAsync()
@@ -839,11 +1010,14 @@ public sealed partial class MainViewModel
         }
     }
 
-    private async Task LoadDialogHistoryAsync(long sessionID)
+    private async Task LoadDialogHistoryAsync(long sessionID, CancellationToken token = default)
     {
         try
         {
-            var events = await eventRepository.GetBySessionAsync(sessionID);
+            var events = await eventRepository.GetBySessionAsync(sessionID, token);
+
+            if (token.IsCancellationRequested)
+                return;
 
             var directorEvents = events
                                  .Where(e => e.Type == EventType.DirectorInput)
@@ -964,14 +1138,28 @@ public sealed partial class MainViewModel
         return result;
     }
 
-    private async Task RefreshSidebarAsync()
+    private async Task RefreshSidebarAsync(CancellationToken token = default)
     {
         if (CurrentSession is null || CurrentProject is null)
             return;
 
+        var sessionID = CurrentSession.ID;
+
         await RefreshStatePanelAsync();
+
+        if (token.IsCancellationRequested || CurrentSession?.ID != sessionID)
+            return;
+
         await RefreshDirectivesPanelAsync();
+
+        if (token.IsCancellationRequested || CurrentSession?.ID != sessionID)
+            return;
+
         await RefreshCharacterPanelAsync();
+
+        if (token.IsCancellationRequested || CurrentSession?.ID != sessionID)
+            return;
+
         await RefreshMemoryPanelAsync();
     }
 

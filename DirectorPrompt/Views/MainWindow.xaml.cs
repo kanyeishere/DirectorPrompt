@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+﻿﻿using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
@@ -16,6 +16,7 @@ namespace DirectorPrompt.Views;
 public partial class MainWindow : FluentWindow
 {
     private readonly MainViewModel viewModel;
+    private readonly HashSet<DialogEntryViewModel> subscribedEntries = [];
 
     public MainWindow(MainViewModel viewModel)
     {
@@ -38,16 +39,26 @@ public partial class MainWindow : FluentWindow
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems is not null)
         {
             foreach (DialogEntryViewModel entry in e.NewItems)
+            {
                 entry.PropertyChanged += OnEntryPropertyChanged;
+                subscribedEntries.Add(entry);
+            }
         }
         else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems is not null)
         {
             foreach (DialogEntryViewModel entry in e.OldItems)
+            {
                 entry.PropertyChanged -= OnEntryPropertyChanged;
+                subscribedEntries.Remove(entry);
+            }
         }
-
-        if (e.Action == NotifyCollectionChangedAction.Reset)
+        else if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var entry in subscribedEntries)
+                entry.PropertyChanged -= OnEntryPropertyChanged;
+            subscribedEntries.Clear();
             return;
+        }
 
         ScrollDialogToBottom();
     }
