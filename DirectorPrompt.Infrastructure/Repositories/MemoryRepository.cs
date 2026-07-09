@@ -331,7 +331,14 @@ public sealed class MemoryRepository : IMemoryRepository
         {
             await connection.ExecuteAsync
             (
-                $"INSERT OR REPLACE INTO \"{tableName}\" (entry_id, embedding) VALUES (@entryID, @embedding)",
+                $"DELETE FROM \"{tableName}\" WHERE entry_id = @entryID",
+                new { entryID },
+                transaction
+            );
+
+            await connection.ExecuteAsync
+            (
+                $"INSERT INTO \"{tableName}\" (entry_id, embedding) VALUES (@entryID, @embedding)",
                 new { entryID, embedding },
                 transaction
             );
