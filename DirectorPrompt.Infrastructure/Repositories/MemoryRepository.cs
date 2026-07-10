@@ -3,6 +3,7 @@ using Dapper;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
+using DirectorPrompt.Infrastructure;
 using Microsoft.Data.Sqlite;
 
 namespace DirectorPrompt.Infrastructure.Repositories;
@@ -128,10 +129,12 @@ public sealed class MemoryRepository : IMemoryRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM memory_entries WHERE id = @id",
-                         new { id = entry.ID }
+                         new { id = entry.ID },
+                         cancellationToken: cancellationToken
                      );
 
         var oldDataJSON = oldRow is null ?
@@ -237,11 +240,13 @@ public sealed class MemoryRepository : IMemoryRepository
 
         foreach (var id in memoryIDs)
         {
-            var row = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+            var row = await RowReader.ReadRowAsync
                       (
+                          connection,
                           "SELECT * FROM memory_entries WHERE id = @id",
                           new { id },
-                          transaction
+                          transaction,
+                          cancellationToken
                       );
             sourceRows.Add
             (
@@ -295,17 +300,19 @@ public sealed class MemoryRepository : IMemoryRepository
             await DeleteEmbeddingAsync(projectID.Value, id, cancellationToken);
     }
 
-    private static async Task<(IDictionary<string, object>? row, long? projectID)> GetRowAndProjectAsync
+    private static async Task<(Dictionary<string, object?>? row, long? projectID)> GetRowAndProjectAsync
     (
         SqliteConnection  connection,
         long              id,
         CancellationToken cancellationToken
     )
     {
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM memory_entries WHERE id = @id",
-                         new { id }
+                         new { id },
+                         cancellationToken: cancellationToken
                      );
 
         long? projectID = null;
@@ -396,16 +403,16 @@ public sealed class MemoryRepository : IMemoryRepository
                        SELECT entry_id AS EntryID, distance AS Distance
                        FROM "{tableName}"
                        WHERE embedding MATCH @queryVector
+                         AND k = @topK
                          AND entry_id IN @candidateIDs
                        ORDER BY distance
-                       LIMIT @topK
                        """ :
                       $"""
                        SELECT entry_id AS EntryID, distance AS Distance
                        FROM "{tableName}"
                        WHERE embedding MATCH @queryVector
+                         AND k = @topK
                        ORDER BY distance
-                       LIMIT @topK
                        """;
 
         var rows = await connection.QueryAsync<(long EntryID, float Distance)>

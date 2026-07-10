@@ -4,6 +4,7 @@ using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
+using DirectorPrompt.Infrastructure;
 
 namespace DirectorPrompt.Infrastructure.Repositories;
 
@@ -67,10 +68,12 @@ public sealed class DirectiveRepository : IDirectiveRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM active_directives WHERE id = @id",
-                         new { id }
+                         new { id },
+                         cancellationToken: cancellationToken
                      );
 
         await connection.ExecuteAsync("DELETE FROM active_directives WHERE id = @id", new { id });

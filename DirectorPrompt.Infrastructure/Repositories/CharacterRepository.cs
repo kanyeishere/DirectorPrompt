@@ -4,6 +4,7 @@ using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
+using DirectorPrompt.Infrastructure;
 
 namespace DirectorPrompt.Infrastructure.Repositories;
 
@@ -134,10 +135,12 @@ public sealed class CharacterRepository : ICharacterRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM characters WHERE id = @id",
-                         new { id = character.ID }
+                         new { id = character.ID },
+                         cancellationToken: cancellationToken
                      );
 
         await connection.ExecuteAsync
@@ -198,10 +201,12 @@ public sealed class CharacterRepository : ICharacterRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM characters WHERE id = @characterID",
-                         new { characterID }
+                         new { characterID },
+                         cancellationToken: cancellationToken
                      );
 
         await connection.ExecuteAsync
@@ -268,16 +273,18 @@ public sealed class CharacterRepository : ICharacterRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM characters WHERE id = @characterID",
-                         new { characterID }
+                         new { characterID },
+                         cancellationToken: cancellationToken
                      );
 
         if (oldRow is null)
             return;
 
-        var aliases = JsonHelper.DeserializeStringArray((string)oldRow["aliases"]);
+        var aliases = JsonHelper.DeserializeStringArray((string)oldRow["aliases"]!);
 
         if (aliases.Contains(alias))
             return;
@@ -392,16 +399,16 @@ public sealed class CharacterRepository : ICharacterRepository
                        SELECT entry_id AS CharacterID, distance AS Distance
                        FROM "{tableName}"
                        WHERE embedding MATCH @queryVector
+                         AND k = @topK
                          AND entry_id IN @candidateIDs
                        ORDER BY distance
-                       LIMIT @topK
                        """ :
                       $"""
                        SELECT entry_id AS CharacterID, distance AS Distance
                        FROM "{tableName}"
                        WHERE embedding MATCH @queryVector
+                         AND k = @topK
                        ORDER BY distance
-                       LIMIT @topK
                        """;
 
         var rows = await connection.QueryAsync<(long CharacterID, float Distance)>
@@ -810,10 +817,12 @@ public sealed class CharacterRepository : ICharacterRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM character_state_values WHERE character_id = @characterID AND attribute_id = @attributeID",
-                         new { characterID, attributeID }
+                         new { characterID, attributeID },
+                         cancellationToken: cancellationToken
                      );
 
         await connection.ExecuteAsync

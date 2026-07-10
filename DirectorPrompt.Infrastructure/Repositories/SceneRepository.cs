@@ -4,6 +4,7 @@ using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
+using DirectorPrompt.Infrastructure;
 
 namespace DirectorPrompt.Infrastructure.Repositories;
 
@@ -102,10 +103,12 @@ public sealed class SceneRepository : ISceneRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM scenes WHERE id = @id",
-                         new { id = scene.ID }
+                         new { id = scene.ID },
+                         cancellationToken: cancellationToken
                      );
 
         await connection.ExecuteAsync
@@ -136,10 +139,12 @@ public sealed class SceneRepository : ISceneRepository
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
-        var oldRow = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>
+        var oldRow = await RowReader.ReadRowAsync
                      (
+                         connection,
                          "SELECT * FROM scenes WHERE session_id = @sessionID AND status = 'active' ORDER BY id DESC LIMIT 1",
-                         new { sessionID }
+                         new { sessionID },
+                         cancellationToken: cancellationToken
                      );
 
         if (oldRow is null)

@@ -404,16 +404,16 @@ public sealed class KnowledgeRepository : IKnowledgeRepository
                        SELECT entry_id AS EntryID, distance AS Distance
                        FROM "{tableName}"
                        WHERE embedding MATCH @queryVector
+                         AND k = @topK
                          AND entry_id IN @candidateIDs
                        ORDER BY distance
-                       LIMIT @topK
                        """ :
                       $"""
                        SELECT entry_id AS EntryID, distance AS Distance
                        FROM "{tableName}"
                        WHERE embedding MATCH @queryVector
+                         AND k = @topK
                        ORDER BY distance
-                       LIMIT @topK
                        """;
 
         var rows = await connection.QueryAsync<(long EntryID, float Distance)>
