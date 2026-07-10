@@ -6,7 +6,10 @@ using DirectorPrompt.Domain.Repositories;
 
 namespace DirectorPrompt.Agents;
 
-public sealed class HistoryBuilder(IEventRepository eventRepository)
+public sealed class HistoryBuilder
+(
+    IEventRepository eventRepository
+)
 {
     public async Task<IReadOnlyList<ChatHistoryEntry>> BuildAsync
     (

@@ -102,10 +102,10 @@ public sealed class PostProcessingStage
 
             foreach (var attr in attributes)
             {
-                var value  = await stateRepository.GetStateValueAsync(attr.ID, context.SessionID, cancellationToken);
-                var type   = attr.ValueType == StateValueType.Enum ?
-                                 $"Enum({FormatEnumOptions(attr.Config)})" :
-                                 attr.ValueType.ToString();
+                var value = await stateRepository.GetStateValueAsync(attr.ID, context.SessionID, cancellationToken);
+                var type = attr.ValueType == StateValueType.Enum ?
+                               $"Enum({FormatEnumOptions(attr.Config)})" :
+                               attr.ValueType.ToString();
                 var driver = attr.Driver == Driver.System ?
                                  "system (不可修改)" :
                                  "narrative";
@@ -156,9 +156,9 @@ public sealed class PostProcessingStage
 
             foreach (var attr in categoryAttrs)
             {
-                var type   = attr.ValueType == StateValueType.Enum ?
-                                 $"Enum({FormatEnumOptions(attr.Config)})" :
-                                 attr.ValueType.ToString();
+                var type = attr.ValueType == StateValueType.Enum ?
+                               $"Enum({FormatEnumOptions(attr.Config)})" :
+                               attr.ValueType.ToString();
                 var driver = attr.Driver == Driver.System ?
                                  "system (不可修改)" :
                                  "narrative";

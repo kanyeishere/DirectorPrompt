@@ -65,27 +65,27 @@ public sealed class EventRepository : IEventRepository
         return rows.Select(r => r.ToEvent()).ToList();
     }
 
-    public async Task<IReadOnlyList<PlaythroughEvent>> GetByRoundAsync(long roundID, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PlaythroughEvent>> GetByRoundAsync(long sessionID, long roundID, CancellationToken cancellationToken = default)
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
         var rows = await connection.QueryAsync<EventRow>
                    (
-                       "SELECT * FROM playthrough_events WHERE round_id = @roundID ORDER BY id",
-                       new { roundID }
+                       "SELECT * FROM playthrough_events WHERE session_id = @sessionID AND round_id = @roundID ORDER BY id",
+                       new { sessionID, roundID }
                    );
 
         return rows.Select(r => r.ToEvent()).ToList();
     }
 
-    public async Task RemoveByRoundAsync(long roundID, CancellationToken cancellationToken = default)
+    public async Task RemoveByRoundAsync(long sessionID, long roundID, CancellationToken cancellationToken = default)
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
         await connection.ExecuteAsync
         (
-            "DELETE FROM playthrough_events WHERE round_id = @roundID",
-            new { roundID }
+            "DELETE FROM playthrough_events WHERE session_id = @sessionID AND round_id = @roundID",
+            new { sessionID, roundID }
         );
     }
 

@@ -4,6 +4,8 @@ public record RoundChange
 {
     public long ID { get; init; }
 
+    public long SessionID { get; init; }
+
     public long RoundID { get; init; }
 
     public string TableName { get; init; } = string.Empty;

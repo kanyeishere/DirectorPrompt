@@ -10,13 +10,13 @@ public interface IRoundChangeRepository
 
     Task RecordDeleteAsync(long roundID, string tableName, long recordID, string oldDataJSON, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<RoundChange>> GetByRoundAsync(long roundID, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RoundChange>> GetByRoundAsync(long sessionID, long roundID, CancellationToken cancellationToken = default);
 
-    Task RollbackRoundAsync(long roundID, CancellationToken cancellationToken = default);
+    Task RollbackRoundAsync(long sessionID, long roundID, CancellationToken cancellationToken = default);
 
-    Task RemoveByRoundAsync(long roundID, CancellationToken cancellationToken = default);
+    Task RemoveByRoundAsync(long sessionID, long roundID, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<CapturedChange>> CaptureRoundDataAsync(long roundID, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CapturedChange>> CaptureRoundDataAsync(long sessionID, long roundID, CancellationToken cancellationToken = default);
 
-    Task ReplayChangesAsync(long targetRoundID, IReadOnlyList<CapturedChange> changes, CancellationToken cancellationToken = default);
+    Task ReplayChangesAsync(long sessionID, long targetRoundID, IReadOnlyList<CapturedChange> changes, CancellationToken cancellationToken = default);
 }

@@ -48,7 +48,7 @@ public sealed class SceneSummaryStage
         var messages = new List<ChatMessage>
         {
             new(ChatRole.System, SceneSummaryPrompt.SYSTEM),
-            new(ChatRole.User,   historyText)
+            new(ChatRole.User, historyText)
         };
 
         var options = new ChatOptions

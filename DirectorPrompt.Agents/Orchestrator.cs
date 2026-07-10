@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using DirectorPrompt.Agents.Pipeline;
 using DirectorPrompt.Domain.Configurations;
@@ -55,7 +54,7 @@ public sealed class Orchestrator
         var oldSceneID       = activeScene?.ID;
         var timelinePosition = activeScene?.TimelinePosition ?? 0;
 
-        using (RoundContext.Enter(roundID))
+        using (RoundContext.Enter(sessionID, roundID))
         {
             Log.Information
             (
@@ -147,10 +146,10 @@ public sealed class Orchestrator
     {
         Log.Information("删除轮次: 对话={SessionID}, 轮次={RoundID}", sessionID, roundID);
 
-        await roundChangeRepository.RollbackRoundAsync(roundID, cancellationToken);
+        await roundChangeRepository.RollbackRoundAsync(sessionID, roundID, cancellationToken);
         await stateRepository.RollbackByRoundAsync(sessionID, roundID, cancellationToken);
-        await roundChangeRepository.RemoveByRoundAsync(roundID, cancellationToken);
-        await eventRepository.RemoveByRoundAsync(roundID, cancellationToken);
+        await roundChangeRepository.RemoveByRoundAsync(sessionID, roundID, cancellationToken);
+        await eventRepository.RemoveByRoundAsync(sessionID, roundID, cancellationToken);
     }
 
     public async Task<NarrationResult> RewriteAsync
@@ -190,7 +189,7 @@ public sealed class Orchestrator
         if (project is null)
             throw new ArgumentException("项目不存在");
 
-        var originalEvents = await eventRepository.GetByRoundAsync(originalRoundID, cancellationToken);
+        var originalEvents = await eventRepository.GetByRoundAsync(sessionID, originalRoundID, cancellationToken);
         var directorEvent  = originalEvents.FirstOrDefault(e => e.Type == EventType.DirectorInput);
         var narrativeEvent = originalEvents.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
 
@@ -222,7 +221,7 @@ public sealed class Orchestrator
             correctionGuidance
         );
 
-        using (RoundContext.Enter(tempRoundID))
+        using (RoundContext.Enter(sessionID, tempRoundID))
         {
             var transitionResults = await EvaluateTransitionsAsync(project.ID, sessionID, tempRoundID, cancellationToken);
 
@@ -280,7 +279,7 @@ public sealed class Orchestrator
             tempRoundID
         );
 
-        var capturedChanges      = await roundChangeRepository.CaptureRoundDataAsync(tempRoundID, cancellationToken);
+        var capturedChanges      = await roundChangeRepository.CaptureRoundDataAsync(sessionID, tempRoundID, cancellationToken);
         var tempStateChanges     = await stateRepository.CaptureStateChangesAsync(sessionID, tempRoundID,     cancellationToken);
         var originalStateChanges = await stateRepository.CaptureStateChangesAsync(sessionID, originalRoundID, cancellationToken);
 
@@ -292,9 +291,9 @@ public sealed class Orchestrator
             originalStateChanges.Count
         );
 
-        var tempEvents            = await eventRepository.GetByRoundAsync(tempRoundID, cancellationToken);
+        var tempEvents            = await eventRepository.GetByRoundAsync(sessionID, tempRoundID, cancellationToken);
         var tempNarrativeEvent    = tempEvents.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
-        var originalEvents        = await eventRepository.GetByRoundAsync(originalRoundID, cancellationToken);
+        var originalEvents        = await eventRepository.GetByRoundAsync(sessionID, originalRoundID, cancellationToken);
         var originalDirectorEvent = originalEvents.FirstOrDefault(e => e.Type == EventType.DirectorInput);
 
         var projectID = originalDirectorEvent?.ProjectID ?? 0;
@@ -306,7 +305,7 @@ public sealed class Orchestrator
         await DeleteRoundAsync(sessionID, originalRoundID, cancellationToken);
 
         Log.Information("修正: 重放临时轮次数据变更到原轮次, 变更数={ChangeCount}", capturedChanges.Count);
-        await roundChangeRepository.ReplayChangesAsync(originalRoundID, capturedChanges, cancellationToken);
+        await roundChangeRepository.ReplayChangesAsync(sessionID, originalRoundID, capturedChanges, cancellationToken);
 
         Log.Information("修正: 重放状态变更, 临时状态变更数={TempStateCount}", tempStateChanges.Count);
         await stateRepository.ReplayStateChangesAsync

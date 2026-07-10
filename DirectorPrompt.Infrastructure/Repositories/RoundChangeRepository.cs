@@ -3,6 +3,7 @@ using System.Text.Json;
 using Dapper;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
+using DirectorPrompt.Domain.Services;
 using Serilog;
 
 namespace DirectorPrompt.Infrastructure.Repositories;
@@ -45,11 +46,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
         await connection.ExecuteAsync
         (
             """
-            INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-            VALUES (@roundID, @tableName, @recordID, 'create', @oldData, @createdAt)
+            INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+            VALUES (@sessionID, @roundID, @tableName, @recordID, 'create', @oldData, @createdAt)
             """,
             new
             {
+                sessionID = RoundContext.SessionID ?? 0,
                 roundID,
                 tableName,
                 recordID,
@@ -73,11 +75,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
         await connection.ExecuteAsync
         (
             """
-            INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-            VALUES (@roundID, @tableName, @recordID, 'update', @oldData, @createdAt)
+            INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+            VALUES (@sessionID, @roundID, @tableName, @recordID, 'update', @oldData, @createdAt)
             """,
             new
             {
+                sessionID = RoundContext.SessionID ?? 0,
                 roundID,
                 tableName,
                 recordID,
@@ -101,11 +104,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
         await connection.ExecuteAsync
         (
             """
-            INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-            VALUES (@roundID, @tableName, @recordID, 'delete', @oldData, @createdAt)
+            INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+            VALUES (@sessionID, @roundID, @tableName, @recordID, 'delete', @oldData, @createdAt)
             """,
             new
             {
+                sessionID = RoundContext.SessionID ?? 0,
                 roundID,
                 tableName,
                 recordID,
@@ -117,6 +121,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
     public async Task<IReadOnlyList<RoundChange>> GetByRoundAsync
     (
+        long              sessionID,
         long              roundID,
         CancellationToken cancellationToken = default
     )
@@ -125,8 +130,8 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
         var rows = await connection.QueryAsync<RoundChangeRow>
                    (
-                       "SELECT * FROM round_changes WHERE round_id = @roundID ORDER BY id DESC",
-                       new { roundID }
+                       "SELECT * FROM round_changes WHERE session_id = @sessionID AND round_id = @roundID ORDER BY id DESC",
+                       new { sessionID, roundID }
                    );
 
         return rows.Select(r => r.ToRoundChange()).ToList();
@@ -134,11 +139,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
     public async Task RollbackRoundAsync
     (
+        long              sessionID,
         long              roundID,
         CancellationToken cancellationToken = default
     )
     {
-        var changes = await GetByRoundAsync(roundID, cancellationToken);
+        var changes = await GetByRoundAsync(sessionID, roundID, cancellationToken);
 
         if (changes.Count == 0)
             return;
@@ -213,6 +219,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
     public async Task RemoveByRoundAsync
     (
+        long              sessionID,
         long              roundID,
         CancellationToken cancellationToken = default
     )
@@ -221,13 +228,14 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
         await connection.ExecuteAsync
         (
-            "DELETE FROM round_changes WHERE round_id = @roundID",
-            new { roundID }
+            "DELETE FROM round_changes WHERE session_id = @sessionID AND round_id = @roundID",
+            new { sessionID, roundID }
         );
     }
 
     public async Task<IReadOnlyList<CapturedChange>> CaptureRoundDataAsync
     (
+        long              sessionID,
         long              roundID,
         CancellationToken cancellationToken = default
     )
@@ -236,8 +244,8 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
         var rows = await connection.QueryAsync<RoundChangeRow>
                    (
-                       "SELECT * FROM round_changes WHERE round_id = @roundID ORDER BY id ASC",
-                       new { roundID }
+                       "SELECT * FROM round_changes WHERE session_id = @sessionID AND round_id = @roundID ORDER BY id ASC",
+                       new { sessionID, roundID }
                    );
 
         var changes = rows.Select(r => r.ToRoundChange()).ToList();
@@ -268,6 +276,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
 
     public async Task ReplayChangesAsync
     (
+        long                          sessionID,
         long                          targetRoundID,
         IReadOnlyList<CapturedChange> changes,
         CancellationToken             cancellationToken = default
@@ -284,9 +293,9 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                     continue;
 
                 if (CompositeKeys.TryGetValue(change.TableName, out var keyColumns))
-                    await ReplayCompositeKeyChangeAsync(connection, transaction, targetRoundID, change, keyColumns, cancellationToken);
+                    await ReplayCompositeKeyChangeAsync(connection, transaction, sessionID, targetRoundID, change, keyColumns, cancellationToken);
                 else
-                    await ReplaySimpleChangeAsync(connection, transaction, targetRoundID, change, cancellationToken);
+                    await ReplaySimpleChangeAsync(connection, transaction, sessionID, targetRoundID, change, cancellationToken);
             }
 
             await transaction.CommitAsync(cancellationToken);
@@ -356,6 +365,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
     (
         DbConnection      connection,
         DbTransaction     transaction,
+        long              sessionID,
         long              targetRoundID,
         CapturedChange    change,
         CancellationToken cancellationToken
@@ -368,11 +378,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                 await connection.ExecuteAsync
                 (
                     """
-                    INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-                    VALUES (@roundID, @tableName, @recordID, 'create', NULL, @createdAt)
+                    INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+                    VALUES (@sessionID, @roundID, @tableName, @recordID, 'create', NULL, @createdAt)
                     """,
                     new
                     {
+                        sessionID,
                         roundID   = targetRoundID,
                         tableName = change.TableName,
                         recordID  = change.RecordID,
@@ -387,11 +398,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                 await connection.ExecuteAsync
                 (
                     """
-                    INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-                    VALUES (@roundID, @tableName, @recordID, 'update', @oldData, @createdAt)
+                    INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+                    VALUES (@sessionID, @roundID, @tableName, @recordID, 'update', @oldData, @createdAt)
                     """,
                     new
                     {
+                        sessionID,
                         roundID   = targetRoundID,
                         tableName = change.TableName,
                         recordID  = change.RecordID,
@@ -413,11 +425,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                 await connection.ExecuteAsync
                 (
                     """
-                    INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-                    VALUES (@roundID, @tableName, @recordID, 'delete', @oldData, @createdAt)
+                    INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+                    VALUES (@sessionID, @roundID, @tableName, @recordID, 'delete', @oldData, @createdAt)
                     """,
                     new
                     {
+                        sessionID,
                         roundID   = targetRoundID,
                         tableName = change.TableName,
                         recordID  = change.RecordID,
@@ -434,6 +447,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
     (
         DbConnection      connection,
         DbTransaction     transaction,
+        long              sessionID,
         long              targetRoundID,
         CapturedChange    change,
         string[]          keyColumns,
@@ -447,11 +461,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                 await connection.ExecuteAsync
                 (
                     """
-                    INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-                    VALUES (@roundID, @tableName, @recordID, 'create', @oldData, @createdAt)
+                    INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+                    VALUES (@sessionID, @roundID, @tableName, @recordID, 'create', @oldData, @createdAt)
                     """,
                     new
                     {
+                        sessionID,
                         roundID   = targetRoundID,
                         tableName = change.TableName,
                         recordID  = change.RecordID,
@@ -467,11 +482,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                 await connection.ExecuteAsync
                 (
                     """
-                    INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-                    VALUES (@roundID, @tableName, @recordID, 'update', @oldData, @createdAt)
+                    INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+                    VALUES (@sessionID, @roundID, @tableName, @recordID, 'update', @oldData, @createdAt)
                     """,
                     new
                     {
+                        sessionID,
                         roundID   = targetRoundID,
                         tableName = change.TableName,
                         recordID  = change.RecordID,
@@ -505,11 +521,12 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
                 await connection.ExecuteAsync
                 (
                     """
-                    INSERT INTO round_changes (round_id, table_name, record_id, operation, old_data, created_at)
-                    VALUES (@roundID, @tableName, @recordID, 'delete', @oldData, @createdAt)
+                    INSERT INTO round_changes (session_id, round_id, table_name, record_id, operation, old_data, created_at)
+                    VALUES (@sessionID, @roundID, @tableName, @recordID, 'delete', @oldData, @createdAt)
                     """,
                     new
                     {
+                        sessionID,
                         roundID   = targetRoundID,
                         tableName = change.TableName,
                         recordID  = change.RecordID,
@@ -936,6 +953,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
     private sealed class RoundChangeRow
     {
         public long    ID         { get; set; }
+        public long    Session_ID { get; set; }
         public long    Round_ID   { get; set; }
         public string  Table_Name { get; set; } = string.Empty;
         public long    Record_ID  { get; set; }
@@ -947,6 +965,7 @@ public sealed class RoundChangeRepository : IRoundChangeRepository
             new()
             {
                 ID        = ID,
+                SessionID = Session_ID,
                 RoundID   = Round_ID,
                 TableName = Table_Name,
                 RecordID  = Record_ID,

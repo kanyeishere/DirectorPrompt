@@ -562,7 +562,7 @@ public sealed partial class MainViewModel
                 return;
             }
 
-            var events        = await eventRepository.GetByRoundAsync(latestRound);
+            var events        = await eventRepository.GetByRoundAsync(CurrentSession.ID, latestRound);
             var directorEvent = events.FirstOrDefault(e => e.Type == EventType.DirectorInput);
 
             Log.Information("用户回退轮次: 对话={SessionID}, 轮次={RoundID}", CurrentSession.ID, latestRound);
@@ -629,7 +629,7 @@ public sealed partial class MainViewModel
                 return;
             }
 
-            var events        = await eventRepository.GetByRoundAsync(latestRound, token);
+            var events        = await eventRepository.GetByRoundAsync(sessionID, latestRound, token);
             var directorEvent = events.FirstOrDefault(e => e.Type == EventType.DirectorInput);
 
             if (directorEvent is null)
@@ -756,7 +756,7 @@ public sealed partial class MainViewModel
 
         try
         {
-            var events         = await eventRepository.GetByRoundAsync(latestRound, token);
+            var events         = await eventRepository.GetByRoundAsync(sessionID, latestRound, token);
             var narrativeEvent = events.FirstOrDefault(e => e.Type == EventType.NarrativeOutput);
 
             pendingCorrectionOriginalRoundID   = latestRound;
@@ -995,7 +995,7 @@ public sealed partial class MainViewModel
         {
             if (expectedRoundID > 0)
             {
-                var events = await eventRepository.GetByRoundAsync(expectedRoundID);
+                var events = await eventRepository.GetByRoundAsync(sessionID, expectedRoundID);
 
                 if (events.Count > 0)
                     await orchestrator.DeleteRoundAsync(sessionID, expectedRoundID);
