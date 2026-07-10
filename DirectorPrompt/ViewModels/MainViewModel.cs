@@ -486,6 +486,7 @@ public sealed partial class MainViewModel
                 return;
             }
 
+            directorEntry.RoundID   = result.RoundID;
             streamingEntry.RoundID  = result.RoundID;
             streamingEntry.Content  = result.Narrative;
             streamingEntry.Thinking = result.Thinking;
@@ -666,6 +667,7 @@ public sealed partial class MainViewModel
                 return;
             }
 
+            directorEntry.RoundID   = result.RoundID;
             streamingEntry.RoundID  = result.RoundID;
             streamingEntry.Content  = result.Narrative;
             streamingEntry.Thinking = result.Thinking;
