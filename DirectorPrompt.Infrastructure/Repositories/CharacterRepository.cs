@@ -513,6 +513,30 @@ public sealed class CharacterRepository : ICharacterRepository
         return rows.Select(r => r.ToCharacterRelation()).ToList();
     }
 
+    public async Task<IReadOnlyList<CharacterRelation>> GetRelationsByCharactersAsync
+    (
+        IReadOnlyList<long> characterIDs,
+        CancellationToken   cancellationToken = default
+    )
+    {
+        if (characterIDs.Count == 0)
+            return [];
+
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<CharacterRelationRow>
+                   (
+                       """
+                       SELECT * FROM character_relations
+                       WHERE source_character_id IN @characterIDs OR target_character_id IN @characterIDs
+                       ORDER BY id
+                       """,
+                       new { characterIDs }
+                   );
+
+        return rows.Select(r => r.ToCharacterRelation()).ToList();
+    }
+
     public async Task<CharacterRelation> SetRelationAsync
     (
         long                 sessionID,
@@ -783,6 +807,34 @@ public sealed class CharacterRepository : ICharacterRepository
                 attributeIDs = JsonHelper.Serialize(resolved.AttributeIDs)
             }
         );
+    }
+
+    public async Task<IReadOnlyList<CharacterStateValue>> GetCharacterStateValuesBatchAsync
+    (
+        IReadOnlyList<long> characterIDs,
+        CancellationToken   cancellationToken = default
+    )
+    {
+        if (characterIDs.Count == 0)
+            return [];
+
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<CharacterStateValueRow>
+                   (
+                       "SELECT * FROM character_state_values WHERE character_id IN @characterIDs",
+                       new { characterIDs }
+                   );
+
+        return rows.Select
+        (r => new CharacterStateValue
+            {
+                CharacterID = r.Character_ID,
+                AttributeID = r.Attribute_ID,
+                Value       = r.Value,
+                UpdatedAt   = DateTime.Parse(r.Updated_At)
+            }
+        ).ToList();
     }
 
     public async Task<IReadOnlyList<CharacterStateValue>> GetCharacterStateValuesAsync(long characterID, CancellationToken cancellationToken = default)

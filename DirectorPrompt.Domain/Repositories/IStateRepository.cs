@@ -19,6 +19,8 @@ public interface IStateRepository
 
     Task<StateValue?> GetStateValueAsync(long attributeID, long sessionID, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<StateValue>> GetStateValuesAsync(IReadOnlyList<long> attributeIDs, long sessionID, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<StateValue>> GetAllStateValuesAsync(long projectID, long sessionID, CancellationToken cancellationToken = default);
 
     Task SetStateValueAsync

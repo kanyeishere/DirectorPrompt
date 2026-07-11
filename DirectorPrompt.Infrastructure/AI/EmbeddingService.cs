@@ -40,16 +40,13 @@ public sealed class EmbeddingService : IEmbeddingService
         CancellationToken     cancellationToken = default
     )
     {
+        if (texts.Count == 0)
+            return [];
+
         var generator  = CreateGenerator();
-        var embeddings = new List<float[]>(texts.Count);
+        var embeddings = await generator.GenerateAsync(texts, cancellationToken: cancellationToken);
 
-        foreach (var text in texts)
-        {
-            var result = await generator.GenerateAsync([text], cancellationToken: cancellationToken);
-            embeddings.Add(result[0].Vector.ToArray());
-        }
-
-        return embeddings;
+        return embeddings.Select(e => e.Vector.ToArray()).ToList();
     }
 
     private IEmbeddingGenerator<string, Embedding<float>> CreateGenerator()

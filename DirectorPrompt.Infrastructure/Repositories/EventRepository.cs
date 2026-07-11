@@ -39,6 +39,52 @@ public sealed class EventRepository : IEventRepository
         return eventItem with { ID = id };
     }
 
+    public async Task AppendBatchAsync
+    (
+        IReadOnlyList<PlaythroughEvent> events,
+        CancellationToken                cancellationToken = default
+    )
+    {
+        if (events.Count == 0)
+            return;
+
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            foreach (var eventItem in events)
+            {
+                await connection.ExecuteAsync
+                (
+                    """
+                    INSERT INTO playthrough_events (project_id, session_id, round_id, scene_id, type, data, created_at)
+                    VALUES (@projectID, @sessionID, @roundID, @sceneID, @type, @data, @createdAt)
+                    """,
+                    new
+                    {
+                        projectID = eventItem.ProjectID,
+                        sessionID = eventItem.SessionID,
+                        roundID   = eventItem.RoundID,
+                        sceneID   = eventItem.SceneID,
+                        type      = JsonNamingPolicy.SnakeCaseLower.ConvertName(eventItem.Type.ToString()),
+                        data      = eventItem.Data,
+                        createdAt = eventItem.CreatedAt.ToString("O")
+                    },
+                    transaction
+                );
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
     public async Task<IReadOnlyList<PlaythroughEvent>> GetBySessionAsync(long sessionID, CancellationToken cancellationToken = default)
     {
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);

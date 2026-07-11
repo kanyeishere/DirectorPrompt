@@ -201,12 +201,15 @@ public sealed class CharacterTools
                 characters.Count
             );
 
-            foreach (var c in needsRegeneration)
+            var contents   = needsRegeneration.Select(BuildCharacterEmbeddingText).ToList();
+            var embeddings = await embeddingService.GenerateEmbeddingsAsync(contents);
+
+            for (var i = 0; i < needsRegeneration.Count; i++)
             {
-                var text     = BuildCharacterEmbeddingText(c);
-                var emb      = await embeddingService.GenerateEmbeddingAsync(text);
+                var c        = needsRegeneration[i];
+                var text     = contents[i];
                 var hash     = EmbeddingConversions.ComputeHash(text, fingerprint);
-                var embBytes = EmbeddingConversions.FloatsToBytes(emb);
+                var embBytes = EmbeddingConversions.FloatsToBytes(embeddings[i]);
 
                 await characterRepository.SaveEmbeddingAsync(context.ProjectID, c.ID, embBytes, hash);
             }

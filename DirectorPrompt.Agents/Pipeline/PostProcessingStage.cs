@@ -99,13 +99,17 @@ public sealed class PostProcessingStage
 
         if (attributes.Count > 0)
         {
+            var attrIDs     = attributes.Select(a => a.ID).ToList();
+            var stateValues = await stateRepository.GetStateValuesAsync(attrIDs, context.SessionID, cancellationToken);
+            var valueMap    = stateValues.ToDictionary(v => v.AttributeID);
+
             sb.AppendLine("## 可用状态属性 (调用工具时使用 Name 字段的值)");
             sb.AppendLine("| Name | 显示名 | 当前值 | 类型 | 约束 | 规则 |");
             sb.AppendLine("|------|--------|--------|------|------|------|");
 
             foreach (var attr in attributes)
             {
-                var value      = await stateRepository.GetStateValueAsync(attr.ID, context.SessionID, cancellationToken);
+                var value      = valueMap.TryGetValue(attr.ID, out var sv) ? sv : null;
                 var type       = FormatType(attr);
                 var constraint = FormatConstraint(attr);
                 var rules      = FormatRules(attr);
@@ -168,28 +172,31 @@ public sealed class PostProcessingStage
             sb.AppendLine();
         }
 
-        if (characters.Count > 0)
+        if (characters.Count > 0 && categoryAttrs.Count > 0)
         {
+            var categoryAttrIDs = categoryAttrs.Select(a => a.ID).ToHashSet();
+            var attrLookup      = categoryAttrs.ToDictionary(a => a.ID);
+            var characterIDs    = characters.Select(c => c.ID).ToList();
+            var allStateValues  = await characterRepository.GetCharacterStateValuesBatchAsync(characterIDs, cancellationToken);
+            var valuesByChar    = allStateValues
+                                  .Where(v => categoryAttrIDs.Contains(v.AttributeID))
+                                  .GroupBy(v => v.CharacterID)
+                                  .ToDictionary(g => g.Key);
+
             sb.AppendLine("## 人物当前状态值");
 
             foreach (var c in characters)
             {
-                var values = await characterRepository.GetCharacterStateValuesAsync(c.ID, cancellationToken);
-
-                if (values.Count == 0)
+                if (!valuesByChar.TryGetValue(c.ID, out var charValues))
                     continue;
 
                 var parts = new List<string>();
 
-                var categoryAttrIDs = categoryAttrs.Select(a => a.ID).ToHashSet();
-
-                foreach (var v in values)
+                foreach (var v in charValues)
                 {
-                    if (!categoryAttrIDs.Contains(v.AttributeID))
-                        continue;
-
-                    var attr = categoryAttrs.FirstOrDefault(a => a.ID == v.AttributeID);
-                    var name = attr?.Name ?? v.AttributeID.ToString();
+                    var name = attrLookup.TryGetValue(v.AttributeID, out var attr) ?
+                                   attr.Name :
+                                   v.AttributeID.ToString();
                     parts.Add($"{name}={v.Value}");
                 }
 

@@ -6,6 +6,8 @@ public interface IEventRepository
 {
     Task<PlaythroughEvent> AppendAsync(PlaythroughEvent eventItem, CancellationToken cancellationToken = default);
 
+    Task AppendBatchAsync(IReadOnlyList<PlaythroughEvent> events, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PlaythroughEvent>> GetBySessionAsync(long sessionID, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<PlaythroughEvent>> GetBySceneAsync(long sessionID, long sceneID, CancellationToken cancellationToken = default);

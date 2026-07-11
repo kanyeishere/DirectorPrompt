@@ -203,40 +203,61 @@ public sealed class Orchestrator
             )
         );
 
-        await RecordEventAsync
-        (
-            context.DirectiveBatch.ProjectID,
-            context.SessionID,
-            context.RoundID,
-            context.CurrentSceneID,
-            EventType.DirectorInput,
-            JsonSerializer.Serialize
+        var now = DateTime.UtcNow;
+
+        var events = new List<PlaythroughEvent>
+        {
+            new()
+            {
+                ProjectID = context.DirectiveBatch.ProjectID,
+                SessionID = context.SessionID,
+                RoundID   = context.RoundID,
+                SceneID   = context.CurrentSceneID,
+                Type      = EventType.DirectorInput,
+                Data      = JsonSerializer.Serialize
+                            (
+                                context.DirectiveBatch.Directives.Select
+                                (d => new
+                                    {
+                                        type     = d.Type.ToString(),
+                                        content  = d.Content,
+                                        order    = d.Order,
+                                        isSystem = d.IsSystem
+                                    }
+                                )
+                            ),
+                CreatedAt = now
+            },
+            new()
+            {
+                ProjectID = context.DirectiveBatch.ProjectID,
+                SessionID = context.SessionID,
+                RoundID   = context.RoundID,
+                SceneID   = context.CurrentSceneID,
+                Type      = EventType.NarrativeOutput,
+                Data      = context.NarrativeOutput ?? string.Empty,
+                CreatedAt = now
+            }
+        };
+
+        foreach (var (source, result) in transitionResults)
+        {
+            events.Add
             (
-                context.DirectiveBatch.Directives.Select
-                (d => new
-                    {
-                        type     = d.Type.ToString(),
-                        content  = d.Content,
-                        order    = d.Order,
-                        isSystem = d.IsSystem
-                    }
-                )
-            ),
-            cancellationToken
-        );
+                new PlaythroughEvent
+                {
+                    ProjectID = context.DirectiveBatch.ProjectID,
+                    SessionID = context.SessionID,
+                    RoundID   = context.RoundID,
+                    SceneID   = context.CurrentSceneID,
+                    Type      = source.EventType,
+                    Data      = JsonSerializer.Serialize(new { activeKeys = result.ActiveKeys }),
+                    CreatedAt = now
+                }
+            );
+        }
 
-        await RecordEventAsync
-        (
-            context.DirectiveBatch.ProjectID,
-            context.SessionID,
-            context.RoundID,
-            context.CurrentSceneID,
-            EventType.NarrativeOutput,
-            context.NarrativeOutput ?? string.Empty,
-            cancellationToken
-        );
-
-        await RecordTransitionAsync(context, transitionResults, cancellationToken);
+        await eventRepository.AppendBatchAsync(events, cancellationToken);
 
         context.OnStageUpdate?.Invoke
         (
@@ -278,41 +299,6 @@ public sealed class Orchestrator
             context.ThinkingOutput  ?? string.Empty,
             context.RoundID
         );
-    }
-
-    private async Task RecordEventAsync
-    (
-        long              projectID,
-        long              sessionID,
-        long              roundID,
-        long?             sceneID,
-        EventType         type,
-        string            data,
-        CancellationToken cancellationToken
-    )
-    {
-        Log.Debug
-        (
-            "记录事件: 类型={Type}, 对话={SessionID}, 轮次={RoundID}, 场景={SceneID}, 数据长度={DataLength}",
-            type,
-            sessionID,
-            roundID,
-            sceneID,
-            data.Length
-        );
-
-        var eventItem = new PlaythroughEvent
-        {
-            ProjectID = projectID,
-            SessionID = sessionID,
-            RoundID   = roundID,
-            SceneID   = sceneID,
-            Type      = type,
-            Data      = data,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await eventRepository.AppendAsync(eventItem, cancellationToken);
     }
 
     private async Task<List<(ITransitionSource Source, TransitionResult Result)>> EvaluateTransitionsAsync
@@ -441,27 +427,4 @@ public sealed class Orchestrator
         return batch with { Directives = allDirectives };
     }
 
-    private async Task RecordTransitionAsync
-    (
-        PipelineContext                                                    context,
-        IReadOnlyList<(ITransitionSource Source, TransitionResult Result)> transitionResults,
-        CancellationToken                                                  cancellationToken
-    )
-    {
-        foreach (var (source, result) in transitionResults)
-        {
-            var data = JsonSerializer.Serialize(new { activeKeys = result.ActiveKeys });
-
-            await RecordEventAsync
-            (
-                context.DirectiveBatch.ProjectID,
-                context.SessionID,
-                context.RoundID,
-                context.CurrentSceneID,
-                source.EventType,
-                data,
-                cancellationToken
-            );
-        }
-    }
 }

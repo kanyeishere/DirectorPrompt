@@ -136,11 +136,14 @@ public sealed class MemoryTools
                 candidateList.Count
             );
 
-            foreach (var memory in needsRegeneration)
+            var contents   = needsRegeneration.Select(m => m.Content).ToList();
+            var embeddings = await embeddingService.GenerateEmbeddingsAsync(contents);
+
+            for (var i = 0; i < needsRegeneration.Count; i++)
             {
-                var emb      = await embeddingService.GenerateEmbeddingAsync(memory.Content);
+                var memory   = needsRegeneration[i];
                 var hash     = EmbeddingConversions.ComputeHash(memory.Content, fingerprint);
-                var embBytes = EmbeddingConversions.FloatsToBytes(emb);
+                var embBytes = EmbeddingConversions.FloatsToBytes(embeddings[i]);
 
                 await memoryRepository.SaveEmbeddingAsync(context.ProjectID, memory.ID, embBytes, hash);
             }

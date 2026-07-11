@@ -117,9 +117,20 @@ public sealed class SystemStateTransformer
         if (attr.ValueType != StateValueType.Enum)
             return;
 
+        if (characters.Count == 0)
+            return;
+
+        var characterIDs   = characters.Select(c => c.ID).ToList();
+        var allStateValues = await characterRepository.GetCharacterStateValuesBatchAsync(characterIDs, cancellationToken);
+        var valuesByChar   = allStateValues.GroupBy(v => v.CharacterID)
+                                           .ToDictionary(g => g.Key);
+
         foreach (var character in characters)
         {
-            var charValues = await characterRepository.GetCharacterStateValuesAsync(character.ID, cancellationToken);
+            var charValues = valuesByChar.TryGetValue(character.ID, out var vals) ?
+                                 vals.ToList() :
+                                 [];
+
             var charContext = charValues.ToDictionary
             (
                 v => attrNameCache.TryGetValue(v.AttributeID, out var name) ?
@@ -342,10 +353,20 @@ public sealed class SystemStateTransformer
     {
         var result = new Dictionary<string, string>();
 
-        foreach (var attr in allAttributes.Where(a => a.Scope == StateScope.Global))
+        var globalAttrs = allAttributes.Where(a => a.Scope == StateScope.Global).ToList();
+
+        if (globalAttrs.Count == 0)
+            return result;
+
+        var attrIDs     = globalAttrs.Select(a => a.ID).ToList();
+        var stateValues = await stateRepository.GetStateValuesAsync(attrIDs, sessionID, cancellationToken);
+        var valueMap    = stateValues.ToDictionary(v => v.AttributeID);
+
+        foreach (var attr in globalAttrs)
         {
-            var value = await stateRepository.GetStateValueAsync(attr.ID, sessionID, cancellationToken);
-            result[attr.Name] = value?.Value ?? string.Empty;
+            result[attr.Name] = valueMap.TryGetValue(attr.ID, out var sv) ?
+                                     sv.Value :
+                                     string.Empty;
         }
 
         return result;

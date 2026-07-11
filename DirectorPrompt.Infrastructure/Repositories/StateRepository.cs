@@ -161,6 +161,34 @@ public sealed class StateRepository : IStateRepository
         };
     }
 
+    public async Task<IReadOnlyList<StateValue>> GetStateValuesAsync
+    (
+        IReadOnlyList<long> attributeIDs,
+        long                sessionID,
+        CancellationToken   cancellationToken = default
+    )
+    {
+        if (attributeIDs.Count == 0)
+            return [];
+
+        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<StateValueRow>
+                   (
+                       "SELECT * FROM state_values WHERE attribute_id IN @attributeIDs AND session_id = @sessionID",
+                       new { attributeIDs, sessionID }
+                   );
+
+        return rows.Select
+        (r => new StateValue
+            {
+                AttributeID = r.Attribute_ID,
+                Value       = r.Value,
+                UpdatedAt   = DateTime.Parse(r.Updated_At)
+            }
+        ).ToList();
+    }
+
     public async Task<IReadOnlyList<StateValue>> GetAllStateValuesAsync
     (
         long              projectID,

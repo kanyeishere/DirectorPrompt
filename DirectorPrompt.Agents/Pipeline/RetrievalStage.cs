@@ -181,11 +181,15 @@ public sealed class RetrievalStage
 
         if (attributes.Count > 0)
         {
+            var attrIDs     = attributes.Select(a => a.ID).ToList();
+            var stateValues = await stateRepository.GetStateValuesAsync(attrIDs, context.SessionID, cancellationToken);
+            var valueMap    = stateValues.ToDictionary(v => v.AttributeID);
+
             sb.AppendLine("## 全局状态");
 
             foreach (var attr in attributes)
             {
-                var value = await stateRepository.GetStateValueAsync(attr.ID, context.SessionID, cancellationToken);
+                var value = valueMap.TryGetValue(attr.ID, out var sv) ? sv : null;
                 sb.AppendLine($"- {attr.DisplayName} ({attr.Name}): {value?.Value ?? "未设置"}");
             }
 
@@ -243,17 +247,25 @@ public sealed class RetrievalStage
         if (attributes.Count == 0)
             return;
 
+        var attrLookup      = attributes.ToDictionary(a => a.ID);
+        var characterIDs    = characters.Select(c => c.ID).ToList();
+        var allStateValues  = await characterRepository.GetCharacterStateValuesBatchAsync(characterIDs, cancellationToken);
+        var valuesByChar    = allStateValues
+                              .Where(v => attrLookup.ContainsKey(v.AttributeID))
+                              .GroupBy(v => v.CharacterID)
+                              .ToDictionary(g => g.Key);
+
         sb.AppendLine("## 在场人物状态");
 
         foreach (var character in characters)
         {
-            var values = await characterRepository.GetCharacterStateValuesAsync(character.ID, cancellationToken);
-
             sb.AppendLine($"{character.Name}:");
 
             foreach (var attr in attributes)
             {
-                var value = values.FirstOrDefault(v => v.AttributeID == attr.ID);
+                var value = valuesByChar.TryGetValue(character.ID, out var charValues) ?
+                                charValues.FirstOrDefault(v => v.AttributeID == attr.ID) :
+                                null;
                 sb.AppendLine($"- {attr.DisplayName} ({attr.Name}): {value?.Value ?? "未设置"}");
             }
         }
@@ -269,18 +281,16 @@ public sealed class RetrievalStage
         CancellationToken        cancellationToken
     )
     {
-        var characterIDs = characters.Select(c => c.ID).ToHashSet();
-        var merged       = new Dictionary<(long Source, long Target), CharacterRelation>();
+        var characterIDs = characters.Select(c => c.ID).ToList();
+        var idSet        = characterIDs.ToHashSet();
+        var allRelations = await characterRepository.GetRelationsByCharactersAsync(characterIDs, cancellationToken);
 
-        foreach (var character in characters)
+        var merged = new Dictionary<(long Source, long Target), CharacterRelation>();
+
+        foreach (var r in allRelations)
         {
-            var relations = await characterRepository.GetRelationsByCharacterAsync(character.ID, cancellationToken);
-
-            foreach (var r in relations)
-            {
-                if (characterIDs.Contains(r.SourceCharacterID) && characterIDs.Contains(r.TargetCharacterID))
-                    merged[(r.SourceCharacterID, r.TargetCharacterID)] = r;
-            }
+            if (idSet.Contains(r.SourceCharacterID) && idSet.Contains(r.TargetCharacterID))
+                merged[(r.SourceCharacterID, r.TargetCharacterID)] = r;
         }
 
         if (merged.Count == 0)

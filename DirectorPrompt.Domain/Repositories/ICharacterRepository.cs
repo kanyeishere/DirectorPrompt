@@ -52,6 +52,8 @@ public interface ICharacterRepository
 
     Task<IReadOnlyList<CharacterRelation>> GetRelationsByCharacterAsync(long characterID, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CharacterRelation>> GetRelationsByCharactersAsync(IReadOnlyList<long> characterIDs, CancellationToken cancellationToken = default);
+
     Task<CharacterRelation> SetRelationAsync
     (
         long                 sessionID,
@@ -79,6 +81,8 @@ public interface ICharacterRepository
     Task UpdateResolvedCategoriesAsync(CharacterCategoryResolution resolved, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CharacterStateValue>> GetCharacterStateValuesAsync(long characterID, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CharacterStateValue>> GetCharacterStateValuesBatchAsync(IReadOnlyList<long> characterIDs, CancellationToken cancellationToken = default);
 
     Task SetCharacterStateValueAsync(long characterID, long attributeID, string value, CancellationToken cancellationToken = default);
 }
