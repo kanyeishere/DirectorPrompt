@@ -26,8 +26,19 @@ public sealed class EnumOptions : INotifyPropertyChanged
     public IReadOnlyList<EnumOption<SystemTrigger>> SystemTriggers =>
     [
         new(SystemTrigger.SceneChange, Loc.Get("State.Trigger.SceneChange")),
-        new(SystemTrigger.RoundEnd, Loc.Get("State.Trigger.RoundEnd")),
-        new(SystemTrigger.Custom, Loc.Get("State.Trigger.Custom"))
+        new(SystemTrigger.RoundEnd, Loc.Get("State.Trigger.RoundEnd"))
+    ];
+
+    public IReadOnlyList<EnumOption<EnumTransitionMethod>> TransitionMethods =>
+    [
+        new(EnumTransitionMethod.Random, Loc.Get("State.TransitionMethod.Random")),
+        new(EnumTransitionMethod.Expression, Loc.Get("State.TransitionMethod.Expression"))
+    ];
+
+    public IReadOnlyList<EnumOption<EnumSwitchMode>> SwitchModes =>
+    [
+        new(EnumSwitchMode.Always, Loc.Get("State.SwitchMode.Always")),
+        new(EnumSwitchMode.Once, Loc.Get("State.SwitchMode.Once"))
     ];
 
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e) =>

@@ -18,6 +18,7 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNumericConfig))]
     [NotifyPropertyChangedFor(nameof(IsEnumConfig))]
+    [NotifyPropertyChangedFor(nameof(IsDriverVisible))]
     public partial StateValueType ValueType { get; set; } = StateValueType.Numeric;
 
     [ObservableProperty]
@@ -58,9 +59,41 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
 
     public ObservableCollection<PhaseEditViewModel> Phases { get; } = [];
 
+    public ObservableCollection<EnumTransitionEditViewModel> Transitions { get; } = [];
+
+    public ObservableCollection<string> AvailableNumericAttributes { get; } = [];
+
     public bool IsNumericConfig => ValueType == StateValueType.Numeric;
 
     public bool IsEnumConfig => ValueType == StateValueType.Enum;
+
+    public bool IsDriverVisible => ValueType == StateValueType.Numeric;
+
+    partial void OnOptionsChanged(string value) =>
+        SyncTransitions();
+
+    private void SyncTransitions()
+    {
+        var options = Options.Split
+        (
+            ',',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+        );
+
+        var optionSet = new HashSet<string>(options);
+
+        for (var i = Transitions.Count - 1; i >= 0; i--)
+            if (!optionSet.Contains(Transitions[i].Option))
+                Transitions.RemoveAt(i);
+
+        var existing = Transitions.Select(t => t.Option).ToHashSet();
+
+        foreach (var opt in options)
+        {
+            if (!existing.Contains(opt))
+                Transitions.Add(new EnumTransitionEditViewModel { Option = opt });
+        }
+    }
 
     private object BuildPhasesPayload() =>
         Phases.Select
@@ -89,6 +122,19 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
             }
         );
 
+    private object BuildTransitionsPayload() =>
+        Transitions.Select
+        (t => new
+            {
+                option        = t.Option,
+                method        = t.Method.ToString(),
+                weight        = t.Weight,
+                attributeName = t.AttributeName,
+                expression    = t.Expression,
+                switchMode    = t.SwitchMode.ToString()
+            }
+        );
+
     public string BuildConfig() =>
         (ValueType, Driver) switch
         {
@@ -103,14 +149,14 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
                     phases      = BuildPhasesPayload()
                 }
             ),
-            (StateValueType.Enum, Driver.System) => JsonSerializer.Serialize
+            (StateValueType.Enum, _) => JsonSerializer.Serialize
             (
                 new
                 {
-                    options         = Options.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-                    trigger         = Trigger.ToString(),
-                    transitionRules = new { },
-                    phases          = BuildPhasesPayload()
+                    options     = Options.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    trigger     = Trigger.ToString(),
+                    transitions = BuildTransitionsPayload(),
+                    phases      = BuildPhasesPayload()
                 }
             ),
             _ => JsonSerializer.Serialize(new { phases = BuildPhasesPayload() })

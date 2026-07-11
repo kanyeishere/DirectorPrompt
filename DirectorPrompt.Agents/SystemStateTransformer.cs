@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Globalization;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
@@ -14,6 +16,8 @@ public sealed class SystemStateTransformer
     IConditionEngine     conditionEngine
 ) : ISystemStateTransformer
 {
+    private readonly ConcurrentDictionary<(long SessionID, long AttributeID, long? CharacterID, string Option), bool> onceTriggered = new();
+
     public async Task ExecuteAsync
     (
         long              projectID,
@@ -33,11 +37,11 @@ public sealed class SystemStateTransformer
         );
 
         var attributes  = await stateRepository.GetAttributesAsync(projectID, null, cancellationToken);
-        var systemAttrs = attributes.Where(a => a.Driver == Driver.System).ToList();
+        var systemAttrs = attributes.Where(a => a.Driver == Driver.System || a.ValueType == StateValueType.Enum).ToList();
 
         if (systemAttrs.Count == 0)
         {
-            Log.Debug("无 system 驱动的状态属性, 跳过");
+            Log.Debug("无系统驱动的状态属性, 跳过");
             return;
         }
 
@@ -78,24 +82,24 @@ public sealed class SystemStateTransformer
         CancellationToken          cancellationToken
     )
     {
-        if (attr.ValueType == StateValueType.Enum)
-        {
-            var value        = await stateRepository.GetStateValueAsync(attr.ID, sessionID, cancellationToken);
-            var currentValue = value?.Value ?? string.Empty;
+        if (attr.ValueType != StateValueType.Enum)
+            return;
 
-            await TransformEnumAttributeAsync
-            (
-                attr,
-                sessionID,
-                sceneID,
-                roundID,
-                trigger,
-                currentValue,
-                globalStateValues,
-                null,
-                cancellationToken
-            );
-        }
+        var value        = await stateRepository.GetStateValueAsync(attr.ID, sessionID, cancellationToken);
+        var currentValue = value?.Value ?? string.Empty;
+
+        await TransformEnumAttributeAsync
+        (
+            attr,
+            sessionID,
+            sceneID,
+            roundID,
+            trigger,
+            currentValue,
+            globalStateValues,
+            null,
+            cancellationToken
+        );
     }
 
     private async Task TransformCategoryAttributeAsync
@@ -111,6 +115,9 @@ public sealed class SystemStateTransformer
         CancellationToken          cancellationToken
     )
     {
+        if (attr.ValueType != StateValueType.Enum)
+            return;
+
         foreach (var character in characters)
         {
             var charValues = await characterRepository.GetCharacterStateValuesAsync(character.ID, cancellationToken);
@@ -122,23 +129,20 @@ public sealed class SystemStateTransformer
                 v => v.Value
             );
 
-            if (attr.ValueType == StateValueType.Enum)
-            {
-                var currentValue = charValues.FirstOrDefault(v => v.AttributeID == attr.ID)?.Value ?? string.Empty;
+            var currentValue = charValues.FirstOrDefault(v => v.AttributeID == attr.ID)?.Value ?? string.Empty;
 
-                await TransformEnumAttributeAsync
-                (
-                    attr,
-                    sessionID,
-                    sceneID,
-                    roundID,
-                    trigger,
-                    currentValue,
-                    charContext,
-                    character.ID,
-                    cancellationToken
-                );
-            }
+            await TransformEnumAttributeAsync
+            (
+                attr,
+                sessionID,
+                sceneID,
+                roundID,
+                trigger,
+                currentValue,
+                charContext,
+                character.ID,
+                cancellationToken
+            );
         }
     }
 
@@ -166,7 +170,7 @@ public sealed class SystemStateTransformer
         if (string.IsNullOrEmpty(currentValue))
             currentValue = config.Options.FirstOrDefault() ?? string.Empty;
 
-        var newValue = ResolveEnumTransition(currentValue, config, stateValues);
+        var newValue = ResolveEnumTransition(attr, sessionID, characterID, currentValue, config, stateValues);
 
         if (newValue == currentValue)
             return;
@@ -200,47 +204,142 @@ public sealed class SystemStateTransformer
 
     private string ResolveEnumTransition
     (
+        StateAttribute             attr,
+        long                       sessionID,
+        long?                      characterID,
         string                     currentValue,
         EnumAttributeConfig        config,
         Dictionary<string, string> stateValues
     )
     {
-        if (config.Conditions.Count > 0)
-        {
-            var context = new ConditionContext(stateValues);
+        if (config.Transitions.Count == 0)
+            return currentValue;
 
-            foreach (var cond in config.Conditions)
+        var alwaysMet = new List<(string Option, float Weight)>();
+
+        foreach (var t in config.Transitions)
+        {
+            if (t.Method != EnumTransitionMethod.Expression || t.SwitchMode != EnumSwitchMode.Always)
+                continue;
+
+            if (EvaluateTransitionExpression(t, stateValues))
+                alwaysMet.Add((t.Option, t.Weight));
+        }
+
+        if (alwaysMet.Count > 0)
+        {
+            var best = alwaysMet.MaxBy(x => x.Weight);
+            return best.Option;
+        }
+
+        var onceFirstTime = new List<(string Option, float Weight)>();
+
+        foreach (var t in config.Transitions)
+        {
+            if (t.Method != EnumTransitionMethod.Expression || t.SwitchMode != EnumSwitchMode.Once)
+                continue;
+
+            var key   = (sessionID, attr.ID, characterID, t.Option);
+            var isMet = EvaluateTransitionExpression(t, stateValues);
+
+            if (!isMet)
             {
-                if (conditionEngine.Evaluate(cond.When, context))
-                    return PickWeighted(cond.Transition);
+                onceTriggered[key] = false;
+                continue;
+            }
+
+            if (onceTriggered.TryGetValue(key, out var triggered) && triggered)
+                continue;
+
+            onceTriggered[key] = true;
+            onceFirstTime.Add((t.Option, t.Weight));
+        }
+
+        if (onceFirstTime.Count > 0)
+        {
+            var best = onceFirstTime.MaxBy(x => x.Weight);
+            return best.Option;
+        }
+
+        var pool = new List<(string Option, float Weight)>();
+
+        foreach (var t in config.Transitions)
+        {
+            switch (t.Method)
+            {
+                case EnumTransitionMethod.Random:
+                    pool.Add((t.Option, t.Weight));
+                    break;
+
+                case EnumTransitionMethod.Expression when t.SwitchMode == EnumSwitchMode.Once:
+                {
+                    var key   = (sessionID, attr.ID, characterID, t.Option);
+                    var isMet = EvaluateTransitionExpression(t, stateValues);
+
+                    if (isMet && onceTriggered.TryGetValue(key, out var triggered) && triggered)
+                        pool.Add((t.Option, t.Weight));
+
+                    break;
+                }
             }
         }
 
-        if (config.TransitionRules.TryGetValue(currentValue, out var rules))
-            return PickWeighted(rules);
+        if (pool.Count > 0)
+            return PickWeighted(pool);
 
         return currentValue;
     }
 
-    private static string PickWeighted(Dictionary<string, float> weights)
+    private bool EvaluateTransitionExpression
+    (
+        EnumTransitionConfig       transition,
+        Dictionary<string, string> stateValues
+    )
     {
-        var total = weights.Values.Sum();
+        if (string.IsNullOrWhiteSpace(transition.Expression) || string.IsNullOrWhiteSpace(transition.AttributeName))
+            return false;
+
+        if (!stateValues.TryGetValue(transition.AttributeName, out var value))
+            return false;
+
+        var isNumeric = float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+        var valReplacement = isNumeric ?
+                                 value :
+                                 $"\"{value}\"";
+
+        var expr = transition.Expression.Replace("{val}", valReplacement);
+        expr = expr.Replace(" AND ", " && ").Replace(" OR ", " || ");
+
+        try
+        {
+            return conditionEngine.Evaluate(expr, new ConditionContext(new Dictionary<string, string>()));
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "表达式求值失败: {Expression}", transition.Expression);
+            return false;
+        }
+    }
+
+    private static string PickWeighted(List<(string Option, float Weight)> pool)
+    {
+        var total = pool.Sum(x => x.Weight);
 
         if (total <= 0)
-            return weights.Keys.FirstOrDefault() ?? string.Empty;
+            return pool[0].Option;
 
         var roll       = (float)Random.Shared.NextDouble() * total;
         var cumulative = 0f;
 
-        foreach (var (key, weight) in weights)
+        foreach (var (option, weight) in pool)
         {
             cumulative += weight;
 
             if (roll <= cumulative)
-                return key;
+                return option;
         }
 
-        return weights.Keys.Last();
+        return pool[^1].Option;
     }
 
     private async Task<Dictionary<string, string>> BuildGlobalStateContextAsync
@@ -265,11 +364,7 @@ public sealed class SystemStateTransformer
         configTrigger == actualTrigger;
 
     private static SystemTrigger ParseTrigger(string? value) =>
-        value switch
-        {
-            "scene_change" => SystemTrigger.SceneChange,
-            "round_end"    => SystemTrigger.RoundEnd,
-            "custom"       => SystemTrigger.Custom,
-            _              => SystemTrigger.RoundEnd
-        };
+        Enum.TryParse(value, true, out SystemTrigger trigger) ?
+            trigger :
+            SystemTrigger.RoundEnd;
 }

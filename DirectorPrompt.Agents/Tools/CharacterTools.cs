@@ -620,8 +620,8 @@ public sealed class CharacterTools
         if (attr is null)
             return error;
 
-        if (attr.Driver == Driver.System)
-            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 为 system 驱动, AI 不可直接修改" });
+        if (attr.Driver == Driver.System || attr.ValueType == StateValueType.Enum)
+            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 为系统驱动或枚举类型, AI 不可直接修改" });
 
         var values       = await characterRepository.GetCharacterStateValuesAsync(character.ID);
         var currentValue = values.FirstOrDefault(v => v.AttributeID == attr.ID);
@@ -661,8 +661,8 @@ public sealed class CharacterTools
         if (attr is null)
             return error;
 
-        if (attr.Driver == Driver.System)
-            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 为 system 驱动, AI 不可直接修改" });
+        if (attr.Driver == Driver.System || attr.ValueType == StateValueType.Enum)
+            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 为系统驱动或枚举类型, AI 不可直接修改" });
 
         await characterRepository.SetCharacterStateValueAsync(character.ID, attr.ID, value);
 

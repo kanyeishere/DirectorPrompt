@@ -111,7 +111,8 @@ public sealed class KnowledgeTools
                              };
                          }
                      )
-                     .Where(r =>
+                     .Where
+                     (r =>
                          {
                              if (minRelevance > 0 && r.relevance < minRelevance)
                                  return false;

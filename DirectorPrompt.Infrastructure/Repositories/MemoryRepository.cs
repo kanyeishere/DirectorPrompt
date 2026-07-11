@@ -3,7 +3,6 @@ using Dapper;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
-using DirectorPrompt.Infrastructure;
 using Microsoft.Data.Sqlite;
 
 namespace DirectorPrompt.Infrastructure.Repositories;

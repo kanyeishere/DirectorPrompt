@@ -144,11 +144,11 @@ public sealed class KnowledgeRepository : IKnowledgeRepository
             """,
             new
             {
-                id      = entry.ID,
-                remarks = entry.Remarks,
-                content = entry.Content,
+                id       = entry.ID,
+                remarks  = entry.Remarks,
+                content  = entry.Content,
                 keywords = JsonHelper.Serialize(entry.Keywords),
-                groupID = entry.GroupID,
+                groupID  = entry.GroupID,
                 active = entry.Active ?
                              1 :
                              0,

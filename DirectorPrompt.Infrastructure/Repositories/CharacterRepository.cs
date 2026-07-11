@@ -4,7 +4,6 @@ using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
-using DirectorPrompt.Infrastructure;
 
 namespace DirectorPrompt.Infrastructure.Repositories;
 

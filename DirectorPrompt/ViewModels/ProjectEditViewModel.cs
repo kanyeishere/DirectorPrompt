@@ -144,7 +144,7 @@ public sealed partial class ProjectEditViewModel
 
         vm.MinValue    = config.Min;
         vm.MaxValue    = config.Max;
-        vm.Unit        = config.Unit ?? string.Empty;
+        vm.Unit        = config.Unit        ?? string.Empty;
         vm.ChangeRules = config.ChangeRules ?? string.Empty;
 
         if (config.Options is not null)
@@ -152,6 +152,23 @@ public sealed partial class ProjectEditViewModel
 
         if (config.Trigger is not null && Enum.TryParse<SystemTrigger>(config.Trigger, out var t))
             vm.Trigger = t;
+
+        if (config.Transitions is not null)
+        {
+            foreach (var tr in config.Transitions)
+            {
+                var existing = vm.Transitions.FirstOrDefault(x => x.Option == tr.Option);
+
+                if (existing is not null)
+                {
+                    existing.Method        = tr.Method;
+                    existing.Weight        = tr.Weight;
+                    existing.AttributeName = tr.AttributeName;
+                    existing.Expression    = tr.Expression;
+                    existing.SwitchMode    = tr.SwitchMode;
+                }
+            }
+        }
 
         foreach (var phase in config.Phases)
         {
@@ -263,6 +280,45 @@ public sealed partial class ProjectEditViewModel
                 StateAttributes.Add(attrVM);
         }
 
+        RefreshAvailableNumericAttributes();
+    }
+
+    private void RefreshAvailableNumericAttributes()
+    {
+        var globalNumericNames = StateAttributes
+                                 .Where(a => a.ValueType == StateValueType.Numeric)
+                                 .Select(a => a.Name)
+                                 .ToList();
+
+        foreach (var attr in StateAttributes)
+        {
+            if (attr.ValueType != StateValueType.Enum)
+                continue;
+
+            attr.AvailableNumericAttributes.Clear();
+
+            foreach (var name in globalNumericNames.Where(n => n != attr.Name))
+                attr.AvailableNumericAttributes.Add(name);
+        }
+
+        foreach (var cat in CharacterCategories)
+        {
+            var categoryNumericNames = cat.StateAttributes
+                                          .Where(a => a.ValueType == StateValueType.Numeric)
+                                          .Select(a => a.Name)
+                                          .ToList();
+
+            foreach (var attr in cat.StateAttributes)
+            {
+                if (attr.ValueType != StateValueType.Enum)
+                    continue;
+
+                attr.AvailableNumericAttributes.Clear();
+
+                foreach (var name in categoryNumericNames.Where(n => n != attr.Name))
+                    attr.AvailableNumericAttributes.Add(name);
+            }
+        }
     }
 
     public bool Validate()
@@ -383,7 +439,7 @@ public sealed partial class ProjectEditViewModel
         try
         {
             var keywords = entry.Keywords
-                            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var model = new KnowledgeEntry
             {
@@ -550,6 +606,8 @@ public sealed partial class ProjectEditViewModel
                 IsEditing   = true
             }
         );
+
+        RefreshAvailableNumericAttributes();
     }
 
     [RelayCommand]
@@ -568,8 +626,10 @@ public sealed partial class ProjectEditViewModel
                                  attribute.CategoryID :
                                  null,
                 ValueType = attribute.ValueType,
-                Driver    = attribute.Driver,
-                Config    = attribute.BuildConfig()
+                Driver = attribute.ValueType == StateValueType.Enum ?
+                             Driver.System :
+                             attribute.Driver,
+                Config = attribute.BuildConfig()
             };
 
             await stateRepository.UpdateAttributeAsync(model);
@@ -733,6 +793,8 @@ public sealed partial class ProjectEditViewModel
         };
 
         category.StateAttributes.Add(attrVM);
+
+        RefreshAvailableNumericAttributes();
     }
 
     [RelayCommand]
@@ -775,15 +837,16 @@ public sealed partial class ProjectEditViewModel
     [RelayCommand]
     private void RemovePhaseKnowledge((PhaseEditViewModel phase, KnowledgeSelectionItem item) args) =>
         args.phase.RemoveLinkedItem(args.item);
-    
+
     private sealed record StateAttributeConfigDTO
     {
-        public float?        Min               { get; init; }
-        public float?        Max               { get; init; }
-        public string?       Unit              { get; init; }
-        public string?       ChangeRules       { get; init; }
-        public List<string>? Options           { get; init; }
-        public string?       Trigger           { get; init; }
-        public List<Phase>   Phases            { get; init; } = [];
+        public float?                      Min         { get; init; }
+        public float?                      Max         { get; init; }
+        public string?                     Unit        { get; init; }
+        public string?                     ChangeRules { get; init; }
+        public List<string>?               Options     { get; init; }
+        public string?                     Trigger     { get; init; }
+        public List<EnumTransitionConfig>? Transitions { get; init; }
+        public List<Phase>                 Phases      { get; init; } = [];
     }
 }

@@ -94,7 +94,7 @@ public sealed class PostProcessingStage
         }
 
         var attributes = (await stateRepository.GetAttributesAsync(context.ProjectID, StateScope.Global, cancellationToken))
-                         .Where(a => a.Driver == Driver.Narrative)
+                         .Where(a => a.Driver == Driver.Narrative && a.ValueType != StateValueType.Enum)
                          .ToList();
 
         if (attributes.Count > 0)
@@ -105,7 +105,7 @@ public sealed class PostProcessingStage
 
             foreach (var attr in attributes)
             {
-                var value = await stateRepository.GetStateValueAsync(attr.ID, context.SessionID, cancellationToken);
+                var value      = await stateRepository.GetStateValueAsync(attr.ID, context.SessionID, cancellationToken);
                 var type       = FormatType(attr);
                 var constraint = FormatConstraint(attr);
                 var rules      = FormatRules(attr);
@@ -147,7 +147,7 @@ public sealed class PostProcessingStage
         }
 
         var categoryAttrs = (await stateRepository.GetAttributesAsync(context.ProjectID, StateScope.Category, cancellationToken))
-                            .Where(a => a.Driver == Driver.Narrative)
+                            .Where(a => a.Driver == Driver.Narrative && a.ValueType != StateValueType.Enum)
                             .ToList();
 
         if (categoryAttrs.Count > 0)

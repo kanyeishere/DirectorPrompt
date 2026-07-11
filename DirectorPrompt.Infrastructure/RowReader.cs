@@ -7,10 +7,10 @@ public static class RowReader
 {
     public static async Task<Dictionary<string, object?>?> ReadRowAsync
     (
-        DbConnection     connection,
-        string           sql,
-        object?          param           = null,
-        DbTransaction?   transaction     = null,
+        DbConnection      connection,
+        string            sql,
+        object?           param             = null,
+        DbTransaction?    transaction       = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -30,23 +30,27 @@ public static class RowReader
         var row = new Dictionary<string, object?>();
 
         for (var i = 0; i < reader.FieldCount; i++)
-            row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            row[reader.GetName(i)] = reader.IsDBNull(i) ?
+                                         null :
+                                         reader.GetValue(i);
 
         return row;
     }
 
     public static async Task<string?> ReadRowAsJSONAsync
     (
-        DbConnection     connection,
-        string           sql,
-        object?          param           = null,
-        DbTransaction?   transaction     = null,
+        DbConnection      connection,
+        string            sql,
+        object?           param             = null,
+        DbTransaction?    transaction       = null,
         CancellationToken cancellationToken = default
     )
     {
         var row = await ReadRowAsync(connection, sql, param, transaction, cancellationToken);
 
-        return row is null ? null : JsonSerializer.Serialize(row);
+        return row is null ?
+                   null :
+                   JsonSerializer.Serialize(row);
     }
 
     private static void AddParameters(DbCommand command, object? param)
@@ -60,7 +64,7 @@ public static class RowReader
         {
             var parameter = command.CreateParameter();
             parameter.ParameterName = $"@{prop.Name}";
-            parameter.Value = prop.GetValue(param) ?? DBNull.Value;
+            parameter.Value         = prop.GetValue(param) ?? DBNull.Value;
             command.Parameters.Add(parameter);
         }
     }

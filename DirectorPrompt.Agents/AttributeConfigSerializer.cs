@@ -8,7 +8,7 @@ public static class AttributeConfigSerializer
     public static JsonSerializerOptions Options { get; } = new()
     {
         PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
+        Converters                  = { new JsonStringEnumConverter() }
     };
 
     public static T? Deserialize<T>(string json) where T : class

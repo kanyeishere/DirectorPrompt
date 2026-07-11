@@ -6,7 +6,5 @@ public sealed record EnumAttributeConfig
 
     public string? Trigger { get; init; }
 
-    public Dictionary<string, Dictionary<string, float>> TransitionRules { get; init; } = [];
-
-    public List<EnumConditionConfig> Conditions { get; init; } = [];
+    public List<EnumTransitionConfig> Transitions { get; init; } = [];
 }

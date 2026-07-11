@@ -13,11 +13,11 @@ public static class LoggingConfiguration
 
         Directory.CreateDirectory(fullPath);
 
-        var logPath = Path.Combine(fullPath, "directorprompt.log");
+        var logPath    = Path.Combine(fullPath, "directorprompt.log");
         var oldLogPath = Path.Combine(fullPath, "directorprompt.old.log");
 
         if (File.Exists(logPath))
-            File.Move(logPath, oldLogPath, overwrite: true);
+            File.Move(logPath, oldLogPath, true);
 
         return new LoggerConfiguration()
                .MinimumLevel.Debug()
