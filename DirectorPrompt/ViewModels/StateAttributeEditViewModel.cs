@@ -18,7 +18,6 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNumericConfig))]
     [NotifyPropertyChangedFor(nameof(IsEnumConfig))]
-    [NotifyPropertyChangedFor(nameof(IsCompositeConfig))]
     public partial StateValueType ValueType { get; set; } = StateValueType.Numeric;
 
     [ObservableProperty]
@@ -57,19 +56,11 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
     [ObservableProperty]
     public partial SystemTrigger Trigger { get; set; } = SystemTrigger.SceneChange;
 
-    [ObservableProperty]
-    public partial string GenerationGuide { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    public partial SystemTrigger RegenerateTrigger { get; set; } = SystemTrigger.SceneChange;
-
     public ObservableCollection<PhaseEditViewModel> Phases { get; } = [];
 
     public bool IsNumericConfig => ValueType == StateValueType.Numeric;
 
     public bool IsEnumConfig => ValueType == StateValueType.Enum;
-
-    public bool IsCompositeConfig => ValueType == StateValueType.Composite;
 
     private object BuildPhasesPayload() =>
         Phases.Select
@@ -120,16 +111,6 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
                     trigger         = Trigger.ToString(),
                     transitionRules = new { },
                     phases          = BuildPhasesPayload()
-                }
-            ),
-            (StateValueType.Composite, Driver.System) => JsonSerializer.Serialize
-            (
-                new
-                {
-                    generationGuide     = GenerationGuide,
-                    regenerateTrigger   = RegenerateTrigger.ToString(),
-                    regenerateCondition = (string?)null,
-                    phases              = BuildPhasesPayload()
                 }
             ),
             _ => JsonSerializer.Serialize(new { phases = BuildPhasesPayload() })

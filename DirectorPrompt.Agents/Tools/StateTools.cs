@@ -31,15 +31,6 @@ public sealed class StateTools
         ),
         AIFunctionFactory.Create
         (
-            (string attribute) => GetCompositeItemsAsync(context, attribute),
-            "get_composite_items",
-            """
-            查询复合类型状态属性的所有条目
-            attribute: 属性名
-            """
-        ),
-        AIFunctionFactory.Create
-        (
             (string attribute, double delta, string reason) =>
                 UpdateStateAsync(context, attribute, delta, reason),
             "update_state",
@@ -102,29 +93,6 @@ public sealed class StateTools
                 }
             );
         }
-
-        return JsonSerializer.Serialize(result);
-    }
-
-    private async Task<string> GetCompositeItemsAsync(ToolExecutionContext context, string attribute)
-    {
-        var attributes = await stateRepository.GetAttributesAsync(context.ProjectID);
-        var attr       = attributes.FirstOrDefault(a => a.Name == attribute);
-
-        if (attr is null)
-            return JsonSerializer.Serialize(new { error = $"状态属性 {attribute} 不存在" });
-
-        var items = await stateRepository.GetCompositeItemsAsync(attr.ID, context.SessionID);
-        var result = items.Select
-        (i => new
-            {
-                id          = i.ID,
-                description = i.Description,
-                current     = i.Current,
-                target      = i.Target,
-                status      = i.Status.ToString()
-            }
-        );
 
         return JsonSerializer.Serialize(result);
     }

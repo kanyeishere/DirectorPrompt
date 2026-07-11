@@ -33,14 +33,6 @@ public interface IStateRepository
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<CompositeItem>> GetCompositeItemsAsync(long attributeID, long sessionID, CancellationToken cancellationToken = default);
-
-    Task<CompositeItem> AddCompositeItemAsync(CompositeItem item, long sessionID, CancellationToken cancellationToken = default);
-
-    Task<CompositeItem> UpdateCompositeItemAsync(long itemID, float? delta, float? current, string reason, CancellationToken cancellationToken = default);
-
-    Task RemoveCompositeItemAsync(long itemID, CancellationToken cancellationToken = default);
-
     Task<IReadOnlyList<StateChangeLog>> GetChangeLogsAsync(long attributeID, long? sceneID = null, CancellationToken cancellationToken = default);
 
     Task RollbackByRoundAsync(long sessionID, long roundID, CancellationToken cancellationToken = default);

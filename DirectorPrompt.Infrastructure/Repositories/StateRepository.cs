@@ -136,7 +136,6 @@ public sealed class StateRepository : IStateRepository
         await using var connection = await connectionFactory.CreateAsync(cancellationToken);
 
         await connection.ExecuteAsync("DELETE FROM state_values WHERE attribute_id = @id",      new { id });
-        await connection.ExecuteAsync("DELETE FROM composite_items WHERE attribute_id = @id",   new { id });
         await connection.ExecuteAsync("DELETE FROM state_change_logs WHERE attribute_id = @id", new { id });
         await connection.ExecuteAsync("DELETE FROM state_attributes WHERE id = @id",            new { id });
     }
@@ -262,113 +261,6 @@ public sealed class StateRepository : IStateRepository
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
-    }
-
-    public async Task<IReadOnlyList<CompositeItem>> GetCompositeItemsAsync
-    (
-        long              attributeID,
-        long              sessionID,
-        CancellationToken cancellationToken = default
-    )
-    {
-        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
-
-        var rows = await connection.QueryAsync<CompositeItemRow>
-                   (
-                       "SELECT * FROM composite_items WHERE attribute_id = @attributeID AND session_id = @sessionID",
-                       new { attributeID, sessionID }
-                   );
-
-        return rows.Select(r => r.ToCompositeItem()).ToList();
-    }
-
-    public async Task<CompositeItem> AddCompositeItemAsync
-    (
-        CompositeItem     item,
-        long              sessionID,
-        CancellationToken cancellationToken = default
-    )
-    {
-        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
-
-        var id = await connection.ExecuteScalarAsync<long>
-                 (
-                     """
-                     INSERT INTO composite_items (attribute_id, session_id, description, current, target, status)
-                     VALUES (@attributeID, @sessionID, @description, @current, @target, @status);
-                     SELECT last_insert_rowid();
-                     """,
-                     new
-                     {
-                         attributeID = item.AttributeID,
-                         sessionID,
-                         description = item.Description,
-                         current     = item.Current,
-                         target      = item.Target,
-                         status      = item.Status.ToString().ToLowerInvariant()
-                     }
-                 );
-
-        return item with { ID = id };
-    }
-
-    public async Task<CompositeItem> UpdateCompositeItemAsync
-    (
-        long              itemID,
-        float?            delta,
-        float?            current,
-        string            reason,
-        CancellationToken cancellationToken = default
-    )
-    {
-        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
-
-        var row = await connection.QuerySingleAsync<CompositeItemRow>
-                  (
-                      "SELECT * FROM composite_items WHERE id = @itemID",
-                      new { itemID }
-                  );
-
-        var newCurrent = current ??
-                         (delta.HasValue ?
-                              row.Current + delta.Value :
-                              row.Current);
-
-        var newStatus = newCurrent >= row.Target ?
-                            "completed" :
-                            row.Status;
-
-        await connection.ExecuteAsync
-        (
-            """
-            UPDATE composite_items
-            SET current = @current, status = @status
-            WHERE id = @id
-            """,
-            new { id = itemID, current = newCurrent, status = newStatus }
-        );
-
-        return new CompositeItem
-        {
-            ID          = itemID,
-            AttributeID = row.Attribute_ID,
-            Description = row.Description,
-            Current     = newCurrent,
-            Target      = row.Target,
-            Status = newStatus switch
-            {
-                "completed" => CompositeItemStatus.Completed,
-                "failed"    => CompositeItemStatus.Failed,
-                _           => CompositeItemStatus.Active
-            }
-        };
-    }
-
-    public async Task RemoveCompositeItemAsync(long itemID, CancellationToken cancellationToken = default)
-    {
-        await using var connection = await connectionFactory.CreateAsync(cancellationToken);
-
-        await connection.ExecuteAsync("DELETE FROM composite_items WHERE id = @itemID", new { itemID });
     }
 
     public async Task<IReadOnlyList<StateChangeLog>> GetChangeLogsAsync
@@ -497,9 +389,8 @@ public sealed class StateRepository : IStateRepository
                 CategoryID = Category_ID,
                 ValueType = Value_Type switch
                 {
-                    "enum"      => StateValueType.Enum,
-                    "composite" => StateValueType.Composite,
-                    _           => StateValueType.Numeric
+                    "enum" => StateValueType.Enum,
+                    _      => StateValueType.Numeric
                 },
                 Driver = Driver switch
                 {
@@ -516,33 +407,6 @@ public sealed class StateRepository : IStateRepository
         public long   Session_ID   { get; set; }
         public string Value        { get; set; } = string.Empty;
         public string Updated_At   { get; set; } = string.Empty;
-    }
-
-    private sealed class CompositeItemRow
-    {
-        public long   ID           { get; set; }
-        public long   Attribute_ID { get; set; }
-        public long?  Session_ID   { get; set; }
-        public string Description  { get; set; } = string.Empty;
-        public float  Current      { get; set; }
-        public float  Target       { get; set; }
-        public string Status       { get; set; } = "active";
-
-        public CompositeItem ToCompositeItem() =>
-            new()
-            {
-                ID          = ID,
-                AttributeID = Attribute_ID,
-                Description = Description,
-                Current     = Current,
-                Target      = Target,
-                Status = Status switch
-                {
-                    "completed" => CompositeItemStatus.Completed,
-                    "failed"    => CompositeItemStatus.Failed,
-                    _           => CompositeItemStatus.Active
-                }
-            };
     }
 
     private sealed class StateChangeLogRow

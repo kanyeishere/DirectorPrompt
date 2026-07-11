@@ -673,9 +673,8 @@ public sealed class ProjectPortService
                 CategoryID = Category_ID,
                 ValueType = Value_Type switch
                 {
-                    "enum"      => StateValueType.Enum,
-                    "composite" => StateValueType.Composite,
-                    _           => StateValueType.Numeric
+                    "enum" => StateValueType.Enum,
+                    _      => StateValueType.Numeric
                 },
                 Driver = Driver switch
                 {

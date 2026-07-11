@@ -217,9 +217,8 @@ public sealed class PostProcessingStage
     private static string FormatType(StateAttribute attr) =>
         attr.ValueType switch
         {
-            StateValueType.Enum      => $"Enum({FormatEnumOptions(attr.Config)})",
-            StateValueType.Composite => "Composite",
-            _                        => "Numeric"
+            StateValueType.Enum => $"Enum({FormatEnumOptions(attr.Config)})",
+            _                   => "Numeric"
         };
 
     private static string FormatConstraint(StateAttribute attr)

@@ -96,17 +96,6 @@ public sealed class SystemStateTransformer
                 cancellationToken
             );
         }
-        else if (attr.ValueType == StateValueType.Composite)
-        {
-            await TransformCompositeAttributeAsync
-            (
-                attr,
-                sessionID,
-                trigger,
-                globalStateValues,
-                cancellationToken
-            );
-        }
     }
 
     private async Task TransformCategoryAttributeAsync
@@ -147,17 +136,6 @@ public sealed class SystemStateTransformer
                     currentValue,
                     charContext,
                     character.ID,
-                    cancellationToken
-                );
-            }
-            else if (attr.ValueType == StateValueType.Composite)
-            {
-                await TransformCompositeAttributeAsync
-                (
-                    attr,
-                    sessionID,
-                    trigger,
-                    globalStateValues,
                     cancellationToken
                 );
             }
@@ -218,52 +196,6 @@ public sealed class SystemStateTransformer
             newValue,
             characterID
         );
-    }
-
-    private async Task TransformCompositeAttributeAsync
-    (
-        StateAttribute             attr,
-        long                       sessionID,
-        SystemTrigger              trigger,
-        Dictionary<string, string> globalStateValues,
-        CancellationToken          cancellationToken
-    )
-    {
-        var config = AttributeConfigSerializer.Deserialize<CompositeAttributeConfig>(attr.Config);
-
-        if (config is null)
-            return;
-
-        if (config.RegenerateTrigger is not null && IsTriggerMatch(ParseTrigger(config.RegenerateTrigger), trigger))
-        {
-            var shouldRegenerate = true;
-
-            if (!string.IsNullOrWhiteSpace(config.RegenerateCondition))
-            {
-                var context = new ConditionContext(globalStateValues);
-                shouldRegenerate = conditionEngine.Evaluate(config.RegenerateCondition, context);
-            }
-
-            if (shouldRegenerate)
-            {
-                Log.Information
-                (
-                    "composite 属性 {AttrName} 触发重新生成 (AI 生成尚未实现, 跳过)",
-                    attr.Name
-                );
-            }
-        }
-
-        var items = await stateRepository.GetCompositeItemsAsync(attr.ID, sessionID, cancellationToken);
-
-        foreach (var item in items)
-        {
-            if (item.Status != CompositeItemStatus.Active)
-                continue;
-
-            if (item.Current >= item.Target && item.Target > 0)
-                await stateRepository.UpdateCompositeItemAsync(item.ID, null, item.Target, "system 自动完成", cancellationToken);
-        }
     }
 
     private string ResolveEnumTransition

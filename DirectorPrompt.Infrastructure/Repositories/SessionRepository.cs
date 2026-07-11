@@ -95,7 +95,6 @@ public sealed class SessionRepository : ISessionRepository
                 DELETE FROM playthrough_events WHERE session_id = @id;
                 DELETE FROM state_change_logs WHERE session_id = @id;
                 DELETE FROM state_values WHERE session_id = @id;
-                DELETE FROM composite_items WHERE session_id = @id;
 
                 DELETE FROM rounds
                 WHERE scene_id IN (SELECT id FROM scenes WHERE session_id = @id);

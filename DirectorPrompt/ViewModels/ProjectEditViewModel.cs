@@ -153,11 +153,6 @@ public sealed partial class ProjectEditViewModel
         if (config.Trigger is not null && Enum.TryParse<SystemTrigger>(config.Trigger, out var t))
             vm.Trigger = t;
 
-        vm.GenerationGuide = config.GenerationGuide ?? string.Empty;
-
-        if (config.RegenerateTrigger is not null && Enum.TryParse<SystemTrigger>(config.RegenerateTrigger, out var rt))
-            vm.RegenerateTrigger = rt;
-
         foreach (var phase in config.Phases)
         {
             var phaseVM = new PhaseEditViewModel();
@@ -789,8 +784,6 @@ public sealed partial class ProjectEditViewModel
         public string?       ChangeRules       { get; init; }
         public List<string>? Options           { get; init; }
         public string?       Trigger           { get; init; }
-        public string?       GenerationGuide   { get; init; }
-        public string?       RegenerateTrigger { get; init; }
         public List<Phase>   Phases            { get; init; } = [];
     }
 }

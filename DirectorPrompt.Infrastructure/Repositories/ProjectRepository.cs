@@ -125,9 +125,6 @@ public sealed class ProjectRepository : IProjectRepository
                 DELETE FROM state_values
                 WHERE attribute_id IN (SELECT id FROM state_attributes WHERE project_id = @id);
 
-                DELETE FROM composite_items
-                WHERE attribute_id IN (SELECT id FROM state_attributes WHERE project_id = @id);
-
                 DELETE FROM state_change_logs
                 WHERE attribute_id IN (SELECT id FROM state_attributes WHERE project_id = @id);
 
