@@ -4,12 +4,9 @@
         <Version>1.1.0</Version>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows</TargetFramework>
-        <LangVersion>latestmajor</LangVersion>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <RootNamespace>DirectorPrompt</RootNamespace>
-        <ApplicationIcon>..\Assets\Images\Icon.ico</ApplicationIcon>
+        <ApplicationIcon>..\Assets\Images\Icon-NoBackground.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -52,11 +49,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="..\Assets\Images\Icon.ico">
-            <Link>Assets\Images\Icon.ico</Link>
+        <Resource Include="..\Assets\Images\*.ico">
+            <Link>Assets\Images\%(Filename)%(Extension)</Link>
         </Resource>
-        <Resource Include="..\Assets\Images\Icon-NoBackground.png">
-            <Link>Assets\Images\Icon-NoBackground.png</Link>
+        <Resource Include="..\Assets\Images\*.png">
+            <Link>Assets\Images\%(Filename)%(Extension)</Link>
         </Resource>
     </ItemGroup>
 

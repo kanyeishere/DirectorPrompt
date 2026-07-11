@@ -18,7 +18,7 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round"
-                 Icon="pack://application:,,,/Assets/Images/Icon.ico">
+                 Icon="pack://application:,,,/Assets/Images/Icon-NoBackground.ico">
     <ui:FluentWindow.Resources>
         <converters:InverseBoolConverter x:Key="InverseBool" />
         <Style TargetType="ListViewItem">

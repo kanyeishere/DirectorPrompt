@@ -17,7 +17,7 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round"
-                 Icon="pack://application:,,,/Assets/Images/Icon.ico">
+                 Icon="pack://application:,,,/Assets/Images/Icon-NoBackground.ico">
     <ui:FluentWindow.Resources>
         <Style x:Key="SidebarToggleStyle" TargetType="ui:Button">
             <Setter Property="OverridesDefaultStyle" Value="True" />
