@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+using System.Collections.Specialized;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls.Primitives;
@@ -64,6 +64,22 @@ public partial class MainWindow : FluentWindow
             element.ContextMenu.IsOpen          = true;
         }
     }
+
+    private void OnImportButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.ContextMenu is not null)
+        {
+            element.ContextMenu.PlacementTarget = element;
+            element.ContextMenu.Placement       = PlacementMode.Bottom;
+            element.ContextMenu.IsOpen          = true;
+        }
+    }
+
+    private void OnImportDirectorPrompt(object sender, RoutedEventArgs e) =>
+        viewModel.ImportProjectCommand.Execute(null);
+
+    private void OnImportSillyTavern(object sender, RoutedEventArgs e) =>
+        viewModel.ImportSillyTavernProjectCommand.Execute(null);
 
     private void OnEditProjectItem(object sender, RoutedEventArgs e)
     {

@@ -11,7 +11,8 @@ namespace DirectorPrompt.Infrastructure;
 
 public sealed class ProjectPortService
 (
-    SqliteConnectionFactory connectionFactory
+    SqliteConnectionFactory  connectionFactory,
+    ILocalizationService     localizationService
 ) : IProjectPortService
 {
     private const string PACKAGE_FORMAT = "DirectorPrompt-Project-Package";
@@ -545,6 +546,121 @@ public sealed class ProjectPortService
         }
     }
 
+    public async Task<ProjectImportResult> ImportSillyTavernAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        await using var stream = File.OpenRead(filePath);
+
+        var card = await JsonSerializer.DeserializeAsync<SillyTavernCard>(stream, JSONOptions, cancellationToken) ??
+                   throw new InvalidDataException("无效的 SillyTavern 角色卡: JSON 解析失败");
+
+        var data = card.Data ?? card;
+
+        var name = data.Name;
+        var description = BuildDescription(data.SystemPrompt, data.Description);
+        var openingMessage = data.FirstMes;
+
+        var project = new Project
+        {
+            Name           = name,
+            Description    = description,
+            OpeningMessage = openingMessage
+        };
+
+        var groups  = new List<KnowledgeGroup>();
+        var entries = new List<KnowledgeEntry>();
+
+        var book = data.CharacterBook;
+
+        if (book?.Entries is { Count: > 0 } bookEntries)
+        {
+            const long TEMP_GROUP_ID = 1;
+
+            groups.Add
+            (
+                new KnowledgeGroup
+                {
+                    ID      = TEMP_GROUP_ID,
+                    Name    = localizationService.Get("Project.Import.SillyTavern.DefaultGroupName"),
+                    Active  = true
+                }
+            );
+
+            for (var i = 0; i < bookEntries.Count; i++)
+            {
+                var entry = bookEntries[i];
+
+                entries.Add
+                (
+                    new KnowledgeEntry
+                    {
+                        ID       = i + 1,
+                        GroupID  = TEMP_GROUP_ID,
+                        Remarks  = entry.Comment ?? string.Empty,
+                        Content  = entry.Content ?? string.Empty,
+                        Keywords = [..entry.Keys, ..entry.SecondaryKeys],
+                        Active   = entry.Enabled
+                    }
+                );
+            }
+        }
+
+        await using var connection  = await connectionFactory.CreateAsync(cancellationToken);
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            var now          = DateTime.UtcNow.ToString("O");
+            var newProjectID = await InsertProjectAsync(connection, transaction, project, now, cancellationToken);
+
+            var groupIDMap = await InsertKnowledgeGroupsAsync
+                             (
+                                 connection,
+                                 transaction,
+                                 groups,
+                                 newProjectID,
+                                 cancellationToken
+                             );
+
+            await InsertKnowledgeEntriesAsync
+            (
+                connection,
+                transaction,
+                entries,
+                newProjectID,
+                groupIDMap,
+                cancellationToken
+            );
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return new ProjectImportResult
+            {
+                ProjectID           = newProjectID,
+                ProjectName         = project.Name,
+                KnowledgeEntryCount = entries.Count
+            };
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    private static string BuildDescription(string systemPrompt, string description)
+    {
+        var hasSystem  = !string.IsNullOrWhiteSpace(systemPrompt);
+        var hasDesc    = !string.IsNullOrWhiteSpace(description);
+
+        if (hasSystem && hasDesc)
+            return systemPrompt + "\n\n" + description;
+
+        if (hasSystem)
+            return systemPrompt;
+
+        return description ?? string.Empty;
+    }
+
     private static long[] RemapIDs(long[] ids, Dictionary<long, long> idMap)
     {
         var result = new long[ids.Length];
@@ -736,5 +852,45 @@ public sealed class ProjectPortService
                 CreatedAt   = DateTime.Parse(Created_At),
                 UpdatedAt   = DateTime.Parse(Updated_At)
             };
+    }
+
+    private sealed class SillyTavernCard : SillyTavernCardData
+    {
+        public SillyTavernCardData? Data { get; set; }
+    }
+
+    private class SillyTavernCardData
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("first_mes")]
+        public string FirstMes { get; set; } = string.Empty;
+
+        [JsonPropertyName("system_prompt")]
+        public string SystemPrompt { get; set; } = string.Empty;
+
+        [JsonPropertyName("character_book")]
+        public SillyTavernCharacterBook? CharacterBook { get; set; }
+    }
+
+    private sealed class SillyTavernCharacterBook
+    {
+        public List<SillyTavernBookEntry> Entries { get; set; } = [];
+    }
+
+    private sealed class SillyTavernBookEntry
+    {
+        public List<string> Keys { get; set; } = [];
+
+        [JsonPropertyName("secondary_keys")]
+        public List<string> SecondaryKeys { get; set; } = [];
+
+        public string Comment { get; set; } = string.Empty;
+
+        public string Content { get; set; } = string.Empty;
+
+        public bool Enabled { get; set; } = true;
     }
 }

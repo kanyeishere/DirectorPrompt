@@ -150,10 +150,20 @@
                     <ui:Button Appearance="Secondary"
                                Padding="8,6"
                                Margin="4,0,0,0"
-                               Command="{Binding ImportProjectCommand}"
+                               Click="OnImportButtonClick"
                                IsEnabled="{Binding IsNotProcessing}"
                                ToolTip="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:SymbolIcon Symbol="ArrowImport24" />
+                        <ui:Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem
+                                    Header="{Binding [Navigation.ImportDirectorPrompt], Source={x:Static loc:Loc.Instance}}"
+                                    Click="OnImportDirectorPrompt" />
+                                <MenuItem
+                                    Header="{Binding [Navigation.ImportSillyTavern], Source={x:Static loc:Loc.Instance}}"
+                                    Click="OnImportSillyTavern" />
+                            </ContextMenu>
+                        </ui:Button.ContextMenu>
                     </ui:Button>
                 </StackPanel>
 

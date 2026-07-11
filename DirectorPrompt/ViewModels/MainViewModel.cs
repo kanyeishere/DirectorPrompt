@@ -256,7 +256,7 @@ public sealed partial class MainViewModel
 
         var dialog = new SaveFileDialog
         {
-            Filter   = $"DirectorPrompt {Loc.Get("Project.Package")}|*.dppkg",
+            Filter   = $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}|*.dppkg",
             FileName = $"{CurrentProject.Name}.dppkg"
         };
 
@@ -289,7 +289,7 @@ public sealed partial class MainViewModel
     {
         var dialog = new OpenFileDialog
         {
-            Filter = $"DirectorPrompt {Loc.Get("Project.Package")}|*.dppkg"
+            Filter = $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}|*.dppkg"
         };
 
         if (dialog.ShowDialog() != true)
@@ -319,6 +319,48 @@ public sealed partial class MainViewModel
         catch (Exception ex)
         {
             Log.Error(ex, "导入项目失败");
+            StatusMessage = Loc.Get("Status.ImportFailed", ex.Message);
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportSillyTavernProjectAsync()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = $"SillyTavern {Loc.Get("Project.Import.SillyTavern.CharacterCard")}|*.json"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        IsProcessing  = true;
+        StatusMessage = Loc.Get("Status.Importing");
+
+        try
+        {
+            var result = await projectPortService.ImportSillyTavernAsync(dialog.FileName);
+
+            Log.Information
+            (
+                "导入 SillyTavern 角色卡: ID={ProjectID}, 名称={Name}, 知识={Knowledge}",
+                result.ProjectID,
+                result.ProjectName,
+                result.KnowledgeEntryCount
+            );
+
+            await LoadProjectsAsync();
+            CurrentProject = Projects.FirstOrDefault(p => p.ID == result.ProjectID);
+
+            StatusMessage = Loc.Get("Status.ImportComplete", result.ProjectName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "导入 SillyTavern 角色卡失败");
             StatusMessage = Loc.Get("Status.ImportFailed", ex.Message);
         }
         finally
