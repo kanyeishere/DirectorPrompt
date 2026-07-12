@@ -125,27 +125,25 @@
                         </ComboBox.ItemContainerStyle>
                     </ComboBox>
                     <ui:Button Appearance="Secondary"
-                               Padding="8,6"
+                               Padding="12,6"
                                Margin="0,0,4,0"
                                Command="{Binding EditProjectCommand}"
                                IsEnabled="{Binding CanInteractProject}"
-                               ToolTip="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                    </ui:Button>
+                               Icon="{ui:SymbolIcon Symbol=Edit24}"
+                               Content="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}" />
                     <ui:Button Appearance="Secondary"
-                               Padding="8,6"
+                               Padding="12,6"
                                Command="{Binding NewProjectCommand}"
                                IsEnabled="{Binding IsNotProcessing}"
-                               ToolTip="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}">
-                        <ui:SymbolIcon Symbol="Add24" />
-                    </ui:Button>
+                               Icon="{ui:SymbolIcon Symbol=Add24}"
+                               Content="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}" />
                     <ui:Button Appearance="Secondary"
-                               Padding="8,6"
+                               Padding="12,6"
                                Margin="4,0,0,0"
                                Click="OnImportButtonClick"
                                IsEnabled="{Binding IsNotProcessing}"
-                               ToolTip="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}">
-                        <ui:SymbolIcon Symbol="ArrowImport24" />
+                               Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
+                               Content="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}">
                         <ui:Button.ContextMenu>
                             <ContextMenu>
                                 <MenuItem
