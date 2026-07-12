@@ -650,22 +650,19 @@
                                        Foreground="Gray"
                                        FontSize="12" />
 
-                            <Grid Margin="0,8,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <ui:Button Grid.Column="0"
-                                           Content="{Binding [Settings.Agent.TestConnection], Source={x:Static loc:Loc.Instance}}"
-                                           Icon="{ui:SymbolIcon Symbol=PlugConnected24}"
-                                           Appearance="Secondary"
-                                           Command="{Binding TestEmbeddingConnectionCommand}"
-                                           IsEnabled="{Binding Embedding.IsTestingConnection, Converter={StaticResource InverseBool}}" />
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Embedding.ConnectionMessage}"
-                                           TextWrapping="Wrap"
-                                           VerticalAlignment="Center"
-                                           FontSize="12">
+                            <StackPanel Orientation="Horizontal">
+
+                                <ui:Button
+                                    Content="{Binding [Settings.Agent.TestConnection], Source={x:Static loc:Loc.Instance}}"
+                                    Icon="{ui:SymbolIcon Symbol=PlugConnected24}"
+                                    Appearance="Secondary"
+                                    Command="{Binding TestEmbeddingConnectionCommand}"
+                                    IsEnabled="{Binding Embedding.IsTestingConnection, Converter={StaticResource InverseBool}}" />
+                                <TextBlock
+                                    Text="{Binding Embedding.ConnectionMessage}"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
+                                    FontSize="12">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Foreground" Value="Gray" />
@@ -682,7 +679,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                            </Grid>
+
+                            </StackPanel>
+
                         </StackPanel>
 
                         <!-- 记忆配置面板 -->
