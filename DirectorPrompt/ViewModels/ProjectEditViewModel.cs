@@ -6,7 +6,9 @@ using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
+using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Localization;
+using Microsoft.Win32;
 using Serilog;
 
 namespace DirectorPrompt.ViewModels;
@@ -16,7 +18,8 @@ public sealed partial class ProjectEditViewModel
     IProjectRepository   projectRepository,
     IKnowledgeRepository knowledgeRepository,
     IStateRepository     stateRepository,
-    ICharacterRepository characterRepository
+    ICharacterRepository characterRepository,
+    IProjectPortService  projectPortService
 )
     : ObservableObject
 {
@@ -53,6 +56,43 @@ public sealed partial class ProjectEditViewModel
     public bool SaveSuccess { get; private set; }
 
     public long SavedProjectID { get; private set; }
+
+    [RelayCommand]
+    private async Task ExportProjectAsync()
+    {
+        if (projectID <= 0)
+        {
+            ValidationMessage = Loc.Get("Project.SaveBasicInfoFirst");
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Filter   = $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}|*.dppkg",
+            FileName = $"{Name}.dppkg"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        IsSaving = true;
+
+        try
+        {
+            await projectPortService.ExportAsync(projectID, dialog.FileName);
+            Log.Information("导出项目: ID={ProjectID}, 路径={Path}", projectID, dialog.FileName);
+            ValidationMessage = Loc.Get("Status.ExportComplete");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "导出项目失败");
+            ValidationMessage = Loc.Get("Status.ExportFailed", ex.Message);
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
 
     public async Task LoadFromProjectAsync(Project project)
     {

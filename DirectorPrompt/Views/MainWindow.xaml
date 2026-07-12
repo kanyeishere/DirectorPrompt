@@ -142,14 +142,6 @@
                     <ui:Button Appearance="Secondary"
                                Padding="8,6"
                                Margin="4,0,0,0"
-                               Command="{Binding ExportProjectCommand}"
-                               IsEnabled="{Binding CanInteractProject}"
-                               ToolTip="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}">
-                        <ui:SymbolIcon Symbol="ArrowExportUp24" />
-                    </ui:Button>
-                    <ui:Button Appearance="Secondary"
-                               Padding="8,6"
-                               Margin="4,0,0,0"
                                Click="OnImportButtonClick"
                                IsEnabled="{Binding IsNotProcessing}"
                                ToolTip="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}">

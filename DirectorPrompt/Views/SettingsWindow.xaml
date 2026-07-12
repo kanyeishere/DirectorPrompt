@@ -119,17 +119,16 @@
                     <Grid>
                         <!-- 提供商面板 -->
                         <StackPanel x:Name="ProvidersPanel" Visibility="Visible">
-                            <Grid Margin="0,0,0,4">
+                            <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock
-                                        Text="{Binding [Settings.Provider.Title], Source={x:Static loc:Loc.Instance}}"
-                                        FontSize="20"
-                                        FontWeight="SemiBold" />
-                                </StackPanel>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding [Settings.Provider.Title], Source={x:Static loc:Loc.Instance}}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
                                 <ui:Button Grid.Column="1"
                                            Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="{ui:SymbolIcon Symbol=Add24}"
@@ -242,17 +241,16 @@
 
                         <!-- 模型面板 -->
                         <StackPanel x:Name="ModelsPanel" Visibility="Collapsed">
-                            <Grid Margin="0,0,0,4">
+                            <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock
-                                        Text="{Binding [Settings.Model.Title], Source={x:Static loc:Loc.Instance}}"
-                                        FontSize="20"
-                                        FontWeight="SemiBold" />
-                                </StackPanel>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding [Settings.Model.Title], Source={x:Static loc:Loc.Instance}}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
                                 <ui:Button Grid.Column="1"
                                            Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="{ui:SymbolIcon Symbol=Add24}"
@@ -461,22 +459,16 @@
 
                         <!-- 提示词面板 -->
                         <StackPanel x:Name="PromptsPanel" Visibility="Collapsed">
-                            <Grid Margin="0,0,0,4">
+                            <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock
-                                        Text="{Binding [Settings.Prompt.Title], Source={x:Static loc:Loc.Instance}}"
-                                        FontSize="20"
-                                        FontWeight="SemiBold" />
-                                    <TextBlock
-                                        Text="{Binding [Settings.Prompt.Description], Source={x:Static loc:Loc.Instance}}"
-                                        FontSize="12"
-                                        Foreground="Gray"
-                                        Margin="0,2,0,0" />
-                                </StackPanel>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding [Settings.Prompt.Title], Source={x:Static loc:Loc.Instance}}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
                                 <ui:Button Grid.Column="1"
                                            Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="{ui:SymbolIcon Symbol=Add24}"
@@ -551,7 +543,7 @@
                             <TextBlock Text="{Binding [Settings.Task.Title], Source={x:Static loc:Loc.Instance}}"
                                        FontSize="20"
                                        FontWeight="SemiBold"
-                                       Margin="0,0,0,4" />
+                                       Margin="0,0,0,12" />
 
                             <ItemsControl ItemsSource="{Binding AgentTasks}">
                                 <ItemsControl.ItemTemplate>
@@ -611,7 +603,7 @@
                         <!-- 向量模型面板 -->
                         <StackPanel x:Name="EmbeddingPanel" Visibility="Collapsed">
                             <TextBlock Text="{Binding [Settings.Embedding.Title], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,12" />
                             <TextBlock
                                 Text="{Binding [Settings.Embedding.Description], Source={x:Static loc:Loc.Instance}}"
                                 FontSize="12" Foreground="Gray" Margin="0,0,0,16" />
@@ -698,7 +690,7 @@
                             <TextBlock Text="{Binding [Memory.Title], Source={x:Static loc:Loc.Instance}}"
                                        FontSize="20"
                                        FontWeight="SemiBold"
-                                       Margin="0,0,0,16" />
+                                       Margin="0,0,0,12" />
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock Text="{Binding [Memory.RecallTopK], Source={x:Static loc:Loc.Instance}}"
                                            FontWeight="SemiBold" />
@@ -738,7 +730,7 @@
                                 Text="{Binding [Knowledge.Retrieval.ConfigTitle], Source={x:Static loc:Loc.Instance}}"
                                 FontSize="20"
                                 FontWeight="SemiBold"
-                                Margin="0,0,0,16" />
+                                Margin="0,0,0,12" />
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock
                                     Text="{Binding [Knowledge.Retrieval.SemanticTopK], Source={x:Static loc:Loc.Instance}}"
@@ -770,7 +762,7 @@
                         <!-- 语言面板 -->
                         <StackPanel x:Name="LanguagePanel" Visibility="Collapsed">
                             <TextBlock Text="{Binding [Settings.Language.Title], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                       FontSize="20" FontWeight="SemiBold" Margin="0,0,0,12" />
                             <TextBlock
                                 Text="{Binding [Settings.Language.Description], Source={x:Static loc:Loc.Instance}}"
                                 FontSize="12" Foreground="Gray" Margin="0,0,0,16" />

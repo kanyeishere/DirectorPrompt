@@ -91,6 +91,24 @@
                     <Grid>
                         <!-- 基本信息 -->
                         <StackPanel x:Name="BasicPanel" Visibility="Visible">
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding [Project.Basic.Title], Source={x:Static loc:Loc.Instance}}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <ui:Button Grid.Column="1"
+                                           Content="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}"
+                                           Icon="{ui:SymbolIcon Symbol=ArrowExportUp24}"
+                                           Appearance="Primary"
+                                           VerticalAlignment="Center"
+                                           Command="{Binding ExportProjectCommand}"
+                                           IsEnabled="{Binding IsEditing}" />
+                            </Grid>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock Text="{Binding [Project.Basic.Name], Source={x:Static loc:Loc.Instance}}"
                                            FontWeight="SemiBold" />
@@ -156,6 +174,8 @@
                                 <ui:Button Grid.Column="1"
                                            Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="{ui:SymbolIcon Symbol=Add24}"
+                                           Appearance="Primary"
+                                           VerticalAlignment="Center"
                                            Command="{Binding AddKnowledgeGroupCommand}" />
                             </Grid>
 
@@ -352,6 +372,7 @@
                                            Content="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="{ui:SymbolIcon Symbol=Add24}"
                                            Appearance="Primary"
+                                           VerticalAlignment="Center"
                                            Command="{Binding AddStateAttributeCommand}" />
                             </Grid>
 
@@ -699,16 +720,16 @@
 
                         <!-- 人物系统 -->
                         <StackPanel x:Name="CharacterPanel" Visibility="Collapsed">
-                            <Grid Margin="0,0,0,4">
+                            <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="{Binding [Character.Title], Source={x:Static loc:Loc.Instance}}"
-                                               FontSize="20"
-                                               FontWeight="SemiBold" />
-                                </StackPanel>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding [Character.Title], Source={x:Static loc:Loc.Instance}}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
                                 <ui:Button Grid.Column="1"
                                            Content="{Binding [Character.Category.Add], Source={x:Static loc:Loc.Instance}}"
                                            Icon="{ui:SymbolIcon Symbol=Add24}"
