@@ -18,15 +18,9 @@ public static class LoggingConfiguration
 
         if (File.Exists(logPath))
             File.Move(logPath, oldLogPath, overwrite: true);
-
-#if DEBUG
-        const LogEventLevel MINIMUM_LEVEL = LogEventLevel.Debug;
-#else
-        const LogEventLevel MINIMUM_LEVEL = LogEventLevel.Information;
-#endif
-
+        
         return new LoggerConfiguration()
-               .MinimumLevel.Is(MINIMUM_LEVEL)
+               .MinimumLevel.Is(LogEventLevel.Debug)
                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                .MinimumLevel.Override("System", LogEventLevel.Warning)
                .Enrich.FromLogContext()

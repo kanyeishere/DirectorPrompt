@@ -53,14 +53,9 @@ public partial class App
                        .ConfigureAppConfiguration
                        (config =>
                            {
-#if DEBUG
-                               const bool ENABLE_CONFIG_RELOAD = true;
-#else
-                               const bool ENABLE_CONFIG_RELOAD = false;
-#endif
                                config.SetBasePath(AppContext.BaseDirectory);
-                               config.AddJsonFile("appsettings.json",        false, ENABLE_CONFIG_RELOAD);
-                               config.AddJsonFile(AppPaths.UserSettingsPath, true,  ENABLE_CONFIG_RELOAD);
+                               config.AddJsonFile("appsettings.json",        false, true);
+                               config.AddJsonFile(AppPaths.UserSettingsPath, true,  true);
                            }
                        )
                        .ConfigureServices(ConfigureServices)
@@ -270,13 +265,9 @@ public partial class App
                 "en" => ["zh-CN"],
                 _    => []
             },
-#if DEBUG
             EnableHotReload = true,
-#else
-            EnableHotReload = false,
-#endif
-            ReloadDebounce = TimeSpan.FromSeconds(3),
-            LoggerTag      = nameof(LocalizationService)
+            ReloadDebounce  = TimeSpan.FromSeconds(3),
+            LoggerTag       = nameof(LocalizationService)
         };
 
         services.AddSingleton<ILocalizationService>
