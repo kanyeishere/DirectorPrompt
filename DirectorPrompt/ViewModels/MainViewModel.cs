@@ -504,11 +504,7 @@ public sealed partial class MainViewModel
         long                  expectedRoundID = 0;
         List<DirectiveItem>?  items           = null;
 
-        var streamingNarrativeSB = new StringBuilder();
-        var streamingThinkingSB  = new StringBuilder();
-        var streamingLock        = new object();
-        var hasStreamingUpdate   = false;
-        var hasFullSnapshot      = false;
+        var streamingBuffer = new StreamingBuffer();
         DispatcherTimer? streamingTimer = null;
         EventHandler? streamingTimerTick = null;
 
@@ -574,44 +570,13 @@ public sealed partial class MainViewModel
 
             StatusMessage = Loc.Get("Status.Complete");
 
-            void StreamingUpdate(string narrativeDelta, string thinkingDelta, bool isFullSnapshot)
-            {
-                lock (streamingLock)
-                {
-                    if (isFullSnapshot)
-                    {
-                        streamingNarrativeSB.Clear();
-                        streamingThinkingSB.Clear();
-                        hasFullSnapshot = true;
-                    }
-
-                    if (!string.IsNullOrEmpty(narrativeDelta))
-                        streamingNarrativeSB.Append(narrativeDelta);
-
-                    if (!string.IsNullOrEmpty(thinkingDelta))
-                        streamingThinkingSB.Append(thinkingDelta);
-
-                    hasStreamingUpdate = true;
-                }
-            }
+            void StreamingUpdate(string narrativeDelta, string thinkingDelta, bool isFullSnapshot) =>
+                streamingBuffer.Append(narrativeDelta, thinkingDelta, isFullSnapshot);
 
             void FlushStreamingUpdate()
             {
-                string narrative;
-                string thinking;
-                bool isFullSnapshot;
-
-                lock (streamingLock)
-                {
-                    if (!hasStreamingUpdate)
-                        return;
-
-                    narrative          = streamingNarrativeSB.ToString();
-                    thinking           = streamingThinkingSB.ToString();
-                    isFullSnapshot     = hasFullSnapshot;
-                    hasStreamingUpdate = false;
-                    hasFullSnapshot    = false;
-                }
+                if (!streamingBuffer.TryGetSnapshot(out var narrative, out var thinking, out var isFullSnapshot))
+                    return;
 
                 if (CurrentSession?.ID == sessionID && streamingEntry is not null)
                     streamingEntry.UpdateStreamingContent(narrative, thinking, isFullSnapshot);
@@ -1351,6 +1316,58 @@ public sealed partial class MainViewModel
         {
             Log.Error(ex, "删除记忆失败: ID={MemoryID}", item.ID);
             StatusMessage = Loc.Get("Status.DeleteMemoryFailed", ex.Message);
+        }
+    }
+
+    private sealed class StreamingBuffer
+    {
+        private readonly Lock streamingLock = new();
+        private readonly StringBuilder narrative = new();
+        private readonly StringBuilder thinking = new();
+
+        private bool hasUpdate;
+        private bool hasFullSnapshot;
+
+        public void Append(string narrativeDelta, string thinkingDelta, bool isFullSnapshot)
+        {
+            lock (streamingLock)
+            {
+                if (isFullSnapshot)
+                {
+                    narrative.Clear();
+                    thinking.Clear();
+                    hasFullSnapshot = true;
+                }
+
+                if (!string.IsNullOrEmpty(narrativeDelta))
+                    narrative.Append(narrativeDelta);
+
+                if (!string.IsNullOrEmpty(thinkingDelta))
+                    thinking.Append(thinkingDelta);
+
+                hasUpdate = true;
+            }
+        }
+
+        public bool TryGetSnapshot(out string narrativeText, out string thinkingText, out bool isFullSnapshot)
+        {
+            lock (streamingLock)
+            {
+                if (!hasUpdate)
+                {
+                    narrativeText = string.Empty;
+                    thinkingText = string.Empty;
+                    isFullSnapshot = false;
+                    return false;
+                }
+
+                narrativeText     = narrative.ToString();
+                thinkingText      = thinking.ToString();
+                isFullSnapshot    = hasFullSnapshot;
+                hasUpdate         = false;
+                hasFullSnapshot   = false;
+                return true;
+            }
         }
     }
 }
