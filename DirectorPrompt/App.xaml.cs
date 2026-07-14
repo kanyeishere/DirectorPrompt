@@ -230,7 +230,7 @@ public partial class App
         services.AddSingleton<HistoryBuilder>();
 
         services.AddSingleton<Orchestrator>();
-        services.AddSingleton<TaskCompletionNotifier>();
+        services.AddSingleton<NotificationService>();
 
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();

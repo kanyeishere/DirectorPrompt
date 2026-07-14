@@ -106,7 +106,7 @@
     "Memory.TimeDecayLambda": "衰减系数",
     "Memory.Title": "记忆配置",
     "Memory.TokenBudget": "词元预算",
-    "Notification.TaskComplete.Message": "AI 已完成回复，点击通知返回应用。",
+    "Notification.TaskComplete.Message": "回复已完成生成, 点击以返回应用",
     "Notification.TaskComplete.Title": "任务已完成",
     "Navigation.CollapseSidebar": "收起侧边栏",
     "Navigation.EditProject": "编辑项目",
