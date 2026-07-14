@@ -141,7 +141,7 @@ public sealed partial class CharacterCategoryGroupViewModel : ObservableObject
     public partial string CategoryName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial bool IsExpanded { get; set; } = true;
+    public partial bool IsExpanded { get; set; }
 
     [ObservableProperty]
     public partial int ItemCount { get; set; }
@@ -231,8 +231,7 @@ public sealed partial class CharacterPanelViewModel : ObservableObject
 
             var newGroup = new CharacterCategoryGroupViewModel
             {
-                CategoryName = g.CategoryName,
-                IsExpanded   = true
+                CategoryName = g.CategoryName
             };
 
             foreach (var item in filteredItems)

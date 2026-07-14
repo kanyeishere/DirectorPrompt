@@ -65,7 +65,7 @@ public sealed partial class MemorySceneGroupViewModel : ObservableObject
     public partial string SceneLabel { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial bool IsExpanded { get; set; } = true;
+    public partial bool IsExpanded { get; set; }
 
     [ObservableProperty]
     public partial int ItemCount { get; set; }
@@ -192,8 +192,7 @@ public sealed partial class MemoryPanelViewModel : ObservableObject
 
             var newGroup = new MemorySceneGroupViewModel
             {
-                SceneLabel = g.SceneLabel,
-                IsExpanded = true
+                SceneLabel = g.SceneLabel
             };
 
             foreach (var item in filteredItems)
