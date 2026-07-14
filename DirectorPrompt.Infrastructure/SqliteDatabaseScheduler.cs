@@ -62,7 +62,7 @@ public sealed class SqliteDatabaseScheduler : IAsyncDisposable
         foregroundQueue.Writer.TryComplete();
         maintenanceQueue.Writer.TryComplete();
 
-        await worker;
+        await worker.ConfigureAwait(false);
         shutdownSource.Cancel();
         shutdownSource.Dispose();
     }
