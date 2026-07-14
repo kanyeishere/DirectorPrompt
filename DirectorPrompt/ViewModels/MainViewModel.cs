@@ -14,6 +14,7 @@ using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Infrastructure.Extensions;
 using DirectorPrompt.Localization;
+using DirectorPrompt.Services;
 using DirectorPrompt.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
@@ -34,7 +35,8 @@ public sealed partial class MainViewModel
     IMemoryRepository    memoryRepository,
     IServiceProvider     serviceProvider,
     UserSettings         userSettings,
-    IProjectPortService  projectPortService
+    IProjectPortService  projectPortService,
+    NotificationService  notificationService
 )
     : ObservableObject
 {
@@ -569,6 +571,11 @@ public sealed partial class MainViewModel
             await RefreshSidebarAsync(token);
 
             StatusMessage = Loc.Get("Status.Complete");
+            notificationService.Notify
+            (
+                Loc.Get("Notification.TaskComplete.Title"),
+                Loc.Get("Notification.TaskComplete.Message")
+            );
 
             void StreamingUpdate(string narrativeDelta, string thinkingDelta, bool isFullSnapshot) =>
                 streamingBuffer.Append(narrativeDelta, thinkingDelta, isFullSnapshot);
@@ -596,8 +603,7 @@ public sealed partial class MainViewModel
 
             void StageUpdate(PipelineStageUpdate update) =>
                 dispatcher.BeginInvoke
-                (
-                    () =>
+                (() =>
                     {
                         if (CurrentSession?.ID == sessionID)
                             UpdatePipelineStage(update.Stage, update.Status, update.Detail);
@@ -643,8 +649,7 @@ public sealed partial class MainViewModel
                 if (streamingEntry is not null)
                 {
                     await Application.Current.Dispatcher.BeginInvoke
-                    (
-                        () => streamingEntry.SetError(ex.Message)
+                    (() => streamingEntry.SetError(ex.Message)
                     );
                 }
             }
@@ -1171,6 +1176,7 @@ public sealed partial class MainViewModel
                       .ToList();
 
         var localGroups = new List<CharacterCategoryGroupViewModel>();
+
         foreach (var grp in grouped)
         {
             var groupName = grp.Key >= 0 && categoryLookup.TryGetValue(grp.Key, out var cat) ?
@@ -1225,6 +1231,7 @@ public sealed partial class MainViewModel
                       .ToList();
 
         var localGroups = new List<MemorySceneGroupViewModel>();
+
         foreach (var grp in grouped)
         {
             var group = new MemorySceneGroupViewModel

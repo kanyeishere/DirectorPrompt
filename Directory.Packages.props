@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
     <PackageVersion Include="Anthropic" Version="12.35.1" />
     <PackageVersion Include="DailyRoutines.CodeAnalysis" Version="2.5.0" />
     <PackageVersion Include="Extended.Wpf.Toolkit" Version="5.1.2" />

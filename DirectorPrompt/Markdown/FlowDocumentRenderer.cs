@@ -139,7 +139,7 @@ internal sealed class FlowDocumentRenderer
 
             foreach (var subBlock in listItem)
             {
-                if (subBlock is ParagraphBlock p && p.Inline is not null)
+                if (subBlock is ParagraphBlock { Inline: not null } p)
                     RenderInlines(paragraph, p.Inline);
             }
 
@@ -186,7 +186,7 @@ internal sealed class FlowDocumentRenderer
 
                 foreach (var subBlock in tableCell)
                 {
-                    if (subBlock is ParagraphBlock p && p.Inline is not null)
+                    if (subBlock is ParagraphBlock { Inline: not null } p)
                         RenderInlines(cellContent, p.Inline);
                 }
 

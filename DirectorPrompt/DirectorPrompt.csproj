@@ -3,7 +3,7 @@
     <PropertyGroup>
         <Version>1.1.5</Version>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows10.0.18362.0</TargetFramework>
         <UseWPF>true</UseWPF>
         <RootNamespace>DirectorPrompt</RootNamespace>
         <ApplicationIcon>..\Assets\Images\Icon-NoBackground.ico</ApplicationIcon>
@@ -17,6 +17,7 @@
 
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm"/>
+        <PackageReference Include="CommunityToolkit.WinUI.Notifications"/>
         <PackageReference Include="Extended.Wpf.Toolkit"/>
         <PackageReference Include="DailyRoutines.CodeAnalysis">
             <PrivateAssets>all</PrivateAssets>
