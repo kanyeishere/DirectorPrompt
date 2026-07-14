@@ -31,7 +31,7 @@ public sealed partial class MainViewModel
     ICharacterRepository characterRepository,
     IDirectiveRepository directiveRepository,
     IMemoryRepository    memoryRepository,
-    IServiceProvider     serviceProvider,
+    IServiceProvider       serviceProvider,
     UserSettings           userSettings,
     IProjectPortService    projectPortService,
     TaskCompletionNotifier taskCompletionNotifier
