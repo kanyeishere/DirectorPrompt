@@ -61,6 +61,8 @@
     "Dialog.ConfirmRemoveProvider": "确定移除提供商 \"{0}\" 吗？此操作不可撤销",
     "Dialog.Edit": "编辑",
     "Dialog.NewProjectPrompt": "输入项目名称",
+    "Dialog.Role.AI": "AI",
+    "Dialog.Role.User": "用户",
     "Dialog.RenameSessionPrompt": "输入新的对话名称",
     "Dialog.RenameSessionTitle": "重命名对话",
     "Dialog.Rollback": "回退",

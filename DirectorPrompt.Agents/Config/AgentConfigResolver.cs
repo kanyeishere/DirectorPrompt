@@ -2,7 +2,7 @@ using DirectorPrompt.Agents.Prompts;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 
-namespace DirectorPrompt.Agents;
+namespace DirectorPrompt.Agents.Config;
 
 public sealed class AgentConfigResolver
 (

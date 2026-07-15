@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DirectorPrompt.Agents.Config;
 using DirectorPrompt.Agents.Pipeline;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;

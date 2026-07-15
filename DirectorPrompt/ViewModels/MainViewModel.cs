@@ -1,12 +1,12 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DirectorPrompt.Agents;
+using DirectorPrompt.Agents.Config;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
@@ -708,7 +708,7 @@ public sealed partial class MainViewModel
             {
                 DirectiveInput.Clear();
 
-                var directives = ParseDirectivesFromEvent(directorEvent.Data);
+                var directives = EventDataSerializer.ParseDirectives(directorEvent.Data);
 
                 foreach (var d in directives)
                     DirectiveInput.Directives.Add(new DirectiveItemViewModel { Type = d.Type, Content = d.Content, Order = d.Order });
@@ -928,7 +928,7 @@ public sealed partial class MainViewModel
             {
                 if (directorEvents.TryGetValue(roundID, out var directorEvent))
                 {
-                    var directorBlocks = ParseDirectorInputBlocks(directorEvent.Data);
+                    var directorBlocks = EventDataSerializer.ParseDirectiveBlocks(directorEvent.Data);
                     Dialog.AddDirectorEntry(roundID, directorBlocks, renderImmediately: true);
                     Dialog.Entries[^1].EventID = directorEvent.ID;
                 }
@@ -960,75 +960,6 @@ public sealed partial class MainViewModel
         {
             IsLoadingDialog = false;
         }
-    }
-
-    private static IReadOnlyList<DirectiveItem> ParseDirectivesFromEvent(string jsonData)
-    {
-        var result = new List<DirectiveItem>();
-
-        using var doc = JsonDocument.Parse(jsonData);
-
-        var order = 1;
-
-        foreach (var element in doc.RootElement.EnumerateArray())
-        {
-            var isSystem = element.TryGetProperty("isSystem", out var sysEl) && sysEl.GetBoolean();
-
-            if (isSystem)
-                continue;
-
-            var typeStr = element.GetProperty("type").GetString()    ?? "Plot";
-            var content = element.GetProperty("content").GetString() ?? string.Empty;
-
-            var type = typeStr switch
-            {
-                "Tone"                => DirectiveType.Tone,
-                "TemporaryConstraint" => DirectiveType.TemporaryConstraint,
-                "SceneChange"         => DirectiveType.SceneChange,
-                _                     => DirectiveType.Plot
-            };
-
-            result.Add(new DirectiveItem(type, content, order++));
-        }
-
-        return result;
-    }
-
-    private static List<(DirectiveType Type, string Content)> ParseDirectorInputBlocks(string json)
-    {
-        var result = new List<(DirectiveType Type, string Content)>();
-
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                var isSystem = element.TryGetProperty("isSystem", out var sysEl) && sysEl.GetBoolean();
-
-                if (isSystem)
-                    continue;
-
-                var typeStr = element.GetProperty("type").GetString()    ?? "Plot";
-                var content = element.GetProperty("content").GetString() ?? string.Empty;
-
-                var type = typeStr switch
-                {
-                    "Tone"                => DirectiveType.Tone,
-                    "TemporaryConstraint" => DirectiveType.TemporaryConstraint,
-                    "SceneChange"         => DirectiveType.SceneChange,
-                    _                     => DirectiveType.Plot
-                };
-
-                result.Add((type, content));
-            }
-        }
-        catch
-        {
-            return [(DirectiveType.Plot, json)];
-        }
-
-        return result;
     }
 
     private async Task RefreshSidebarAsync(CancellationToken token = default)

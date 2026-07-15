@@ -1,3 +1,4 @@
+using DirectorPrompt.Agents.Config;
 using DirectorPrompt.Agents.Prompts;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;

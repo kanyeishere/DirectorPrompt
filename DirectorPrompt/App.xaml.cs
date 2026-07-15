@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using DirectorPrompt.Agents;
+using DirectorPrompt.Agents.Config;
 using DirectorPrompt.Agents.Pipeline;
 using DirectorPrompt.Agents.Retrieval;
 using DirectorPrompt.Agents.Tools;

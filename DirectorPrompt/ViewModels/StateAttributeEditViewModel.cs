@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
-using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
+using DirectorPrompt.Agents;
+using DirectorPrompt.Agents.Config;
+using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
+using DirectorPrompt.Domain.Models;
 
 namespace DirectorPrompt.ViewModels;
 
@@ -95,70 +98,62 @@ public sealed partial class StateAttributeEditViewModel : ObservableObject
         }
     }
 
-    private object BuildPhasesPayload() =>
-        Phases.Select
-        (p => new
+    public string BuildConfig()
+    {
+        var phases = Phases.Select
+        (
+            p => new Phase
             {
-                name              = p.Name,
-                expression        = p.Expression,
-                knowledgeIds      = p.GetKnowledgeIDs(),
-                knowledgeGroupIds = p.GetKnowledgeGroupIDs(),
-                enterDirectives = p.EnterDirectiveInput.Directives.Select
-                (d => new
+                Name              = p.Name,
+                Expression        = p.Expression,
+                KnowledgeIDs      = p.GetKnowledgeIDs(),
+                KnowledgeGroupIDs = p.GetKnowledgeGroupIDs(),
+                EnterDirectives = p.EnterDirectiveInput.Directives.Select
+                (
+                    d => new DirectiveConfig
                     {
-                        type    = d.Type.ToString(),
-                        content = d.Content,
-                        ttl     = d.TTL
+                        Type    = d.Type,
+                        Content = d.Content,
+                        TTL     = d.TTL
                     }
-                ),
-                exitDirectives = p.ExitDirectiveInput.Directives.Select
-                (d => new
+                ).ToList(),
+                ExitDirectives = p.ExitDirectiveInput.Directives.Select
+                (
+                    d => new DirectiveConfig
                     {
-                        type    = d.Type.ToString(),
-                        content = d.Content,
-                        ttl     = d.TTL
+                        Type    = d.Type,
+                        Content = d.Content,
+                        TTL     = d.TTL
                     }
-                )
+                ).ToList()
             }
-        );
+        ).ToList();
 
-    private object BuildTransitionsPayload() =>
-        Transitions.Select
-        (t => new
+        var transitions = Transitions.Select
+        (
+            t => new EnumTransitionConfig
             {
-                option        = t.Option,
-                method        = t.Method.ToString(),
-                weight        = t.Weight,
-                attributeName = t.AttributeName,
-                expression    = t.Expression,
-                switchMode    = t.SwitchMode.ToString()
+                Option        = t.Option,
+                Method        = t.Method,
+                Weight        = t.Weight,
+                AttributeName = t.AttributeName,
+                Expression    = t.Expression,
+                SwitchMode    = t.SwitchMode
             }
-        );
+        ).ToList();
 
-    public string BuildConfig() =>
-        (ValueType, Driver) switch
+        var dto = new StateAttributeConfig
         {
-            (StateValueType.Numeric, Driver.Narrative) => JsonSerializer.Serialize
-            (
-                new
-                {
-                    min         = MinValue,
-                    max         = MaxValue,
-                    unit        = Unit,
-                    changeRules = ChangeRules,
-                    phases      = BuildPhasesPayload()
-                }
-            ),
-            (StateValueType.Enum, _) => JsonSerializer.Serialize
-            (
-                new
-                {
-                    options     = Options.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-                    trigger     = Trigger.ToString(),
-                    transitions = BuildTransitionsPayload(),
-                    phases      = BuildPhasesPayload()
-                }
-            ),
-            _ => JsonSerializer.Serialize(new { phases = BuildPhasesPayload() })
+            Min         = MinValue,
+            Max         = MaxValue,
+            Unit        = Unit,
+            ChangeRules = ChangeRules,
+            Options     = Options.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
+            Trigger     = Trigger.ToString(),
+            Transitions = transitions,
+            Phases      = phases
         };
+
+        return AttributeConfigSerializer.Serialize(dto, ValueType, Driver);
+    }
 }

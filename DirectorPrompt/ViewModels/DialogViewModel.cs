@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Threading;
 using DirectorPrompt.Domain.Enums;
+using DirectorPrompt.Localization;
 using DirectorPrompt.Markdown;
 
 namespace DirectorPrompt.ViewModels;
@@ -169,8 +170,8 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
     }
 
     public string Role => IsDirector ?
-                              "用户" :
-                              "AI";
+                              Loc.Get("Dialog.Role.User") :
+                              Loc.Get("Dialog.Role.AI");
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DirectorPrompt.Agents;
+using DirectorPrompt.Agents.Config;
 using DirectorPrompt.Agents.Retrieval;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
@@ -129,7 +130,7 @@ public sealed partial class ProjectEditViewModel
         if (string.IsNullOrWhiteSpace(json) || json == "{}")
             return;
 
-        var config = AttributeConfigSerializer.Deserialize<StateAttributeConfigDTO>(json);
+        var config = AttributeConfigSerializer.Deserialize<StateAttributeConfig>(json);
 
         if (config is null)
             return;
@@ -167,8 +168,8 @@ public sealed partial class ProjectEditViewModel
             var phaseVM = new PhaseEditViewModel();
             phaseVM.PopulateAvailableKnowledge(KnowledgeGroups);
 
-            var enterDirs = ToDirectiveItems(phase.EnterDirectives);
-            var exitDirs  = ToDirectiveItems(phase.ExitDirectives);
+            var enterDirs = DirectiveItem.FromConfigs(phase.EnterDirectives);
+            var exitDirs  = DirectiveItem.FromConfigs(phase.ExitDirectives);
 
             phaseVM.SyncFromConfig
             (
@@ -182,17 +183,6 @@ public sealed partial class ProjectEditViewModel
 
             vm.Phases.Add(phaseVM);
         }
-    }
-
-    private static List<DirectiveItem> ToDirectiveItems(IReadOnlyList<DirectiveConfig> directives)
-    {
-        var result = new List<DirectiveItem>();
-        var order  = 1;
-
-        foreach (var d in directives)
-            result.Add(new DirectiveItem(d.Type, d.Content, order++, d.TTL));
-
-        return result;
     }
 
     private async Task LoadKnowledgeAsync()
@@ -827,15 +817,4 @@ public sealed partial class ProjectEditViewModel
         }
     }
 
-    private sealed record StateAttributeConfigDTO
-    {
-        public float?                      Min         { get; init; }
-        public float?                      Max         { get; init; }
-        public string?                     Unit        { get; init; }
-        public string?                     ChangeRules { get; init; }
-        public List<string>?               Options     { get; init; }
-        public string?                     Trigger     { get; init; }
-        public List<EnumTransitionConfig>? Transitions { get; init; }
-        public List<Phase>                 Phases      { get; init; } = [];
-    }
 }

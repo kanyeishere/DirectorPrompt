@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DirectorPrompt.Domain.Enums;
+using DirectorPrompt.Localization;
 
 namespace DirectorPrompt.ViewModels;
 
@@ -21,10 +22,10 @@ public sealed partial class DirectiveItemViewModel : ObservableObject
 
     public string TypeDisplay => Type switch
     {
-        DirectiveType.Plot                => "剧情",
-        DirectiveType.Tone                => "基调",
-        DirectiveType.TemporaryConstraint => "临时约束",
-        DirectiveType.SceneChange         => "时间/场景变更",
+        DirectiveType.Plot                => Loc.Get("Directive.Type.Plot"),
+        DirectiveType.Tone                => Loc.Get("Directive.Type.Tone"),
+        DirectiveType.TemporaryConstraint => Loc.Get("Directive.Type.TemporaryConstraint"),
+        DirectiveType.SceneChange         => Loc.Get("Directive.Type.SceneChange"),
         _                                 => Type.ToString()
     };
 
