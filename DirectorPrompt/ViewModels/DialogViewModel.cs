@@ -256,7 +256,7 @@ public sealed class DialogViewModel
     public void Clear() =>
         Entries.Clear();
 
-    public void AddOpeningMessage(string content)
+    public void AddOpeningMessage(string content, bool renderImmediately = false)
     {
         ClearLastFlag();
 
@@ -269,11 +269,16 @@ public sealed class DialogViewModel
             IsLast  = true
         };
 
+        if (renderImmediately)
+            entry.RenderMarkdown();
+
         Entries.Add(entry);
-        DeferredRender(entry);
+
+        if (!renderImmediately)
+            DeferredRender(entry);
     }
 
-    public DialogEntryViewModel AddDirectorEntry(long roundID, IReadOnlyList<(DirectiveType Type, string Content)> directives)
+    public DialogEntryViewModel AddDirectorEntry(long roundID, IReadOnlyList<(DirectiveType Type, string Content)> directives, bool renderImmediately = false)
     {
         ClearLastFlag();
 
@@ -300,8 +305,14 @@ public sealed class DialogViewModel
             );
         }
 
+        if (renderImmediately)
+            entry.RenderMarkdown();
+
         Entries.Add(entry);
-        DeferredRender(entry);
+
+        if (!renderImmediately)
+            DeferredRender(entry);
+
         return entry;
     }
 
@@ -324,7 +335,7 @@ public sealed class DialogViewModel
         return entry;
     }
 
-    public void AddNarrativeEntry(long roundID, string content, string thinking = "")
+    public void AddNarrativeEntry(long roundID, string content, string thinking = "", bool renderImmediately = false)
     {
         ClearLastFlag();
 
@@ -338,8 +349,13 @@ public sealed class DialogViewModel
             IsLast   = true
         };
 
+        if (renderImmediately)
+            entry.RenderMarkdown();
+
         Entries.Add(entry);
-        DeferredRender(entry);
+
+        if (!renderImmediately)
+            DeferredRender(entry);
     }
 
     public void RemoveEntriesByRound(long roundID)

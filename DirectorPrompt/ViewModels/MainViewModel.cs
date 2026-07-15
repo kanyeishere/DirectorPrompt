@@ -71,6 +71,9 @@ public sealed partial class MainViewModel
     [ObservableProperty]
     public partial bool IsSessionSidebarExpanded { get; set; } = true;
 
+    [ObservableProperty]
+    public partial bool IsLoadingDialog { get; set; }
+
     public bool IsProjectSelected => CurrentProject is not null;
 
     public bool IsNotProcessing => !IsProcessing;
@@ -808,7 +811,7 @@ public sealed partial class MainViewModel
         Log.Information("切换对话: ID={SessionID}", value.ID);
 
         if (CurrentProject is not null && !string.IsNullOrWhiteSpace(CurrentProject.OpeningMessage))
-            Dialog.AddOpeningMessage(CurrentProject.OpeningMessage);
+            Dialog.AddOpeningMessage(CurrentProject.OpeningMessage, renderImmediately: true);
 
         _ = LoadSessionDataAsync(value.ID, token);
     }
@@ -882,6 +885,8 @@ public sealed partial class MainViewModel
 
     private async Task LoadDialogHistoryAsync(long sessionID, CancellationToken token = default)
     {
+        IsLoadingDialog = true;
+
         try
         {
             var events = new List<PlaythroughEvent>();
@@ -924,7 +929,7 @@ public sealed partial class MainViewModel
                 if (directorEvents.TryGetValue(roundID, out var directorEvent))
                 {
                     var directorBlocks = ParseDirectorInputBlocks(directorEvent.Data);
-                    Dialog.AddDirectorEntry(roundID, directorBlocks);
+                    Dialog.AddDirectorEntry(roundID, directorBlocks, renderImmediately: true);
                     Dialog.Entries[^1].EventID = directorEvent.ID;
                 }
 
@@ -934,7 +939,7 @@ public sealed partial class MainViewModel
 
                     if (!string.IsNullOrWhiteSpace(narrativeText))
                     {
-                        Dialog.AddNarrativeEntry(roundID, narrativeText);
+                        Dialog.AddNarrativeEntry(roundID, narrativeText, renderImmediately: true);
                         Dialog.Entries[^1].EventID = narrativeEvent.ID;
                     }
                 }
@@ -950,6 +955,10 @@ public sealed partial class MainViewModel
         catch (Exception ex)
         {
             Log.Error(ex, "加载对话历史失败: 对话={SessionID}", sessionID);
+        }
+        finally
+        {
+            IsLoadingDialog = false;
         }
     }
 

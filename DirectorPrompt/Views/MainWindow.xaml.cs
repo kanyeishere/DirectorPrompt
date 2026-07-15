@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,7 +31,8 @@ public partial class MainWindow : FluentWindow
         WindowTitleBar.Title = $"DirectorPrompt {version}";
 
         viewModel.Dialog.Entries.CollectionChanged += OnDialogEntriesChanged;
-        Loaded                                     += OnLoaded;
+        viewModel.PropertyChanged                         += OnViewModelPropertyChanged;
+        Loaded                                             += OnLoaded;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -44,7 +46,16 @@ public partial class MainWindow : FluentWindow
         if (e.Action == NotifyCollectionChangedAction.Reset)
             return;
 
+        if (viewModel.IsLoadingDialog)
+            return;
+
         ScrollDialogToBottom();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainViewModel.IsLoadingDialog) && !viewModel.IsLoadingDialog)
+            ScrollDialogToBottom();
     }
 
     private void ScrollDialogToBottom() =>
