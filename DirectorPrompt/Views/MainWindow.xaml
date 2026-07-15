@@ -7,6 +7,7 @@
                  xmlns:vm="clr-namespace:DirectorPrompt.ViewModels"
                  xmlns:loc="clr-namespace:DirectorPrompt.Localization"
                  xmlns:components="clr-namespace:DirectorPrompt.Views.Components"
+                 xmlns:v="clr-namespace:DirectorPrompt.Views"
                  mc:Ignorable="d"
                  d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
                  Title="DirectorPrompt"
@@ -283,17 +284,42 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <ScrollViewer x:Name="DialogScrollViewer"
-                              Grid.Row="1"
-                              VerticalScrollBarVisibility="Auto"
-                              Padding="16,8,16,8">
-                    <ItemsControl ItemsSource="{Binding Dialog.Entries}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+                <Grid Grid.Row="1" ClipToBounds="False">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox x:Name="DialogListBox"
+                             Grid.Column="0"
+                             ItemsSource="{Binding Dialog.Entries}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Standard"
+                             VirtualizingPanel.ScrollUnit="Pixel"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Padding="16,8,8,8"
+                             Focusable="False">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Focusable" Value="False" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,6"
                                         Padding="14,10"
@@ -447,11 +473,12 @@
                                                                            FontSize="11"
                                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                                            Margin="0,0,0,2" />
-                                                                <FlowDocumentScrollViewer Document="{Binding Document}"
-                                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                        IsSelectionEnabled="True"
-                                                                        VerticalScrollBarVisibility="Disabled"
-                                                                        PreviewMouseWheel="OnFlowDocumentPreviewMouseWheel" />
+                                                                <FlowDocumentScrollViewer
+                                                                    v:FlowDocumentReleaseBehavior.Document="{Binding Document}"
+                                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                    IsSelectionEnabled="True"
+                                                                    VerticalScrollBarVisibility="Disabled"
+                                                                    PreviewMouseWheel="OnFlowDocumentPreviewMouseWheel" />
                                                             </StackPanel>
                                                         </Border>
                                                     </DataTemplate>
@@ -477,11 +504,12 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </StackPanel.Style>
-                                                <FlowDocumentScrollViewer Document="{Binding Document}"
-                                                                          Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                          IsSelectionEnabled="True"
-                                                                          VerticalScrollBarVisibility="Disabled"
-                                                                          PreviewMouseWheel="OnFlowDocumentPreviewMouseWheel" />
+                                                <FlowDocumentScrollViewer
+                                                    v:FlowDocumentReleaseBehavior.Document="{Binding Document}"
+                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                    IsSelectionEnabled="True"
+                                                    VerticalScrollBarVisibility="Disabled"
+                                                    PreviewMouseWheel="OnFlowDocumentPreviewMouseWheel" />
                                                 <TextBlock Text="{Binding StreamingText}"
                                                            Visibility="{Binding HasStreamingText, Converter={StaticResource BoolToVisibility}}"
                                                            TextWrapping="Wrap"
@@ -522,9 +550,16 @@
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <components:MessageRail Grid.Column="1"
+                                            Entries="{Binding Dialog.Entries}"
+                                            TargetListBox="{Binding ElementName=DialogListBox}"
+                                            MaxHeight="400"
+                                            VerticalAlignment="Center"
+                                            Margin="0,8,4,8" />
+                </Grid>
 
                 <Border Grid.Row="2"
                         BorderBrush="{DynamicResource ControlElevationBorderBrush}"

@@ -1,8 +1,10 @@
 using System.Collections.Specialized;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Localization;
@@ -15,6 +17,8 @@ namespace DirectorPrompt.Views;
 public partial class MainWindow : FluentWindow
 {
     private readonly MainViewModel viewModel;
+
+    private ScrollViewer? dialogScrollViewer;
 
     public MainWindow(MainViewModel viewModel)
     {
@@ -29,8 +33,11 @@ public partial class MainWindow : FluentWindow
         Loaded                                     += OnLoaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e) =>
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        dialogScrollViewer = FindVisualChild<ScrollViewer>(DialogListBox);
         await viewModel.LoadProjectsCommand.ExecuteAsync(null);
+    }
 
     private void OnDialogEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
@@ -41,7 +48,17 @@ public partial class MainWindow : FluentWindow
     }
 
     private void ScrollDialogToBottom() =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Background, DialogScrollViewer.ScrollToBottom);
+        Dispatcher.BeginInvoke
+        (
+            DispatcherPriority.Background,
+            () =>
+            {
+                if (dialogScrollViewer is not null)
+                    dialogScrollViewer.ScrollToBottom();
+                else if (viewModel.Dialog.Entries.Count > 0)
+                    DialogListBox.ScrollIntoView(viewModel.Dialog.Entries[^1]);
+            }
+        );
 
     private void OnRollbackRound(object sender, RoutedEventArgs e)
     {
@@ -146,7 +163,10 @@ public partial class MainWindow : FluentWindow
 
     private void OnFlowDocumentPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        DialogScrollViewer.ScrollToVerticalOffset(DialogScrollViewer.VerticalOffset - e.Delta);
+        if (dialogScrollViewer is null)
+            return;
+
+        dialogScrollViewer.ScrollToVerticalOffset(dialogScrollViewer.VerticalOffset - e.Delta);
         e.Handled = true;
     }
 
@@ -165,5 +185,25 @@ public partial class MainWindow : FluentWindow
 
         if (PromptDialog.Confirm(this, Loc.Get("Common.Delete"), message, true))
             _ = viewModel.DeleteMemoryCommand.ExecuteAsync(item);
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        var count = VisualTreeHelper.GetChildrenCount(parent);
+
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+
+            if (child is T result)
+                return result;
+
+            var found = FindVisualChild<T>(child);
+
+            if (found is not null)
+                return found;
+        }
+
+        return null;
     }
 }

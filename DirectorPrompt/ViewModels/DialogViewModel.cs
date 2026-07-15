@@ -40,9 +40,27 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
             {
                 field = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Content)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Preview)));
             }
         }
     } = string.Empty;
+
+    public string Preview
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Content))
+                return string.Empty;
+
+            var text = Content.Replace("\n", " ").Replace("\r", "").Trim();
+
+            const int TEXT_LENGTH = 64;
+            
+            return text.Length <= TEXT_LENGTH ?
+                       text :
+                       string.Concat(text.AsSpan(0, TEXT_LENGTH), "…");
+        }
+    }
 
     public string Thinking
     {

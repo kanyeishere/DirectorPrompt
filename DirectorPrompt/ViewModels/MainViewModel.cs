@@ -1329,7 +1329,7 @@ public sealed partial class MainViewModel
 
             var updated = existing with { Content = item.Content, Tags = tags };
 
-            await memoryRepository.UpdateAsync(updated);
+            await memoryRepository.UpdateAsync(updated, CurrentSession?.ID ?? 0, 0);
 
             Log.Information("记忆编辑已保存: ID={MemoryID}", item.ID);
         }
@@ -1349,7 +1349,7 @@ public sealed partial class MainViewModel
     {
         try
         {
-            await memoryRepository.DeleteAsync(item.ID);
+            await memoryRepository.DeleteAsync(item.ID, CurrentSession?.ID ?? 0, 0);
 
             MemoryPanel.RemoveItem(item);
 
