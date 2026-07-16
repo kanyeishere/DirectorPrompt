@@ -366,7 +366,7 @@
                                                     </Button>
 
                                                     <TextBlock Text="{Binding ConnectionMessage}"
-                                                               Margin="16,0,0,0"
+                                                               Margin="8,0,0,0"
                                                                TextWrapping="Wrap"
                                                                VerticalAlignment="Center"
                                                                FontSize="12" />
@@ -558,6 +558,7 @@
                                 </Button>
                                 <TextBlock
                                     Text="{Binding Embedding.ConnectionMessage}"
+                                    Margin="8 0 0 0"
                                     TextWrapping="Wrap"
                                     VerticalAlignment="Center"
                                     FontSize="12" />
