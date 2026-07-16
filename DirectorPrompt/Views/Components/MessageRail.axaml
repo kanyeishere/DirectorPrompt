@@ -22,7 +22,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        
+
         <!-- 悬浮状态：展开的 Border -->
         <Style Selector="UserControl:pointerover Border#RailBorder">
             <Setter Property="Width" Value="40" />
@@ -44,7 +44,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
         </Style>
-        
+
         <!-- 覆盖默认的 ListBoxItem 悬停与选中时的白色半透明背景板 -->
         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
@@ -75,12 +75,12 @@
                 </Transitions>
             </Setter>
         </Style>
-        
+
         <!-- 悬浮在侧栏时：所有指示器微微变亮 -->
         <Style Selector="UserControl:pointerover Border.indicator">
             <Setter Property="Opacity" Value="0.7" />
         </Style>
-        
+
         <!-- 非悬浮状态下的当前项高亮指示（Selected）：比普通项更宽更长，Accent 高亮 -->
         <Style Selector="ListBoxItem:selected Border.indicator">
             <Setter Property="Width" Value="16" />

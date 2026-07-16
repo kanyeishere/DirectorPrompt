@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
 using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
 using FluentAvalonia.UI.Windowing;
@@ -30,7 +30,7 @@ public partial class SettingsWindow : FAAppWindow
         if (sender is not ListBox { SelectedItem: ListBoxItem item })
             return;
 
-        var tag = item.Tag as string;
+        var tag    = item.Tag as string;
         var panels = this.GetLogicalDescendants().OfType<StackPanel>().Where(panel => panel.Name is not null);
 
         foreach (var panel in panels)
@@ -38,14 +38,14 @@ public partial class SettingsWindow : FAAppWindow
             panel.IsVisible = panel.Name switch
             {
                 "ProvidersPanel" => tag == "providers",
-                "ModelsPanel" => tag == "models",
-                "PromptsPanel" => tag == "prompts",
-                "TasksPanel" => tag == "tasks",
+                "ModelsPanel"    => tag == "models",
+                "PromptsPanel"   => tag == "prompts",
+                "TasksPanel"     => tag == "tasks",
                 "EmbeddingPanel" => tag == "embedding",
-                "MemoryPanel" => tag == "memory",
+                "MemoryPanel"    => tag == "memory",
                 "RetrievalPanel" => tag == "retrieval",
-                "OthersPanel" => tag == "others",
-                _ => panel.IsVisible
+                "OthersPanel"    => tag == "others",
+                _                => panel.IsVisible
             };
         }
     }
@@ -88,13 +88,9 @@ public partial class SettingsWindow : FAAppWindow
         await viewModel.SaveCommand.ExecuteAsync(null);
 
         if (viewModel.SaveSuccess)
-        {
             Close(true);
-        }
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e)
-    {
+    private void OnCancelClick(object sender, RoutedEventArgs e) =>
         Close(false);
-    }
 }

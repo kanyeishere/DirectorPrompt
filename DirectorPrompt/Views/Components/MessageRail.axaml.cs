@@ -2,10 +2,11 @@ using System.Collections;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.LogicalTree;
 using DirectorPrompt.ViewModels;
 
 namespace DirectorPrompt.Views.Components;
@@ -20,7 +21,7 @@ public partial class MessageRail : UserControl
 
     private ScrollViewer? railScrollViewer;
     private ScrollViewer? targetScrollViewer;
-    private bool isPointerOver;
+    private bool          isPointerOver;
 
     private ListBox Rail =>
         this.GetLogicalDescendants().OfType<ListBox>().First(control => control.Name == "RailListBox");
@@ -46,7 +47,7 @@ public partial class MessageRail : UserControl
         Loaded += OnLoaded;
     }
 
-    private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         railScrollViewer = Rail.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
         HookTargetScrollViewer();
@@ -82,23 +83,25 @@ public partial class MessageRail : UserControl
         if (targetScrollViewer is null || TargetListBox is null || Entries is null || railScrollViewer is null)
             return;
 
-        object? topEntry = null;
-        double minDistance = double.MaxValue;
+        object? topEntry    = null;
+        var     minDistance = double.MaxValue;
 
         // 1. 查找当前最顶部的消息
-        foreach (object? item in Entries)
+        foreach (var item in Entries)
         {
             if (item is null)
                 continue;
 
             var container = TargetListBox.ContainerFromItem(item);
+
             if (container is not null)
             {
                 var position = container.TranslatePoint(new Point(0, 0), targetScrollViewer);
+
                 if (position.HasValue)
                 {
-                    double y = position.Value.Y;
-                    double height = container.Bounds.Height;
+                    var y      = position.Value.Y;
+                    var height = container.Bounds.Height;
 
                     if (y <= 1 && y + height > 1)
                     {
@@ -106,11 +109,12 @@ public partial class MessageRail : UserControl
                         break;
                     }
 
-                    double distance = Math.Abs(y);
+                    var distance = Math.Abs(y);
+
                     if (distance < minDistance)
                     {
                         minDistance = distance;
-                        topEntry = item;
+                        topEntry    = item;
                     }
                 }
             }
@@ -122,19 +126,18 @@ public partial class MessageRail : UserControl
             Rail.SelectedItem = topEntry;
 
             // 3. 统计总数、置顶项索引并取得最后一个项
-            int totalCount = 0;
-            int targetIndex = -1;
-            int i = 0;
-            object? lastItem = null;
-            foreach (object? item in Entries)
+            var     totalCount  = 0;
+            var     targetIndex = -1;
+            var     i           = 0;
+            object? lastItem    = null;
+
+            foreach (var item in Entries)
             {
                 if (item is null)
                     continue;
 
                 if (ReferenceEquals(item, topEntry))
-                {
                     targetIndex = i;
-                }
                 lastItem = item;
                 totalCount++;
                 i++;
@@ -144,23 +147,22 @@ public partial class MessageRail : UserControl
             {
                 // 获取最后一条消息的实际高度
                 double lastItemHeight = 80;
+
                 if (lastItem is not null)
                 {
                     var lastContainer = TargetListBox.ContainerFromItem(lastItem);
                     if (lastContainer is not null)
-                    {
                         lastItemHeight = lastContainer.Bounds.Height;
-                    }
                 }
 
                 // 物理滚动有效高度：Extent.Height - Math.Max(Viewport.Height, lastItemHeight)
                 var effectiveMaximum = targetScrollViewer.Extent.Height - Math.Max(targetScrollViewer.Viewport.Height, lastItemHeight);
-                var railMaximum = Math.Max(0, railScrollViewer.Extent.Height - railScrollViewer.Viewport.Height);
+                var railMaximum      = Math.Max(0, railScrollViewer.Extent.Height - railScrollViewer.Viewport.Height);
 
                 if (effectiveMaximum > 0 && railMaximum > 0)
                 {
                     // 计算在此有效高度下的滚动比例，超出部分限制在 1.0
-                    double ratio = Math.Clamp(targetScrollViewer.Offset.Y / effectiveMaximum, 0, 1);
+                    var ratio = Math.Clamp(targetScrollViewer.Offset.Y / effectiveMaximum, 0, 1);
                     railScrollViewer.Offset = railScrollViewer.Offset.WithY(ratio * railMaximum);
                 }
             }
@@ -173,31 +175,34 @@ public partial class MessageRail : UserControl
             return;
 
         TargetListBox.ScrollIntoView(entry);
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (targetScrollViewer is null)
-                return;
-
-            var container = TargetListBox.ContainerFromItem(entry);
-            if (container is null)
-                return;
-
-            var position = container.TranslatePoint(new Point(0, 0), targetScrollViewer);
-            if (position.HasValue)
+        Dispatcher.UIThread.Post
+        (
+            () =>
             {
-                var newY = targetScrollViewer.Offset.Y + position.Value.Y;
-                var maximum = Math.Max(0, targetScrollViewer.Extent.Height - targetScrollViewer.Viewport.Height);
-                targetScrollViewer.Offset = targetScrollViewer.Offset.WithY(Math.Clamp(newY, 0, maximum));
-            }
-        }, DispatcherPriority.Background);
+                if (targetScrollViewer is null)
+                    return;
+
+                var container = TargetListBox.ContainerFromItem(entry);
+                if (container is null)
+                    return;
+
+                var position = container.TranslatePoint(new Point(0, 0), targetScrollViewer);
+
+                if (position.HasValue)
+                {
+                    var newY    = targetScrollViewer.Offset.Y + position.Value.Y;
+                    var maximum = Math.Max(0, targetScrollViewer.Extent.Height - targetScrollViewer.Viewport.Height);
+                    targetScrollViewer.Offset = targetScrollViewer.Offset.WithY(Math.Clamp(newY, 0, maximum));
+                }
+            },
+            DispatcherPriority.Background
+        );
 
         e.Handled = true;
     }
 
-    private void OnRailPointerEntered(object? sender, PointerEventArgs e)
-    {
+    private void OnRailPointerEntered(object? sender, PointerEventArgs e) =>
         isPointerOver = true;
-    }
 
     private void OnRailPointerExited(object? sender, PointerEventArgs e)
     {

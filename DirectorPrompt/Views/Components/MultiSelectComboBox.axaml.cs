@@ -4,8 +4,8 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
 
 namespace DirectorPrompt.Views.Components;
 
@@ -65,17 +65,15 @@ public sealed partial class MultiSelectComboBox : UserControl
 
     static MultiSelectComboBox()
     {
-        ItemsSourceProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control, _) => control.ObserveItems());
-        DisplayMemberPathProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control, _) => control.RefreshOptions());
+        ItemsSourceProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control,        _) => control.ObserveItems());
+        DisplayMemberPathProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control,  _) => control.RefreshOptions());
         SelectedMemberPathProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control, _) => control.RefreshOptions());
-        DelimiterProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control, _) => control.UpdateSummary());
-        WatermarkProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control, _) => control.UpdateSummary());
+        DelimiterProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control,          _) => control.UpdateSummary());
+        WatermarkProperty.Changed.AddClassHandler<MultiSelectComboBox>(static (control,          _) => control.UpdateSummary());
     }
 
-    public MultiSelectComboBox()
-    {
+    public MultiSelectComboBox() =>
         AvaloniaXamlLoader.Load(this);
-    }
 
     private void ObserveItems()
     {
@@ -131,14 +129,16 @@ public sealed partial class MultiSelectComboBox : UserControl
         SummaryControl.Text = selected.Length == 0 ?
                                   Watermark?.ToString() ?? string.Empty :
                                   string.Join(Delimiter, selected);
-        SummaryControl.Opacity = selected.Length == 0 ? 0.65 : 1;
+        SummaryControl.Opacity = selected.Length == 0 ?
+                                     0.65 :
+                                     1;
     }
 
     public sealed class Option : INotifyPropertyChanged
     {
-        private readonly object item;
+        private readonly object              item;
         private readonly PropertyDescriptor? selectedProperty;
-        private bool isSelected;
+        private          bool                isSelected;
 
         public string Display { get; }
 
@@ -163,9 +163,11 @@ public sealed partial class MultiSelectComboBox : UserControl
             this.item = item;
             var properties = TypeDescriptor.GetProperties(item);
             Display = string.IsNullOrEmpty(displayMemberPath) ?
-                          item.ToString() ?? string.Empty :
+                          item.ToString()                                           ?? string.Empty :
                           properties[displayMemberPath]?.GetValue(item)?.ToString() ?? string.Empty;
-            selectedProperty = string.IsNullOrEmpty(selectedMemberPath) ? null : properties[selectedMemberPath];
+            selectedProperty = string.IsNullOrEmpty(selectedMemberPath) ?
+                                   null :
+                                   properties[selectedMemberPath];
             isSelected = selectedProperty?.GetValue(item) is true;
 
             if (item is INotifyPropertyChanged observable)

@@ -7,7 +7,6 @@
                  xmlns:vm="clr-namespace:DirectorPrompt.ViewModels"
                  xmlns:loc="clr-namespace:DirectorPrompt.Localization"
                  xmlns:components="clr-namespace:DirectorPrompt.Views.Components"
-                 xmlns:v="clr-namespace:DirectorPrompt.Views"
                  xmlns:windowing="using:FluentAvalonia.UI.Windowing"
                  mc:Ignorable="d"
                  d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
@@ -300,7 +299,7 @@
                                                     Click="OnMoreButtonClick"
                                                     Padding="6,2"
                                                     VerticalAlignment="Top"
-                                            IsEnabled="{Binding DataContext.IsNotProcessing, RelativeSource={RelativeSource AncestorType=Window}}">
+                                            IsEnabled="{Binding DataContext?.IsNotProcessing, RelativeSource={RelativeSource AncestorType=Window}}">
                                                 <fa:FASymbolIcon Symbol="MoreVertical" />
                                                 <Button.ContextMenu>
                                                     <ContextMenu>
@@ -389,7 +388,7 @@
                                                     <Button
                                                         Padding="12,6"
                                                         Margin="0,0,4,0"
-                                                        Command="{Binding DataContext.SaveEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        Command="{Binding DataContext?.SaveEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <fa:FASymbolIcon Symbol="Save" />
@@ -398,7 +397,7 @@
                                                     </Button>
                                                     <Button
                                                         Padding="12,6"
-                                                        Command="{Binding DataContext.CancelEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        Command="{Binding DataContext?.CancelEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <fa:FASymbolIcon Symbol="Dismiss" />
@@ -454,7 +453,7 @@
                             <TextBlock Text="{Binding [State.Panel.Title], Source={x:Static loc:Loc.Instance}}" />
                         </StackPanel>
                     </TabItem.Header>
-                    <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto" Padding="0,8,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,0,0">
                         <StackPanel>
                             <Expander Header="{Binding [State.Panel.Title], Source={x:Static loc:Loc.Instance}}"
                                              IsExpanded="True"
@@ -546,7 +545,7 @@
                                   HorizontalAlignment="Stretch"
                                   Margin="0,0,0,8" />
 
-                        <ScrollViewer Grid.Row="2" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding CharacterPanel.Groups}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -760,7 +759,7 @@
 
 
                         <ScrollViewer Grid.Row="2"
-                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                      VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding MemoryPanel.Groups}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -899,12 +898,12 @@
                                                                                 Content="{Binding [Common.Save], Source={x:Static loc:Loc.Instance}}"
                                                                                 Padding="12,6"
                                                                                 Margin="0,0,4,0"
-                                                                                Command="{Binding DataContext.SaveMemoryEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                Command="{Binding DataContext?.SaveMemoryEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                                 CommandParameter="{Binding}" />
                                                                             <Button
                                                                                 Content="{Binding [Common.Cancel], Source={x:Static loc:Loc.Instance}}"
                                                                                 Padding="12,6"
-                                                                                Command="{Binding DataContext.CancelMemoryEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                Command="{Binding DataContext?.CancelMemoryEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                                 CommandParameter="{Binding}" />
                                                                         </StackPanel>
                                                                     </StackPanel>

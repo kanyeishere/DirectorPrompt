@@ -1,4 +1,3 @@
-using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -31,7 +30,7 @@ using DirectorPrompt.Update;
 
 namespace DirectorPrompt;
 
-public partial class App : Application
+public class App : Application
 {
     private IHost? host;
 
@@ -46,9 +45,9 @@ public partial class App : Application
             return;
         }
 
-        Log.Logger = LoggingConfiguration.CreateLogger();
-        desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        desktop.Exit += OnExit;
+        Log.Logger                             =  LoggingConfiguration.CreateLogger();
+        desktop.ShutdownMode                   =  ShutdownMode.OnExplicitShutdown;
+        desktop.Exit                           += OnExit;
         Dispatcher.UIThread.UnhandledException += OnDispatcherUnhandledException;
 
         try
@@ -85,7 +84,7 @@ public partial class App : Application
 #endif
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
-            desktop.MainWindow = mainWindow;
+            desktop.MainWindow   = mainWindow;
             desktop.ShutdownMode = ShutdownMode.OnLastWindowClose;
             mainWindow.Show();
         }
@@ -168,7 +167,7 @@ public partial class App : Application
         e.Handled = false;
     }
 
-    internal static Avalonia.Controls.Window? GetActiveWindow()
+    internal static Window? GetActiveWindow()
     {
         if (Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return null;
@@ -181,7 +180,7 @@ public partial class App : Application
         SQLiteTypeHandlers.Register();
         Directory.CreateDirectory(AppPaths.DataDirectory);
 
-        var connectionString = $"Data Source={AppPaths.DatabasePath}";
+        var connectionString  = $"Data Source={AppPaths.DatabasePath}";
         var connectionFactory = new SQLiteConnectionFactory(connectionString);
 
         services.AddSingleton(connectionFactory);
@@ -251,7 +250,7 @@ public partial class App : Application
 
     private static void RegisterLocalization(IServiceCollection services, UserSettings userSettings)
     {
-        var langDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "Langs");
+        var langDirectory     = Path.Combine(AppContext.BaseDirectory, "Assets", "Langs");
         var preferredLanguage = userSettings.Localization.Language;
 
         if (string.IsNullOrEmpty(preferredLanguage))
@@ -259,18 +258,18 @@ public partial class App : Application
 
         var options = new LocalizationOptions
         {
-            DefaultLanguage = "zh-CN",
+            DefaultLanguage  = "zh-CN",
             FileNameResolver = static language => $"{language}.json",
-            Source = new FileLocalizationSource(langDirectory),
-            Parser = new JSONDictionaryLocalizationParser(),
+            Source           = new FileLocalizationSource(langDirectory),
+            Parser           = new JSONDictionaryLocalizationParser(),
             FallbackResolver = static language => language switch
             {
                 "en" => ["zh-CN"],
-                _ => []
+                _    => []
             },
             EnableHotReload = true,
-            ReloadDebounce = TimeSpan.FromSeconds(3),
-            LoggerTag = nameof(LocalizationService)
+            ReloadDebounce  = TimeSpan.FromSeconds(3),
+            LoggerTag       = nameof(LocalizationService)
         };
 
         services.AddSingleton<ILocalizationService>

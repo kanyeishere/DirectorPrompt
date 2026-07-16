@@ -1,9 +1,8 @@
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.ViewModels;
 

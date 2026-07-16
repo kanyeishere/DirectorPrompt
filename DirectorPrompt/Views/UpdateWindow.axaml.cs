@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using DirectorPrompt.Localization;
 using FluentAvalonia.UI.Windowing;
@@ -43,19 +43,21 @@ public partial class UpdateWindow : FAAppWindow
         Dispatcher.UIThread.Post(() => Status.Text = status);
 
     public void UpdateProgress(int progress) =>
-        Dispatcher.UIThread.Post(() =>
-        {
-            ProgressIndicator.IsIndeterminate = false;
-            ProgressIndicator.Value = progress;
-            ProgressValue.IsVisible = true;
-            ProgressValue.Text = $"{progress}%";
-        });
+        Dispatcher.UIThread.Post
+        (() =>
+            {
+                ProgressIndicator.IsIndeterminate = false;
+                ProgressIndicator.Value           = progress;
+                ProgressValue.IsVisible           = true;
+                ProgressValue.Text                = $"{progress}%";
+            }
+        );
 
     public void ShowError(string message)
     {
-        Progress.IsVisible = false;
-        Error.IsVisible = true;
-        ErrorMessage.Text = message;
+        Progress.IsVisible  = false;
+        Error.IsVisible     = true;
+        ErrorMessage.Text   = message;
         CloseAction.Content = Loc.Get("Common.Close");
     }
 

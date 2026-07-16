@@ -53,5 +53,7 @@ public sealed class PathComboBox : ComboBox
     }
 
     private void UpdateSelectedValueBinding() =>
-        SelectedValueBinding = string.IsNullOrEmpty(SelectedValuePath) ? null : new Binding(SelectedValuePath);
+        SelectedValueBinding = string.IsNullOrEmpty(SelectedValuePath) ?
+                                   null :
+                                   new Binding(SelectedValuePath);
 }

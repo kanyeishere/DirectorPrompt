@@ -32,14 +32,14 @@
                                                Margin="0,0,8,0"
                                                VerticalAlignment="Center" />
                                     <fa:FANumberBox Grid.Column="1"
-                                                  Width="180"
-                                                  Value="{Binding TTL, TargetNullValue=5}"
-                                                  Minimum="1"
-                                                  Maximum="999"
-                                                  SmallChange="1"
-                                                  LargeChange="5"
-                                                  Margin="0,0,4,0"
-                                                  VerticalAlignment="Center" />
+                                                    Width="180"
+                                                    Value="{Binding TTL, TargetNullValue=5}"
+                                                    Minimum="1"
+                                                    Maximum="999"
+                                                    SmallChange="1"
+                                                    LargeChange="5"
+                                                    Margin="0,0,4,0"
+                                                    VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="2"
                                                Text="{Binding [Directive.Input.TTLUnit], Source={x:Static loc:Loc.Instance}}"
                                                FontSize="12"
@@ -70,15 +70,16 @@
                                     </StackPanel>
                                 </Grid>
                                 <TextBox Text="{Binding Content}"
-                                            TextWrapping="Wrap"
-                                            AcceptsReturn="True"
-                                            MinLines="1"
-                                            MaxLines="3"
-                                            BorderThickness="0"
-                                            Background="Transparent" />
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         MinLines="1"
+                                         MaxLines="3"
+                                         BorderThickness="0"
+                                         Background="Transparent" />
                             </StackPanel>
                             <!-- 无 TTL 指令: 单行布局 -->
-                            <Grid IsVisible="{Binding HasTTL, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+                            <Grid
+                                IsVisible="{Binding HasTTL, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
@@ -91,14 +92,14 @@
                                            Margin="0,0,8,0"
                                            VerticalAlignment="Center" />
                                 <TextBox Grid.Column="1"
-                                            Text="{Binding Content}"
-                                            TextWrapping="Wrap"
-                                            AcceptsReturn="True"
-                                            MinLines="1"
-                                            MaxLines="3"
-                                            VerticalAlignment="Center"
-                                            BorderThickness="0"
-                                            Background="Transparent" />
+                                         Text="{Binding Content}"
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         MinLines="1"
+                                         MaxLines="3"
+                                         VerticalAlignment="Center"
+                                         BorderThickness="0"
+                                         Background="Transparent" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <Button Padding="12,8"
                                             MinWidth="36"
@@ -158,27 +159,27 @@
                                VerticalAlignment="Center"
                                Margin="0,0,6,0" />
                     <fa:FANumberBox Width="150"
-                                  Value="{Binding InputTTL, TargetNullValue=5}"
-                                  Minimum="1"
-                                  Maximum="999"
-                                  SmallChange="1"
-                                  LargeChange="5" />
+                                    Value="{Binding InputTTL, TargetNullValue=5}"
+                                    Minimum="1"
+                                    Maximum="999"
+                                    SmallChange="1"
+                                    LargeChange="5" />
                 </StackPanel>
             </Grid>
 
             <TextBox Margin="0,0,0,4"
-                        Text="{Binding InputContent}"
-                        TextWrapping="Wrap"
-                        MaxHeight="300"
-                        AcceptsReturn="True" />
+                     Text="{Binding InputContent}"
+                     TextWrapping="Wrap"
+                     MaxHeight="300"
+                     AcceptsReturn="True" />
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Margin="0,4,0,0">
                 <Button Width="150"
-                           Margin="0,0,4,0"
-                           Padding="12,6"
-                           Command="{Binding AddDirectiveCommand}">
+                        Margin="0,0,4,0"
+                        Padding="12,6"
+                        Command="{Binding AddDirectiveCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <fa:FASymbolIcon Symbol="Add" />
                         <TextBlock Text="{Binding [Common.Add], Source={x:Static loc:Loc.Instance}}" />
@@ -189,11 +190,11 @@
                         Background="{DynamicResource ControlElevationBorderBrush}"
                         IsVisible="{Binding ShowSendButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}" />
                 <Button Width="150"
-                           Margin="4,0,0,0"
-                           Padding="16,6"
-                           IsVisible="{Binding ShowSendButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}"
-                           Command="{Binding SendCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           IsEnabled="{Binding IsProcessing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+                        Margin="4,0,0,0"
+                        Padding="16,6"
+                        IsVisible="{Binding ShowSendButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}"
+                        Command="{Binding SendCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        IsEnabled="{Binding IsProcessing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <fa:FASymbolIcon Symbol="Send" />
                         <TextBlock Text="{Binding [Dialog.SendDirective], Source={x:Static loc:Loc.Instance}}" />

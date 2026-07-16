@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
 using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
@@ -31,18 +31,18 @@ public partial class ProjectEditWindow : FAAppWindow
         if (sender is not ListBox { SelectedItem: ListBoxItem item })
             return;
 
-        var tag = item.Tag as string;
+        var tag    = item.Tag as string;
         var panels = this.GetLogicalDescendants().OfType<StackPanel>().Where(panel => panel.Name is not null);
 
         foreach (var panel in panels)
         {
             panel.IsVisible = panel.Name switch
             {
-                "BasicPanel" => tag == "basic",
+                "BasicPanel"     => tag == "basic",
                 "KnowledgePanel" => tag == "knowledge",
-                "StatePanel" => tag == "state",
+                "StatePanel"     => tag == "state",
                 "CharacterPanel" => tag == "character",
-                _ => panel.IsVisible
+                _                => panel.IsVisible
             };
         }
     }
@@ -127,13 +127,9 @@ public partial class ProjectEditWindow : FAAppWindow
         await ViewModel.SaveCommand.ExecuteAsync(null);
 
         if (ViewModel.SaveSuccess)
-        {
             Close(true);
-        }
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e)
-    {
+    private void OnCancelClick(object sender, RoutedEventArgs e) =>
         Close(false);
-    }
 }

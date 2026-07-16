@@ -5,7 +5,6 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:fa="using:FluentAvalonia.UI.Controls"
                  xmlns:vm="clr-namespace:DirectorPrompt.ViewModels"
-                 xmlns:converters="clr-namespace:DirectorPrompt.Converters"
                  xmlns:loc="clr-namespace:DirectorPrompt.Localization"
                  xmlns:components="clr-namespace:DirectorPrompt.Views.Components"
                  xmlns:windowing="using:FluentAvalonia.UI.Windowing"
@@ -98,16 +97,12 @@
             <Border Grid.Column="1"
                     BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                     BorderThickness="1,0,0,0">
-                <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
                               Padding="24,12,24,16">
                     <Grid>
                         <!-- 提供商面板 -->
                         <StackPanel x:Name="ProvidersPanel" IsVisible="True">
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <Grid Margin="0,0,0,12" ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Provider.Title], Source={x:Static loc:Loc.Instance}}"
                                            FontSize="20"
@@ -304,18 +299,13 @@
                                                                Text="{Binding [Settings.Model.Provider], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
                                                     <components:SearchableComboBox Grid.Column="1"
-                                                            ItemsSource="{Binding DataContext.Providers, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            ItemsSource="{Binding DataContext?.Providers, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             DisplayMemberPath="DisplayName"
                                                             SelectedValuePath="ID"
                                                             SelectedValue="{Binding ProviderID}" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*,Auto">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Agent.ModelName], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -325,7 +315,7 @@
                                                     <Button Grid.Column="2"
                                                                Padding="6,4"
                                                                Margin="8,0,0,0"
-                                                               Command="{Binding DataContext.FetchModelsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                               Command="{Binding DataContext?.FetchModelsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                CommandParameter="{Binding}"
                                                                IsEnabled="{Binding IsFetchingModels, Converter={StaticResource InverseBool}}">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -397,7 +387,7 @@
                                                                Text="{Binding [Settings.Model.Prompt], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
                                                     <components:SearchableComboBox Grid.Column="1"
-                                                            ItemsSource="{Binding DataContext.Prompts, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            ItemsSource="{Binding DataContext?.Prompts, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             DisplayMemberPath="DisplayName"
                                                             SelectedValuePath="ID"
                                                             SelectedValue="{Binding PromptID}" />
@@ -405,7 +395,7 @@
                                                                Content="{Binding [Common.Clear], Source={x:Static loc:Loc.Instance}}"
                                                                Padding="6,4"
                                                                Margin="8,0,0,0"
-                                                               Command="{Binding DataContext.ClearModelPromptCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                               Command="{Binding DataContext?.ClearModelPromptCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                CommandParameter="{Binding}" />
                                                 </Grid>
 
@@ -415,7 +405,7 @@
 
                                                     <Button
                                                         Padding="8,4"
-                                                        Command="{Binding DataContext.TestModelConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        Command="{Binding DataContext?.TestModelConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}"
                                                         IsEnabled="{Binding IsTestingConnection, Converter={StaticResource InverseBool}}">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -551,7 +541,7 @@
                                                                Text="{Binding [Settings.Task.Model], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
                                                     <components:SearchableComboBox Grid.Column="1"
-                                                            ItemsSource="{Binding DataContext.Models, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            ItemsSource="{Binding DataContext?.Models, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             DisplayMemberPath="DisplayName"
                                                             SelectedValuePath="ID"
                                                             SelectedValue="{Binding ModelConfigID}" />
@@ -567,7 +557,7 @@
                                                                Text="{Binding [Settings.Task.Prompt], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
                                                     <components:SearchableComboBox Grid.Column="1"
-                                                            ItemsSource="{Binding DataContext.Prompts, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            ItemsSource="{Binding DataContext?.Prompts, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             DisplayMemberPath="DisplayName"
                                                             SelectedValuePath="ID"
                                                             SelectedValue="{Binding PromptID}" />
@@ -575,7 +565,7 @@
                                                                Content="{Binding [Common.Clear], Source={x:Static loc:Loc.Instance}}"
                                                                Padding="6,4"
                                                                Margin="8,0,0,0"
-                                                               Command="{Binding DataContext.ClearTaskPromptCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                               Command="{Binding DataContext?.ClearTaskPromptCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                CommandParameter="{Binding}" />
                                                 </Grid>
                                             </StackPanel>

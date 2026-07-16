@@ -11,10 +11,10 @@ public sealed class DirectorContentBlockViewModel
 
     public string TypeDisplay => Type switch
     {
-        DirectiveType.Plot => Loc.Get("Directive.Type.Plot"),
-        DirectiveType.Tone => Loc.Get("Directive.Type.Tone"),
+        DirectiveType.Plot                => Loc.Get("Directive.Type.Plot"),
+        DirectiveType.Tone                => Loc.Get("Directive.Type.Tone"),
         DirectiveType.TemporaryConstraint => Loc.Get("Directive.Type.TemporaryConstraint"),
-        DirectiveType.SceneChange => Loc.Get("Directive.Type.SceneChange"),
-        _ => Type.ToString()
+        DirectiveType.SceneChange         => Loc.Get("Directive.Type.SceneChange"),
+        _                                 => Type.ToString()
     };
 }

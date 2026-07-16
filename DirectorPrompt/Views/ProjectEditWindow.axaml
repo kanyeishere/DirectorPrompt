@@ -5,7 +5,6 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:fa="using:FluentAvalonia.UI.Controls"
                  xmlns:vm="clr-namespace:DirectorPrompt.ViewModels"
-                 xmlns:converters="clr-namespace:DirectorPrompt.Converters"
                  xmlns:loc="clr-namespace:DirectorPrompt.Localization"
                  xmlns:components="clr-namespace:DirectorPrompt.Views.Components"
                  xmlns:windowing="using:FluentAvalonia.UI.Windowing"
@@ -70,7 +69,7 @@
             <Border Grid.Column="1"
                     BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                     BorderThickness="1,0,0,0">
-                <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
                               Padding="24,12,24,16">
                     <Grid>
                         <!-- 基本信息 -->
@@ -242,7 +241,7 @@
                                                                 VerticalAlignment="Center" />
                                                      <Button Grid.Column="1"
                                                              Padding="6,4"
-                                                             Command="{Binding DataContext.AddKnowledgeEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                             Command="{Binding DataContext?.AddKnowledgeEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                              CommandParameter="{Binding}">
                                                          <StackPanel Orientation="Horizontal" Spacing="6">
                                                              <fa:FASymbolIcon Symbol="Add" />
@@ -255,11 +254,7 @@
                                                         <DataTemplate>
                                                              <Expander Margin="0,0,0,6" IsExpanded="{Binding IsEditing, Mode=TwoWay}">
                                                                  <Expander.Header>
-                                                                     <Grid>
-                                                                         <Grid.ColumnDefinitions>
-                                                                             <ColumnDefinition Width="*" />
-                                                                             <ColumnDefinition Width="Auto" />
-                                                                         </Grid.ColumnDefinitions>
+                                                                     <Grid ColumnDefinitions="*,Auto">
                                                                          <TextBlock Grid.Column="0"
                                                                                  Text="{Binding Remarks}"
                                                                                  FontWeight="SemiBold"
@@ -617,7 +612,7 @@
                                                                                         Margin="8,0,0,0" />
                                                                                 </StackPanel>
                                                                                 <components:PathComboBox
-                                                                                    ItemsSource="{Binding DataContext.AvailableNumericAttributes, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                                    ItemsSource="{Binding DataContext?.AvailableNumericAttributes, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                                     SelectedItem="{Binding AttributeName}"  HorizontalAlignment="Stretch" />
                                                                                 <StackPanel Orientation="Horizontal"
                                                                                     Margin="0,8,0,4">
@@ -674,8 +669,8 @@
 
                                                     <components:PhaseEditControl
                                                         PhaseSource="{Binding}"
-                                                        AddPhaseCommand="{Binding DataContext.AddPhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        DeletePhaseCommand="{Binding DataContext.DeletePhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                                        AddPhaseCommand="{Binding DataContext?.AddPhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        DeletePhaseCommand="{Binding DataContext?.DeletePhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
 
                                                 </StackPanel>
                                             </StackPanel>
@@ -1096,7 +1091,7 @@
                                                                                                             Margin="8,0,0,0" />
                                                                                                     </StackPanel>
                                                                                                     <components:PathComboBox
-                                                                                                        ItemsSource="{Binding DataContext.AvailableNumericAttributes, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                                                        ItemsSource="{Binding DataContext?.AvailableNumericAttributes, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                                                         SelectedItem="{Binding AttributeName}"  HorizontalAlignment="Stretch" />
                                                                                                     <StackPanel
                                                                                                         Orientation="Horizontal"
@@ -1160,8 +1155,8 @@
 
                                                                         <components:PhaseEditControl
                                                                             PhaseSource="{Binding}"
-                                                                            AddPhaseCommand="{Binding DataContext.AddPhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                            DeletePhaseCommand="{Binding DataContext.DeletePhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                                                            AddPhaseCommand="{Binding DataContext?.AddPhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                            DeletePhaseCommand="{Binding DataContext?.DeletePhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
                                                                     </StackPanel>
                                                                 </StackPanel>
                                                              </Expander>

@@ -15,12 +15,14 @@ public sealed class FilePickerService : IFilePickerService
                     (
                         new FilePickerOpenOptions
                         {
-                            AllowMultiple = false,
+                            AllowMultiple  = false,
                             FileTypeFilter = [CreateFileType(displayName, pattern)]
                         }
                     );
 
-        return files.Count == 0 ? null : files[0].TryGetLocalPath();
+        return files.Count == 0 ?
+                   null :
+                   files[0].TryGetLocalPath();
     }
 
     public async Task<string?> SaveAsync(string displayName, string pattern, string suggestedFileName)
@@ -35,7 +37,7 @@ public sealed class FilePickerService : IFilePickerService
                        new FilePickerSaveOptions
                        {
                            SuggestedFileName = suggestedFileName,
-                           FileTypeChoices = [CreateFileType(displayName, pattern)]
+                           FileTypeChoices   = [CreateFileType(displayName, pattern)]
                        }
                    );
 

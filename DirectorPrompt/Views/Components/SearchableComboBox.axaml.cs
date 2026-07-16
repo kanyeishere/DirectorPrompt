@@ -5,10 +5,11 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
 
 namespace DirectorPrompt.Views.Components;
 
@@ -24,17 +25,17 @@ public sealed partial class SearchableComboBox : UserControl
         AvaloniaProperty.Register<SearchableComboBox, string>(nameof(SelectedValuePath), string.Empty);
 
     public static readonly StyledProperty<object?> SelectedValueProperty =
-        AvaloniaProperty.Register<SearchableComboBox, object?>(nameof(SelectedValue), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+        AvaloniaProperty.Register<SearchableComboBox, object?>(nameof(SelectedValue), defaultBindingMode: BindingMode.TwoWay);
 
     public static readonly StyledProperty<string> TextProperty =
-        AvaloniaProperty.Register<SearchableComboBox, string>(nameof(Text), string.Empty, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+        AvaloniaProperty.Register<SearchableComboBox, string>(nameof(Text), string.Empty, defaultBindingMode: BindingMode.TwoWay);
 
     public static readonly StyledProperty<string> PlaceholderTextProperty =
         AvaloniaProperty.Register<SearchableComboBox, string>(nameof(PlaceholderText), string.Empty);
 
-    private readonly List<object> allItems = [];
-    private INotifyCollectionChanged? observedCollection;
-    private bool isUpdatingText;
+    private readonly List<object>              allItems = [];
+    private          INotifyCollectionChanged? observedCollection;
+    private          bool                      isUpdatingText;
 
     private TextBox SearchInput =>
         this.GetLogicalDescendants().OfType<TextBox>().First(control => control.Name == "SearchBox");
@@ -85,11 +86,11 @@ public sealed partial class SearchableComboBox : UserControl
 
     static SearchableComboBox()
     {
-        ItemsSourceProperty.Changed.AddClassHandler<SearchableComboBox>(static (control, _) => control.ObserveItems());
+        ItemsSourceProperty.Changed.AddClassHandler<SearchableComboBox>(static (control,       _) => control.ObserveItems());
         DisplayMemberPathProperty.Changed.AddClassHandler<SearchableComboBox>(static (control, _) => control.RefreshItems());
-        SelectedValueProperty.Changed.AddClassHandler<SearchableComboBox>(static (control, _) => control.UpdateDisplayText());
-        TextProperty.Changed.AddClassHandler<SearchableComboBox>(static (control, _) => control.UpdateTextFromProperty());
-        PlaceholderTextProperty.Changed.AddClassHandler<SearchableComboBox>(static (control, _) => control.SearchInput.PlaceholderText = control.PlaceholderText);
+        SelectedValueProperty.Changed.AddClassHandler<SearchableComboBox>(static (control,     _) => control.UpdateDisplayText());
+        TextProperty.Changed.AddClassHandler<SearchableComboBox>(static (control,              _) => control.UpdateTextFromProperty());
+        PlaceholderTextProperty.Changed.AddClassHandler<SearchableComboBox>(static (control,   _) => control.SearchInput.PlaceholderText = control.PlaceholderText);
     }
 
     public SearchableComboBox()
@@ -136,9 +137,9 @@ public sealed partial class SearchableComboBox : UserControl
         if (isUpdatingText || SearchInput.Text == Text)
             return;
 
-        isUpdatingText = true;
+        isUpdatingText   = true;
         SearchInput.Text = Text;
-        isUpdatingText = false;
+        isUpdatingText   = false;
         FilterItems();
     }
 
@@ -148,11 +149,13 @@ public sealed partial class SearchableComboBox : UserControl
             return;
 
         var selectedItem = allItems.FirstOrDefault(item => Equals(GetValue(item, SelectedValuePath), SelectedValue));
-        var display = selectedItem is null ? Text : GetDisplayValue(selectedItem);
+        var display = selectedItem is null ?
+                          Text :
+                          GetDisplayValue(selectedItem);
 
-        isUpdatingText = true;
+        isUpdatingText   = true;
         SearchInput.Text = display;
-        isUpdatingText = false;
+        isUpdatingText   = false;
     }
 
     private string GetDisplayValue(object item) =>
@@ -187,7 +190,7 @@ public sealed partial class SearchableComboBox : UserControl
                 FilteredItems.Add(item);
         }
 
-        Results.DisplayMemberBinding = new Avalonia.Data.Binding(DisplayMemberPath);
+        Results.DisplayMemberBinding = new Binding(DisplayMemberPath);
     }
 
     private void OnSearchBoxGotFocus(object? sender, RoutedEventArgs e)
@@ -208,11 +211,11 @@ public sealed partial class SearchableComboBox : UserControl
     private void CommitSelection(object selectedItem)
     {
         var display = GetDisplayValue(selectedItem);
-        isUpdatingText = true;
-        SearchInput.Text = display;
-        Text = display;
-        SelectedValue = GetValue(selectedItem, SelectedValuePath);
-        isUpdatingText = false;
+        isUpdatingText       = true;
+        SearchInput.Text     = display;
+        Text                 = display;
+        SelectedValue        = GetValue(selectedItem, SelectedValuePath);
+        isUpdatingText       = false;
         Results.SelectedItem = null;
         DropDownPopup.IsOpen = false;
     }
@@ -223,7 +226,7 @@ public sealed partial class SearchableComboBox : UserControl
         {
             Results.Focus();
             Results.SelectedIndex = 0;
-            e.Handled = true;
+            e.Handled             = true;
         }
         else if (e.Key == Key.Escape)
         {

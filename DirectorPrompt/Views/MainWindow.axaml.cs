@@ -4,10 +4,10 @@ using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.LogicalTree;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
@@ -90,7 +90,7 @@ public partial class MainWindow : FAAppWindow
     {
         if (sender is MenuItem { Tag: DialogEntryViewModel entry })
         {
-            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            var clipboard = GetTopLevel(this)?.Clipboard;
 
             if (clipboard is not null)
             {
@@ -171,12 +171,12 @@ public partial class MainWindow : FAAppWindow
             return;
 
         var newTitle = await PromptDialog.InputAsync
-        (
-            this,
-            Loc.Get("Dialog.RenameSessionTitle"),
-            Loc.Get("Dialog.RenameSessionPrompt"),
-            session.Title
-        );
+                       (
+                           this,
+                           Loc.Get("Dialog.RenameSessionTitle"),
+                           Loc.Get("Dialog.RenameSessionPrompt"),
+                           session.Title
+                       );
 
         if (newTitle is not null)
             await viewModel.RenameSessionAsync(session, newTitle);
@@ -209,5 +209,4 @@ public partial class MainWindow : FAAppWindow
         if (await PromptDialog.ConfirmAsync(this, Loc.Get("Common.Delete"), message, true))
             _ = viewModel.DeleteMemoryCommand.ExecuteAsync(item);
     }
-
 }

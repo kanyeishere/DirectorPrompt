@@ -1,9 +1,8 @@
-using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
-using DirectorPrompt.Views.Components;
+using Avalonia.Markup.Xaml;
 using DirectorPrompt.Localization;
+using DirectorPrompt.Views.Components;
 using FluentAvalonia.UI.Windowing;
 
 namespace DirectorPrompt.Views;

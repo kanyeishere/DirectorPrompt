@@ -4,7 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DirectorPrompt.Services;
 
-public sealed class WindowService(IServiceProvider serviceProvider) : IWindowService
+public sealed class WindowService
+(
+    IServiceProvider serviceProvider
+) : IWindowService
 {
     public Task<string?> InputAsync(string title, string prompt, string defaultValue) =>
         PromptDialog.InputAsync(App.GetActiveWindow(), title, prompt, defaultValue);
@@ -21,7 +24,7 @@ public sealed class WindowService(IServiceProvider serviceProvider) : IWindowSer
     public async Task ShowSettingsAsync()
     {
         var window = serviceProvider.GetRequiredService<SettingsWindow>();
-        var owner = App.GetActiveWindow();
+        var owner  = App.GetActiveWindow();
 
         if (owner is not null)
             await window.ShowDialog(owner);

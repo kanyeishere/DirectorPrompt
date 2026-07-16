@@ -15,8 +15,8 @@
                        FontWeight="SemiBold"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1"
-                       Padding="8,4"
-                       Click="OnAddPhase">
+                    Padding="8,4"
+                    Click="OnAddPhase">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <fa:FASymbolIcon Symbol="Add" />
                     <TextBlock Text="{Binding [State.Attribute.AddPhase], Source={x:Static loc:Loc.Instance}}" />
@@ -54,14 +54,14 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <Button Content="{Binding [Common.Edit], Source={x:Static loc:Loc.Instance}}"
-                                               Padding="6,4"
-                                               Margin="0,0,4,0"
-                                               Click="OnEditPhase"
-                                               Tag="{Binding}" />
+                                            Padding="6,4"
+                                            Margin="0,0,4,0"
+                                            Click="OnEditPhase"
+                                            Tag="{Binding}" />
                                     <Button Content="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}"
-                                               Padding="6,4"
-                                               Click="OnDeletePhase"
-                                               Tag="{Binding}" />
+                                            Padding="6,4"
+                                            Click="OnDeletePhase"
+                                            Tag="{Binding}" />
                                 </StackPanel>
                             </Grid>
                             <StackPanel IsVisible="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}"
@@ -77,7 +77,7 @@
                                         Margin="8,0,0,0" />
                                 </StackPanel>
                                 <TextBox Text="{Binding Name}"
-                                            PlaceholderText="{Binding [Phase.NamePlaceholder], Source={x:Static loc:Loc.Instance}}" />
+                                         PlaceholderText="{Binding [Phase.NamePlaceholder], Source={x:Static loc:Loc.Instance}}" />
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,4">
                                     <TextBlock Text="{Binding [Phase.Expression], Source={x:Static loc:Loc.Instance}}"
                                                FontWeight="SemiBold" />
@@ -89,7 +89,7 @@
                                         Margin="8,0,0,0" />
                                 </StackPanel>
                                 <TextBox Text="{Binding Expression}"
-                                            PlaceholderText="{Binding [Phase.ExpressionPlaceholder], Source={x:Static loc:Loc.Instance}}" />
+                                         PlaceholderText="{Binding [Phase.ExpressionPlaceholder], Source={x:Static loc:Loc.Instance}}" />
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,4">
                                     <TextBlock
                                         Text="{Binding [Phase.KnowledgeLink], Source={x:Static loc:Loc.Instance}}"

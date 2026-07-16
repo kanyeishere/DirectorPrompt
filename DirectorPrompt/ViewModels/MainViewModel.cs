@@ -192,11 +192,11 @@ public sealed partial class MainViewModel
     private async Task NewProjectAsync()
     {
         var name = await windowService.InputAsync
-        (
-            Loc.Get("Project.NewTitle"),
-            Loc.Get("Dialog.NewProjectPrompt"),
-            string.Empty
-        );
+                   (
+                       Loc.Get("Project.NewTitle"),
+                       Loc.Get("Dialog.NewProjectPrompt"),
+                       string.Empty
+                   );
 
         if (string.IsNullOrWhiteSpace(name))
             return;
@@ -295,7 +295,7 @@ public sealed partial class MainViewModel
     private async Task ImportProjectAsync()
     {
         var fileName = await filePickerService.OpenAsync
-                       ($"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}", "*.dppkg");
+                           ($"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}", "*.dppkg");
 
         if (fileName is null)
             return;
@@ -336,7 +336,7 @@ public sealed partial class MainViewModel
     private async Task ImportSillyTavernProjectAsync()
     {
         var fileName = await filePickerService.OpenAsync
-                       ($"SillyTavern {Loc.Get("Project.Import.SillyTavern.CharacterCard")}", "*.json");
+                           ($"SillyTavern {Loc.Get("Project.Import.SillyTavern.CharacterCard")}", "*.json");
 
         if (fileName is null)
             return;

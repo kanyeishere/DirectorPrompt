@@ -8,8 +8,8 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed class DialogEntryViewModel : INotifyPropertyChanged
 {
-    private       string thinking                = string.Empty;
-    private       string errorMessage            = string.Empty;
+    private string thinking     = string.Empty;
+    private string errorMessage = string.Empty;
 
     public long ID { get; init; }
 
@@ -165,10 +165,8 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowDirectorContent)));
     }
 
-    public void RenderMarkdown()
-    {
+    public void RenderMarkdown() =>
         IsStreaming = false;
-    }
 
     public void UpdateStreamingContent(string narrative, string thinking, bool replaceContent = false)
     {
@@ -317,5 +315,4 @@ public sealed class DialogViewModel
         foreach (var entry in Entries)
             entry.IsLast = false;
     }
-
 }

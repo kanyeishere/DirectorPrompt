@@ -1,8 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using DirectorPrompt.Localization;
 using FluentAvalonia.UI.Windowing;
 
@@ -10,8 +11,8 @@ namespace DirectorPrompt.Views;
 
 public partial class PromptDialog : FAAppWindow
 {
-    private bool isInputMode;
-    private bool boolResult;
+    private bool    isInputMode;
+    private bool    boolResult;
     private string? stringResult;
 
     private TextBlock Message =>
@@ -41,7 +42,7 @@ public partial class PromptDialog : FAAppWindow
 
     private void OnSecondaryClick(object? sender, RoutedEventArgs e)
     {
-        boolResult = false;
+        boolResult   = false;
         stringResult = null;
         CloseResult();
     }
@@ -51,7 +52,7 @@ public partial class PromptDialog : FAAppWindow
         if (e.Key != Key.Enter || Input.AcceptsReturn)
             return;
 
-        boolResult = true;
+        boolResult   = true;
         stringResult = Input.Text;
         CloseResult();
     }
@@ -59,16 +60,21 @@ public partial class PromptDialog : FAAppWindow
     private void CloseResult()
     {
         if (Owner is not null)
-            Close(isInputMode ? stringResult : boolResult);
+            Close
+            (
+                isInputMode ?
+                    stringResult :
+                    boolResult
+            );
         else
             Close();
     }
 
     private void Configure(string title, string message, string primaryText, string secondaryText, bool danger)
     {
-        Title = title;
-        Message.Text = message;
-        Primary.Content = primaryText;
+        Title             = title;
+        Message.Text      = message;
+        Primary.Content   = primaryText;
         Secondary.Content = secondaryText;
 
         if (!danger)
@@ -81,11 +87,11 @@ public partial class PromptDialog : FAAppWindow
     public static async Task<bool> ConfirmAsync
     (
         Window? owner,
-        string title,
-        string message,
-        string primaryText,
-        string secondaryText,
-        bool danger = false
+        string  title,
+        string  message,
+        string  primaryText,
+        string  secondaryText,
+        bool    danger = false
     )
     {
         var dialog = new PromptDialog();
@@ -104,8 +110,7 @@ public partial class PromptDialog : FAAppWindow
     public static Task<string?> MultilineInputAsync(Window? owner, string title, string prompt, string defaultValue) =>
         ShowInputAsync(owner, title, prompt, defaultValue, true);
 
-    public static async Task ShowErrorAsync(Window? owner, string title, string message)
-    {
+    public static async Task ShowErrorAsync(Window? owner, string title, string message) =>
         await ConfirmAsync
         (
             owner,
@@ -114,28 +119,33 @@ public partial class PromptDialog : FAAppWindow
             Loc.Get("Common.Close"),
             string.Empty
         );
-    }
 
     private static async Task<string?> ShowInputAsync
     (
         Window? owner,
-        string title,
-        string prompt,
-        string defaultValue,
-        bool multiline
+        string  title,
+        string  prompt,
+        string  defaultValue,
+        bool    multiline
     )
     {
         var dialog = new PromptDialog();
         dialog.Configure(title, prompt, Loc.Get("Common.Save"), Loc.Get("Common.Cancel"), false);
-        dialog.isInputMode = true;
-        dialog.Input.Text = defaultValue;
+        dialog.isInputMode           = true;
+        dialog.Input.Text            = defaultValue;
         dialog.Input.PlaceholderText = prompt;
-        dialog.Input.IsVisible = true;
-        dialog.Message.IsVisible = false;
-        dialog.Input.AcceptsReturn = multiline;
-        dialog.Input.TextWrapping = multiline ? Avalonia.Media.TextWrapping.Wrap : Avalonia.Media.TextWrapping.NoWrap;
-        dialog.Input.MinHeight = multiline ? 120 : 0;
-        dialog.Input.MaxHeight = multiline ? 300 : double.PositiveInfinity;
+        dialog.Input.IsVisible       = true;
+        dialog.Message.IsVisible     = false;
+        dialog.Input.AcceptsReturn   = multiline;
+        dialog.Input.TextWrapping = multiline ?
+                                        TextWrapping.Wrap :
+                                        TextWrapping.NoWrap;
+        dialog.Input.MinHeight = multiline ?
+                                     120 :
+                                     0;
+        dialog.Input.MaxHeight = multiline ?
+                                     300 :
+                                     double.PositiveInfinity;
         dialog.Opened += (_, _) =>
         {
             dialog.Input.Focus();
@@ -152,8 +162,8 @@ public partial class PromptDialog : FAAppWindow
     private Task ShowStandaloneAsync()
     {
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        Closed += (_, _) => completion.TrySetResult();
-        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        Closed                += (_, _) => completion.TrySetResult();
+        WindowStartupLocation =  WindowStartupLocation.CenterScreen;
         Show();
         return completion.Task;
     }
