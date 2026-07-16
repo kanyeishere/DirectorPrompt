@@ -78,40 +78,58 @@
                 BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                 BorderThickness="0,0,0,1"
                 Padding="12,6">
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
 
-                <StackPanel x:Name="ProjectActions" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <ToggleButton x:Name="MobileSessionsToggle"
+                              Grid.Column="0"
+                              Width="36"
+                              Height="36"
+                              Padding="0"
+                              Margin="0,0,8,0"
+                              IsVisible="False"
+                              Click="OnMobileSessionsToggleClick"
+                              ToolTip.Tip="{Binding [Navigation.Sessions], Source={x:Static loc:Loc.Instance}}">
+                    <fa:FASymbolIcon Symbol="List" FontSize="18" />
+                </ToggleButton>
+
+                <Grid x:Name="ProjectActions" Grid.Column="1" HorizontalAlignment="Left"
+                      ColumnDefinitions="Auto,*,Auto,Auto,Auto" VerticalAlignment="Center">
                     <TextBlock x:Name="ProjectLabel"
+                               Grid.Column="0"
                                Text="{Binding [Navigation.Project], Source={x:Static loc:Loc.Instance}}"
                                VerticalAlignment="Center"
                                Margin="0,0,6,0" />
                     <components:PathComboBox x:Name="ProjectComboBox"
-                                             Width="300"
+                                             Grid.Column="1"
                                              Margin="0,0,4,0"
+                                             Width="300"
                                              ItemsSource="{Binding Projects}"
                                              DisplayMemberPath="Name"
                                              SelectedItem="{Binding CurrentProject}"
                                              IsEnabled="{Binding IsNotProcessing}" />
                     <Button x:Name="EditProjectButton"
-                        Padding="12,6"
-                        Margin="0,0,4,0"
-                        Command="{Binding EditProjectCommand}"
-                        IsEnabled="{Binding CanInteractProject}">
+                            Grid.Column="2"
+                            Padding="12,6"
+                            Margin="0,0,4,0"
+                            Command="{Binding EditProjectCommand}"
+                            IsEnabled="{Binding CanInteractProject}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <fa:FASymbolIcon Symbol="Edit" />
                             <TextBlock Text="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}" />
                         </StackPanel>
                     </Button>
                     <Button x:Name="NewProjectButton"
-                        Padding="12,6"
-                        Command="{Binding NewProjectCommand}"
-                        IsEnabled="{Binding IsNotProcessing}">
+                            Grid.Column="3"
+                            Padding="12,6"
+                            Command="{Binding NewProjectCommand}"
+                            IsEnabled="{Binding IsNotProcessing}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <fa:FASymbolIcon Symbol="Add" />
                             <TextBlock Text="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}" />
                         </StackPanel>
                     </Button>
                     <Button x:Name="ImportButton"
+                            Grid.Column="4"
                             Padding="12,6"
                             Margin="4,0,0,0"
                             Click="OnImportButtonClick"
@@ -131,10 +149,10 @@
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
-                </StackPanel>
+                </Grid>
 
                 <Button x:Name="LanSharingButton"
-                        Grid.Row="0" Grid.Column="2"
+                        Grid.Column="2"
                         Margin="0,0,8,0"
                         Padding="12,6"
                         Command="{Binding OpenLanSharingCommand}"
@@ -146,7 +164,7 @@
                 </Button>
 
                 <Button x:Name="SettingsButton"
-                        Grid.Row="0" Grid.Column="3"
+                        Grid.Column="3"
                         Padding="12,6"
                         Command="{Binding OpenSettingsCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -155,68 +173,29 @@
                     </StackPanel>
                 </Button>
 
-                <Grid x:Name="MobileProjectToolbar"
-                      Grid.Row="1"
-                      Grid.ColumnSpan="4" Grid.Column="0"
-                      ColumnDefinitions="*,*,*,*"
-                      Margin="0,6,0,0"
-                      IsVisible="False">
-                    <Button Grid.Column="0"
-                            Height="42"
-                            Margin="0"
-                            Padding="4"
-                            Command="{Binding EditProjectCommand}"
-                            IsEnabled="{Binding CanInteractProject}">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="Edit" />
-                            <TextBlock Text="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                    <Button Grid.Column="1"
-                            Height="42"
-                            Margin="0"
-                            Padding="4"
-                            Command="{Binding NewProjectCommand}"
-                            IsEnabled="{Binding IsNotProcessing}">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="Add" />
-                            <TextBlock Text="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                    <Button Grid.Column="2"
-                            Height="42"
-                            Margin="0"
-                            Padding="4"
-                            Click="OnImportButtonClick"
-                            IsEnabled="{Binding IsNotProcessing}">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="Import" />
-                            <TextBlock Text="{Binding [Navigation.ImportProject], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11" />
-                        </StackPanel>
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="{Binding [Navigation.ImportDirectorPrompt], Source={x:Static loc:Loc.Instance}}"
-                                          Click="OnImportDirectorPrompt" />
-                                <MenuItem Header="{Binding [Navigation.ImportSillyTavern], Source={x:Static loc:Loc.Instance}}"
-                                          Click="OnImportSillyTavern" />
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
-                    <Button Grid.Column="3"
-                            Height="42"
-                            Margin="0"
-                            Padding="4"
-                            Command="{Binding OpenSettingsCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="Settings" />
-                            <TextBlock Text="{Binding [Navigation.Settings], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
+                <Button x:Name="MobileMoreActionsButton"
+                        Grid.Column="4"
+                        Width="36"
+                        Height="36"
+                        Padding="0"
+                        Margin="8,0,0,0"
+                        IsVisible="False"
+                        Click="OnMobileMoreActionsClick"
+                        ToolTip.Tip="{Binding [Navigation.Settings], Source={x:Static loc:Loc.Instance}}">
+                    <fa:FASymbolIcon Symbol="MoreVertical" FontSize="18" />
+                </Button>
+
+                <ToggleButton x:Name="MobileDetailsToggle"
+                              Grid.Column="5"
+                              Width="36"
+                              Height="36"
+                              Padding="0"
+                              Margin="8,0,0,0"
+                              IsVisible="False"
+                              Click="OnMobileDetailsToggleClick"
+                              ToolTip.Tip="{Binding [Navigation.Details], Source={x:Static loc:Loc.Instance}}">
+                    <fa:FASymbolIcon Symbol="ViewAll" FontSize="18" />
+                </ToggleButton>
             </Grid>
         </Border>
 
@@ -365,7 +344,7 @@
                                                           Duration="0:0:0.18"
                                                           Easing="QuadraticEaseOut" />
                                         <DoubleTransition Property="Opacity"
-                                          Duration="0:0:0.14" />
+                                                          Duration="0:0:0.14" />
                                     </Transitions>
                                 </Setter>
                             </Style>
@@ -1055,56 +1034,85 @@
                 <fa:FASymbolIcon Symbol="ChevronRight" FontSize="12" />
             </Button>
 
-            <Border x:Name="MobileNavigation"
-                    Grid.ColumnSpan="4" Grid.Column="0"
-                    VerticalAlignment="Bottom"
-                    IsVisible="False"
-                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
-                    BorderThickness="0,1,0,0"
-                    Padding="0,0,0,6">
-                <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
-                    <ToggleButton x:Name="MobileSessionsButton"
-                                  Grid.Column="0"
-                                  Classes="mobile-nav-item"
-                                  Margin="0"
-                                  Click="OnMobileSessionsClick">
-                        <StackPanel Spacing="2" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="List" FontSize="18" />
-                            <TextBlock Text="{Binding [Navigation.Sessions], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton x:Name="MobileConversationButton"
-                                  Grid.Column="1"
-                                  Classes="mobile-nav-item"
-                                  Margin="0"
-                                  BorderBrush="{DynamicResource ControlElevationBorderBrush}"
-                                  BorderThickness="1,0,1,0"
-                                  Click="OnMobileConversationClick">
-                        <StackPanel Spacing="2" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="Message" FontSize="18" />
-                            <TextBlock Text="{Binding [Navigation.Conversation], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton x:Name="MobileDetailsButton"
-                                  Grid.Column="2"
-                                  Classes="mobile-nav-item"
-                                  Margin="0"
-                                  Click="OnMobileDetailsClick">
-                        <StackPanel Spacing="2" HorizontalAlignment="Center">
-                            <fa:FASymbolIcon Symbol="ViewAll" FontSize="18" />
-                            <TextBlock Text="{Binding [Navigation.Details], Source={x:Static loc:Loc.Instance}}"
-                                       FontSize="11"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
-                </Grid>
-            </Border>
         </Grid>
+
+        <Panel x:Name="MobileMoreActionsBackdrop"
+               Grid.Row="0" Grid.RowSpan="2"
+               Background="Transparent"
+               ZIndex="99"
+               IsVisible="False"
+               PointerPressed="OnMobileBackdropPointerPressed" />
+
+        <Border x:Name="MobileMoreActionsMenu"
+                Grid.Row="1"
+                Width="220"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,0,12,0"
+                Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                ZIndex="100"
+                Padding="4"
+                IsVisible="False">
+            <Border.Styles>
+                <Style Selector="Button.menu-item">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    <Setter Property="Padding" Value="12,10" />
+                    <Setter Property="CornerRadius" Value="4" />
+                </Style>
+                <Style Selector="Button.menu-item:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                </Style>
+            </Border.Styles>
+            <StackPanel Spacing="2">
+                <Button Classes="menu-item" Command="{Binding EditProjectCommand}" Click="OnMobileMenuItemClick"
+                        IsEnabled="{Binding CanInteractProject}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <fa:FASymbolIcon Symbol="Edit" FontSize="16" />
+                        <TextBlock Text="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Classes="menu-item" Command="{Binding NewProjectCommand}" Click="OnMobileMenuItemClick"
+                        IsEnabled="{Binding IsNotProcessing}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <fa:FASymbolIcon Symbol="Add" FontSize="16" />
+                        <TextBlock Text="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Classes="menu-item" Click="OnMobileImportDirectorPromptClick"
+                        IsEnabled="{Binding IsNotProcessing}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <fa:FASymbolIcon Symbol="Import" FontSize="16" />
+                        <TextBlock
+                            Text="{Binding [Navigation.ImportDirectorPrompt], Source={x:Static loc:Loc.Instance}}"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Classes="menu-item" Click="OnMobileImportSillyTavernClick"
+                        IsEnabled="{Binding IsNotProcessing}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <fa:FASymbolIcon Symbol="Import" FontSize="16" />
+                        <TextBlock Text="{Binding [Navigation.ImportSillyTavern], Source={x:Static loc:Loc.Instance}}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Border Height="1" Background="{DynamicResource ControlElevationBorderBrush}" Margin="4,4,4,4" />
+                <Button Classes="menu-item" Command="{Binding OpenSettingsCommand}" Click="OnMobileMenuItemClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <fa:FASymbolIcon Symbol="Settings" FontSize="16" />
+                        <TextBlock Text="{Binding [Navigation.Settings], Source={x:Static loc:Loc.Instance}}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
 
     </Grid>
 </windowing:FAAppWindow>
