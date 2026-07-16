@@ -285,6 +285,7 @@ public sealed class Orchestrator
                             type     = d.Type.ToString(),
                             content  = d.Content,
                             order    = d.Order,
+                            ttl      = d.TTL,
                             isSystem = d.IsSystem
                         }
                     )

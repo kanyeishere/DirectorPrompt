@@ -71,6 +71,7 @@
     "Directive.Panel.Permanent": "永久",
     "Directive.Panel.RemainingRounds": "剩余 {0} 轮",
     "Directive.Panel.Title": "生效指令",
+    "Directive.Input.TTLUnit": "轮",
     "Directive.Type.Plot": "剧情",
     "Directive.Type.SceneChange": "时间/场景变更",
     "Directive.Type.TemporaryConstraint": "临时约束",

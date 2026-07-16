@@ -21,7 +21,7 @@ public static class EventDataSerializer
             if (item.IsSystem)
                 continue;
 
-            result.Add(new DirectiveItem(ParseDirectiveType(item.Type), item.Content, order++));
+            result.Add(new DirectiveItem(ParseDirectiveType(item.Type), item.Content, order++, item.TTL));
         }
 
         return result;

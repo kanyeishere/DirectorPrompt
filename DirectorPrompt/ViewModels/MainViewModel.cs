@@ -699,7 +699,7 @@ public sealed partial class MainViewModel
                 DirectiveInput.Clear();
 
                 foreach (var d in result.Directives)
-                    DirectiveInput.Directives.Add(new DirectiveItemViewModel { Type = d.Type, Content = d.Content, Order = d.Order });
+                    DirectiveInput.Directives.Add(new DirectiveItemViewModel { Type = d.Type, Content = d.Content, Order = d.Order, TTL = d.TTL });
             }
 
             StatusMessage = Loc.Get("Status.RolledBack");

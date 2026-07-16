@@ -7,4 +7,6 @@ public sealed class DirectiveEventData
     public string Content { get; set; } = string.Empty;
 
     public bool IsSystem { get; set; }
+
+    public int? TTL { get; set; }
 }
