@@ -1,13 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Threading;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Localization;
-using DirectorPrompt.Markdown;
 
 namespace DirectorPrompt.ViewModels;
 
@@ -15,10 +10,6 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
 {
     private       string thinking                = string.Empty;
     private       string errorMessage            = string.Empty;
-    private       string streamingText           = string.Empty;
-    private       string renderedMarkdownContent = string.Empty;
-    private       long   lastMarkdownRenderTicks;
-    private const double MarkdownRenderIntervalMs = 1000;
 
     public long ID { get; init; }
 
@@ -79,22 +70,6 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
 
     public bool HasThinking => !string.IsNullOrWhiteSpace(thinking);
 
-    public string StreamingText
-    {
-        get => streamingText;
-        private set
-        {
-            if (streamingText != value)
-            {
-                streamingText = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StreamingText)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasStreamingText)));
-            }
-        }
-    }
-
-    public bool HasStreamingText => !string.IsNullOrEmpty(streamingText);
-
     public string ErrorMessage
     {
         get => errorMessage;
@@ -105,6 +80,8 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
                 errorMessage = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ErrorMessage)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasError)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowDirectorContent)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowNarrativeContent)));
             }
         }
     }
@@ -133,6 +110,8 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
             {
                 field = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEditing)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowDirectorContent)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowNarrativeContent)));
             }
         }
     }
@@ -150,11 +129,13 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
         }
     } = string.Empty;
 
-    public FlowDocument? Document { get; private set; }
-
     public bool IsDirector => Type == EventType.DirectorInput;
 
     public bool IsNarrative => Type == EventType.NarrativeOutput;
+
+    public bool ShowDirectorContent => HasDirectorBlocks && !IsEditing && !HasError;
+
+    public bool ShowNarrativeContent => IsNarrative && !IsEditing && !HasError;
 
     public bool IsLast
     {
@@ -178,21 +159,15 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
     public DialogEntryViewModel() =>
         DirectorBlocks.CollectionChanged += OnDirectorBlocksChanged;
 
-    private void OnDirectorBlocksChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+    private void OnDirectorBlocksChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasDirectorBlocks)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowDirectorContent)));
+    }
 
     public void RenderMarkdown()
     {
-        if (HasDirectorBlocks)
-        {
-            foreach (var block in DirectorBlocks)
-                block.RenderMarkdown();
-        }
-        else
-            RenderNarrativeMarkdown();
-
-        lastMarkdownRenderTicks = Stopwatch.GetTimestamp();
-        IsStreaming             = false;
+        IsStreaming = false;
     }
 
     public void UpdateStreamingContent(string narrative, string thinking, bool replaceContent = false)
@@ -200,27 +175,6 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
         Content  = narrative;
         Thinking = thinking;
 
-        var now       = Stopwatch.GetTimestamp();
-        var elapsedMs = (now - lastMarkdownRenderTicks) * 1000.0 / Stopwatch.Frequency;
-
-        if (replaceContent                                      ||
-            elapsedMs               >= MarkdownRenderIntervalMs ||
-            lastMarkdownRenderTicks == 0                        ||
-            !narrative.StartsWith(renderedMarkdownContent, StringComparison.Ordinal))
-        {
-            RenderNarrativeMarkdown();
-            lastMarkdownRenderTicks = now;
-        }
-        else
-            StreamingText = narrative[renderedMarkdownContent.Length..];
-    }
-
-    private void RenderNarrativeMarkdown()
-    {
-        Document                = MarkdownRenderer.Render(Content);
-        renderedMarkdownContent = Content;
-        StreamingText           = string.Empty;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Document)));
     }
 
     public void SetError(string message)
@@ -240,7 +194,6 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
         Content   = EditingContent;
         IsEditing = false;
         DirectorBlocks.Clear();
-        RenderMarkdown();
     }
 
     public void CancelEdit()
@@ -270,13 +223,7 @@ public sealed class DialogViewModel
             IsLast  = true
         };
 
-        if (renderImmediately)
-            entry.RenderMarkdown();
-
         Entries.Add(entry);
-
-        if (!renderImmediately)
-            DeferredRender(entry);
     }
 
     public DialogEntryViewModel AddDirectorEntry(long roundID, IReadOnlyList<(DirectiveType Type, string Content)> directives, bool renderImmediately = false)
@@ -306,13 +253,7 @@ public sealed class DialogViewModel
             );
         }
 
-        if (renderImmediately)
-            entry.RenderMarkdown();
-
         Entries.Add(entry);
-
-        if (!renderImmediately)
-            DeferredRender(entry);
 
         return entry;
     }
@@ -350,13 +291,7 @@ public sealed class DialogViewModel
             IsLast   = true
         };
 
-        if (renderImmediately)
-            entry.RenderMarkdown();
-
         Entries.Add(entry);
-
-        if (!renderImmediately)
-            DeferredRender(entry);
     }
 
     public void RemoveEntriesByRound(long roundID)
@@ -383,10 +318,4 @@ public sealed class DialogViewModel
             entry.IsLast = false;
     }
 
-    private static void DeferredRender(DialogEntryViewModel entry) =>
-        Application.Current.Dispatcher.BeginInvoke
-        (
-            DispatcherPriority.Background,
-            entry.RenderMarkdown
-        );
 }

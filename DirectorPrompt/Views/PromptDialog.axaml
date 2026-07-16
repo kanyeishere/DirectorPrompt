@@ -1,0 +1,34 @@
+<Window x:Class="DirectorPrompt.Views.PromptDialog"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="420"
+        MinWidth="360"
+        SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        TransparencyLevelHint="Mica">
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <TextBlock x:Name="MessageText"
+                   Grid.Row="0"
+                   TextWrapping="Wrap"
+                   Margin="24,24,24,16" />
+        <TextBox x:Name="InputBox"
+                 Grid.Row="1"
+                 Margin="24,0,24,16"
+                 IsVisible="False"
+                 KeyDown="OnInputBoxKeyDown" />
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="24,0,24,20"
+                    Spacing="8">
+            <Button x:Name="SecondaryButton"
+                    MinWidth="88"
+                    Click="OnSecondaryClick" />
+            <Button x:Name="PrimaryButton"
+                    MinWidth="88"
+                    Click="OnPrimaryClick" />
+        </StackPanel>
+    </Grid>
+</Window>

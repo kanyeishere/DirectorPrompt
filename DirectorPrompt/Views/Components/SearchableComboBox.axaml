@@ -1,0 +1,27 @@
+<UserControl x:Class="DirectorPrompt.Views.Components.SearchableComboBox"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <TextBox x:Name="SearchBox"
+                 TextChanged="OnSearchTextChanged"
+                 GotFocus="OnSearchBoxGotFocus"
+                 KeyDown="OnSearchBoxKeyDown" />
+        <Popup x:Name="DropDown"
+               Placement="Bottom"
+               PlacementTarget="{Binding #SearchBox}"
+               IsLightDismissEnabled="True">
+            <Border Width="{Binding #SearchBox.Bounds.Width}"
+                    MinHeight="36"
+                    MaxHeight="320"
+                    Padding="4"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <ListBox x:Name="ResultsList"
+                         ItemsSource="{Binding FilteredItems}"
+                         SelectionChanged="OnResultSelectionChanged"
+                         KeyDown="OnResultKeyDown" />
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

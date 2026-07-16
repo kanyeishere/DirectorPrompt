@@ -1,5 +1,6 @@
 using System.Globalization;
-using System.Windows.Data;
+using Avalonia.Data;
+using Avalonia.Data.Converters;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Localization;
 
@@ -16,5 +17,5 @@ public sealed class AgentTaskTypeDisplayConverter : IValueConverter
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        Binding.DoNothing;
+        BindingOperations.DoNothing;
 }

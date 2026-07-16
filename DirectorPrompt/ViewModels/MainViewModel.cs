@@ -1,8 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
-using System.Windows;
-using System.Windows.Threading;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DirectorPrompt.Agents;
@@ -13,9 +12,6 @@ using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Localization;
 using DirectorPrompt.Services;
-using DirectorPrompt.Views;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Win32;
 using Serilog;
 
 namespace DirectorPrompt.ViewModels;
@@ -29,11 +25,12 @@ public sealed partial class MainViewModel
     IMemoryRepository    memoryRepository,
     DialogHistoryService dialogHistoryService,
     SidebarQueryService  sidebarQueryService,
-    IServiceProvider     serviceProvider,
     UserSettings         userSettings,
     IProjectPortService  projectPortService,
     NotificationService  notificationService,
-    IUserSettingsStore   userSettingsStore
+    IUserSettingsStore   userSettingsStore,
+    IWindowService       windowService,
+    IFilePickerService   filePickerService
 )
     : ObservableObject
 {
@@ -194,9 +191,8 @@ public sealed partial class MainViewModel
     [RelayCommand]
     private async Task NewProjectAsync()
     {
-        var name = PromptDialog.Input
+        var name = await windowService.InputAsync
         (
-            GetCurrentWindow(),
             Loc.Get("Project.NewTitle"),
             Loc.Get("Dialog.NewProjectPrompt"),
             string.Empty
@@ -229,11 +225,7 @@ public sealed partial class MainViewModel
         if (CurrentProject is null)
             return;
 
-        var window = serviceProvider.GetRequiredService<ProjectEditWindow>();
-        await window.ViewModel.LoadFromProjectAsync(CurrentProject);
-        window.Owner = GetCurrentWindow();
-
-        if (window.ShowDialog() == true)
+        if (await windowService.EditProjectAsync(CurrentProject))
             await LoadProjectsAsync();
     }
 
@@ -268,13 +260,14 @@ public sealed partial class MainViewModel
             return;
         }
 
-        var dialog = new SaveFileDialog
-        {
-            Filter   = $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}|*.dppkg",
-            FileName = $"{CurrentProject.Name}.dppkg"
-        };
+        var fileName = await filePickerService.SaveAsync
+                       (
+                           $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}",
+                           "*.dppkg",
+                           $"{CurrentProject.Name}.dppkg"
+                       );
 
-        if (dialog.ShowDialog() != true)
+        if (fileName is null)
             return;
 
         IsProcessing  = true;
@@ -282,9 +275,9 @@ public sealed partial class MainViewModel
 
         try
         {
-            await projectPortService.ExportAsync(CurrentProject.ID, dialog.FileName);
+            await projectPortService.ExportAsync(CurrentProject.ID, fileName);
 
-            Log.Information("导出项目: ID={ProjectID}, 路径={Path}", CurrentProject.ID, dialog.FileName);
+            Log.Information("导出项目: ID={ProjectID}, 路径={Path}", CurrentProject.ID, fileName);
             StatusMessage = Loc.Get("Status.ExportComplete");
         }
         catch (Exception ex)
@@ -301,12 +294,10 @@ public sealed partial class MainViewModel
     [RelayCommand]
     private async Task ImportProjectAsync()
     {
-        var dialog = new OpenFileDialog
-        {
-            Filter = $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}|*.dppkg"
-        };
+        var fileName = await filePickerService.OpenAsync
+                       ($"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}", "*.dppkg");
 
-        if (dialog.ShowDialog() != true)
+        if (fileName is null)
             return;
 
         IsProcessing  = true;
@@ -314,7 +305,7 @@ public sealed partial class MainViewModel
 
         try
         {
-            var result = await projectPortService.ImportAsync(dialog.FileName);
+            var result = await projectPortService.ImportAsync(fileName);
 
             Log.Information
             (
@@ -344,12 +335,10 @@ public sealed partial class MainViewModel
     [RelayCommand]
     private async Task ImportSillyTavernProjectAsync()
     {
-        var dialog = new OpenFileDialog
-        {
-            Filter = $"SillyTavern {Loc.Get("Project.Import.SillyTavern.CharacterCard")}|*.json"
-        };
+        var fileName = await filePickerService.OpenAsync
+                       ($"SillyTavern {Loc.Get("Project.Import.SillyTavern.CharacterCard")}", "*.json");
 
-        if (dialog.ShowDialog() != true)
+        if (fileName is null)
             return;
 
         IsProcessing  = true;
@@ -357,7 +346,7 @@ public sealed partial class MainViewModel
 
         try
         {
-            var result = await projectPortService.ImportSillyTavernAsync(dialog.FileName);
+            var result = await projectPortService.ImportSillyTavernAsync(fileName);
 
             Log.Information
             (
@@ -443,14 +432,8 @@ public sealed partial class MainViewModel
         IsSessionSidebarExpanded = !IsSessionSidebarExpanded;
 
     [RelayCommand]
-    private void OpenSettings()
-    {
-        var window = serviceProvider.GetRequiredService<SettingsWindow>();
-        window.Owner = GetCurrentWindow();
-        window.ShowDialog();
-    }
-
-    private static Window? GetCurrentWindow() => Application.Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsActive);
+    private Task OpenSettingsAsync() =>
+        windowService.ShowSettingsAsync();
 
     private void ResetPipelineStages() =>
         PipelineStages.Clear();
@@ -533,8 +516,8 @@ public sealed partial class MainViewModel
 
             streamingEntry = Dialog.BeginStreamingNarrative(0);
 
-            var dispatcher = Application.Current.Dispatcher;
-            streamingTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
+            var dispatcher = Dispatcher.UIThread;
+            streamingTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(50)
             };
@@ -602,7 +585,7 @@ public sealed partial class MainViewModel
             }
 
             void StageUpdate(PipelineStageUpdate update) =>
-                dispatcher.BeginInvoke
+                dispatcher.Post
                 (() =>
                     {
                         if (CurrentSession?.ID == sessionID)
@@ -648,7 +631,7 @@ public sealed partial class MainViewModel
 
                 if (streamingEntry is not null)
                 {
-                    await Application.Current.Dispatcher.BeginInvoke
+                    await Dispatcher.UIThread.InvokeAsync
                     (() => streamingEntry.SetError(ex.Message)
                     );
                 }

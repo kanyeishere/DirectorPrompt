@@ -1,0 +1,40 @@
+<UserControl x:Class="DirectorPrompt.Views.Components.MessageRail"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             PointerEntered="OnRailPointerEntered"
+             PointerExited="OnRailPointerExited"
+             PointerWheelChanged="OnRailPointerWheelChanged">
+    <ListBox x:Name="RailListBox"
+             ItemsSource="{Binding Entries, RelativeSource={RelativeSource AncestorType=UserControl}}"
+             Background="Transparent"
+             BorderThickness="0"
+             Padding="2"
+             SelectionMode="Single">
+        <ListBox.RenderTransform>
+            <ScaleTransform ScaleX="1" ScaleY="1" />
+        </ListBox.RenderTransform>
+        <ListBox.ItemTemplate>
+            <DataTemplate>
+                <Border Width="48"
+                        MinHeight="32"
+                        Margin="2"
+                        Padding="4"
+                        CornerRadius="4"
+                        Background="{DynamicResource ControlFillColorDefaultBrush}"
+                        PointerPressed="OnRailItemPointerPressed">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Role}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Preview}"
+                                   FontSize="8"
+                                   MaxHeight="20"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.7" />
+                    </StackPanel>
+                </Border>
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>
+</UserControl>

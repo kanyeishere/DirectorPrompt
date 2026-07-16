@@ -12,7 +12,7 @@ using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Localization;
-using Microsoft.Win32;
+using DirectorPrompt.Services;
 using Serilog;
 
 namespace DirectorPrompt.ViewModels;
@@ -26,7 +26,8 @@ public sealed partial class ProjectEditViewModel
     IProjectPortService   projectPortService,
     EmbeddingIndexService embeddingIndexService,
     AgentConfigResolver   agentConfigResolver,
-    UserSettings          userSettings
+    UserSettings          userSettings,
+    IFilePickerService    filePickerService
 )
     : ObservableObject
 {
@@ -73,21 +74,22 @@ public sealed partial class ProjectEditViewModel
             return;
         }
 
-        var dialog = new SaveFileDialog
-        {
-            Filter   = $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}|*.dppkg",
-            FileName = $"{Name}.dppkg"
-        };
+        var fileName = await filePickerService.SaveAsync
+                       (
+                           $"DirectorPrompt {Loc.Get("Project.Import.DirectorPrompt.Package")}",
+                           "*.dppkg",
+                           $"{Name}.dppkg"
+                       );
 
-        if (dialog.ShowDialog() != true)
+        if (fileName is null)
             return;
 
         IsSaving = true;
 
         try
         {
-            await projectPortService.ExportAsync(projectID, dialog.FileName);
-            Log.Information("导出项目: ID={ProjectID}, 路径={Path}", projectID, dialog.FileName);
+            await projectPortService.ExportAsync(projectID, fileName);
+            Log.Information("导出项目: ID={ProjectID}, 路径={Path}", projectID, fileName);
             ValidationMessage = Loc.Get("Status.ExportComplete");
         }
         catch (Exception ex)

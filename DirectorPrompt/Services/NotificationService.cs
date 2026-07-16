@@ -1,6 +1,9 @@
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform;
+using Avalonia.Threading;
 using CommunityToolkit.WinUI.Notifications;
 
 namespace DirectorPrompt.Services;
@@ -78,7 +81,8 @@ public sealed class NotificationService : IDisposable
     }
 
     private static bool IsAnyWindowActive() =>
-        Application.Current.Windows.Cast<Window>().Any(window => window.IsActive);
+        Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+        desktop.Windows.Any(window => window.IsActive);
 
     private void OnNotificationActivated(ToastNotificationActivatedEventArgsCompat args)
     {
@@ -90,7 +94,7 @@ public sealed class NotificationService : IDisposable
                          parsed["action"] :
                          null;
 
-        Application.Current.Dispatcher.BeginInvoke
+        Dispatcher.UIThread.Post
         (() =>
             {
                 BringMainWindowToFront();
@@ -101,7 +105,10 @@ public sealed class NotificationService : IDisposable
 
     private static void BringMainWindowToFront()
     {
-        var window = Application.Current.MainWindow;
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var window = desktop.MainWindow;
 
         if (window is null)
             return;
@@ -112,7 +119,7 @@ public sealed class NotificationService : IDisposable
         window.Show();
         window.Activate();
 
-        var hwnd = new WindowInteropHelper(window).Handle;
+        var hwnd = window.TryGetPlatformHandle()?.Handle ?? nint.Zero;
 
         if (hwnd == nint.Zero)
             return;

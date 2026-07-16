@@ -31,6 +31,9 @@ jobs:
       - name: Restore Nuget Packages
         run: dotnet restore DirectorPrompt.slnx
 
+      - name: Run Tests
+        run: dotnet test DirectorPrompt.slnx -c Release --no-restore
+
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
@@ -99,6 +102,9 @@ jobs:
 
       - name: Restore Nuget Packages
         run: dotnet restore DirectorPrompt.slnx
+
+      - name: Run Tests
+        run: dotnet test DirectorPrompt.slnx -c Release --no-restore
 
       - name: Define VERSION
         run: |

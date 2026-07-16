@@ -1,6 +1,5 @@
 using System.Globalization;
-using System.Windows;
-using System.Windows.Data;
+using Avalonia.Data.Converters;
 
 namespace DirectorPrompt.Converters;
 
@@ -11,19 +10,12 @@ public sealed class BoolToVisibilityConverter : IValueConverter
         var boolValue = value is true;
         var invert    = parameter is "Invert";
 
-        return boolValue ^ invert ?
-                   Visibility.Visible :
-                   Visibility.Collapsed;
+        return boolValue ^ invert;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var visibility = value is Visibility v ?
-                             v :
-                             Visibility.Collapsed;
-
         var invert = parameter is "Invert";
-
-        return (visibility == Visibility.Visible) ^ invert;
+        return value is true ^ invert;
     }
 }
