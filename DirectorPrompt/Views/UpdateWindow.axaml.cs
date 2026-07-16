@@ -4,10 +4,11 @@ using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using DirectorPrompt.Localization;
+using FluentAvalonia.UI.Windowing;
 
 namespace DirectorPrompt.Views;
 
-public partial class UpdateWindow : Window
+public partial class UpdateWindow : FAAppWindow
 {
     private TaskCompletionSource? closeCompletion;
 

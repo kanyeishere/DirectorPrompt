@@ -11,10 +11,11 @@ using Avalonia.LogicalTree;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
+using FluentAvalonia.UI.Windowing;
 
 namespace DirectorPrompt.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow : FAAppWindow
 {
     private readonly MainViewModel viewModel;
 

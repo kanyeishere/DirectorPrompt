@@ -5,10 +5,11 @@ using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
+using FluentAvalonia.UI.Windowing;
 
 namespace DirectorPrompt.Views;
 
-public partial class ProjectEditWindow : Window
+public partial class ProjectEditWindow : FAAppWindow
 {
     public ProjectEditViewModel ViewModel { get; }
 

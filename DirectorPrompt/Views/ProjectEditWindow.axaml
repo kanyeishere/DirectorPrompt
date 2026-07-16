@@ -1,4 +1,4 @@
-<Window x:Class="DirectorPrompt.Views.ProjectEditWindow"
+<windowing:FAAppWindow x:Class="DirectorPrompt.Views.ProjectEditWindow"
                  xmlns="https://github.com/avaloniaui"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,6 +8,7 @@
                  xmlns:converters="clr-namespace:DirectorPrompt.Converters"
                  xmlns:loc="clr-namespace:DirectorPrompt.Localization"
                  xmlns:components="clr-namespace:DirectorPrompt.Views.Components"
+                 xmlns:windowing="using:FluentAvalonia.UI.Windowing"
                  mc:Ignorable="d"
                  d:DataContext="{d:DesignInstance Type=vm:ProjectEditViewModel}"
                  Title="{Binding [Project.EditTitle], Source={x:Static loc:Loc.Instance}}"
@@ -15,17 +16,15 @@
                  Height="720"
                  MinWidth="800"
                  MinHeight="600"
+                 Icon="/Assets/Images/Icon-NoBackground.png"
                  TransparencyLevelHint="Mica">
 <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Height="40" Background="Transparent" />
-
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220" MinWidth="180" />
                 <ColumnDefinition Width="*" />
@@ -1182,7 +1181,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="1"
                 BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="24,12">
@@ -1216,4 +1215,4 @@
             </Grid>
         </Border>
     </Grid>
-</Window>
+</windowing:FAAppWindow>

@@ -4,10 +4,11 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
 using DirectorPrompt.Localization;
+using FluentAvalonia.UI.Windowing;
 
 namespace DirectorPrompt.Views;
 
-public partial class PromptDialog : Window
+public partial class PromptDialog : FAAppWindow
 {
     private bool isInputMode;
     private bool boolResult;

@@ -4,10 +4,11 @@ using Avalonia.Markup.Xaml;
 using Avalonia.LogicalTree;
 using DirectorPrompt.Localization;
 using DirectorPrompt.ViewModels;
+using FluentAvalonia.UI.Windowing;
 
 namespace DirectorPrompt.Views;
 
-public partial class SettingsWindow : Window
+public partial class SettingsWindow : FAAppWindow
 {
     private readonly SettingsViewModel viewModel;
 
