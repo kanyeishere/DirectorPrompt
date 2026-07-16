@@ -17,11 +17,7 @@
                        MinHeight="480"
                        Icon="/Assets/Images/Icon-NoBackground.ico"
                        TransparencyLevelHint="Mica">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid RowDefinitions="*,Auto">
 
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
@@ -123,11 +119,7 @@
                                     <DataTemplate>
                                         <Expander Margin="0,0,0,8" IsExpanded="True">
                                             <Expander.Header>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid ColumnDefinitions="*,Auto">
                                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                                                         <TextBlock Text="{Binding DisplayName}"
                                                                    FontWeight="SemiBold"
@@ -152,11 +144,7 @@
                                             </Expander.Header>
 
                                             <StackPanel>
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Provider.DisplayName], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -164,11 +152,7 @@
                                                              Text="{Binding DisplayName}" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Provider.Provider], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -178,11 +162,7 @@
                                                                              HorizontalAlignment="Stretch" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Provider.Endpoint], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -191,11 +171,7 @@
                                                              PlaceholderText="{Binding [Settings.Agent.Placeholder.Endpoint], Source={x:Static loc:Loc.Instance}}" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Agent.APIKey], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -226,11 +202,7 @@
 
                         <!-- 模型面板 -->
                         <StackPanel x:Name="ModelsPanel" IsVisible="False">
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <Grid Margin="0,0,0,12" ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Model.Title], Source={x:Static loc:Loc.Instance}}"
                                            FontSize="20"
@@ -251,11 +223,7 @@
                                     <DataTemplate>
                                         <Expander Margin="0,0,0,8" IsExpanded="True">
                                             <Expander.Header>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid ColumnDefinitions="*,Auto">
                                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                                                         <TextBlock Text="{Binding DisplayName}"
                                                                    FontWeight="SemiBold"
@@ -280,11 +248,7 @@
                                             </Expander.Header>
 
                                             <StackPanel>
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.DisplayName], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -292,11 +256,7 @@
                                                              Text="{Binding DisplayName}" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.Provider], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -334,11 +294,7 @@
                                                            Foreground="Gray"
                                                            FontSize="12" />
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Agent.Temperature], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -352,11 +308,7 @@
                                                                     HorizontalAlignment="Stretch" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.ReasoningEffort], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -380,12 +332,7 @@
                                                         PlaceholderText='{}{"top_p": 0.9}' />
                                                 </StackPanel>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*,Auto">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Model.Prompt], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -419,7 +366,7 @@
                                                     </Button>
 
                                                     <TextBlock Text="{Binding ConnectionMessage}"
-                                                               Margin="8,0,0,0"
+                                                               Margin="16,0,0,0"
                                                                TextWrapping="Wrap"
                                                                VerticalAlignment="Center"
                                                                FontSize="12" />
@@ -434,11 +381,7 @@
 
                         <!-- 提示词面板 -->
                         <StackPanel x:Name="PromptsPanel" IsVisible="False">
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <Grid Margin="0,0,0,12" ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Prompt.Title], Source={x:Static loc:Loc.Instance}}"
                                            FontSize="20"
@@ -459,11 +402,7 @@
                                     <DataTemplate>
                                         <Expander Margin="0,0,0,8">
                                             <Expander.Header>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid ColumnDefinitions="*,Auto">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding DisplayName}"
                                                                FontWeight="SemiBold"
@@ -483,11 +422,7 @@
                                             </Expander.Header>
 
                                             <StackPanel>
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Prompt.DisplayName], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -495,11 +430,7 @@
                                                              Text="{Binding DisplayName}" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Prompt.Content], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Top" />
@@ -536,11 +467,7 @@
                                             </Expander.Header>
 
                                             <StackPanel>
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Task.Model], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -551,12 +478,7 @@
                                                             SelectedValue="{Binding ModelConfigID}" />
                                                 </Grid>
 
-                                                <Grid Margin="0,0,0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="100,*,Auto">
                                                     <TextBlock Grid.Column="0"
                                                                Text="{Binding [Settings.Task.Prompt], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
@@ -587,11 +509,7 @@
                                 Text="{Binding [Settings.Embedding.Description], Source={x:Static loc:Loc.Instance}}"
                                 FontSize="12" Foreground="Gray" Margin="0,0,0,16" />
 
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                            <Grid Margin="0,0,0,8" ColumnDefinitions="100,*">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Model.Provider], Source={x:Static loc:Loc.Instance}}"
                                            VerticalAlignment="Center" />
@@ -602,12 +520,7 @@
                                                                SelectedValue="{Binding Embedding.ProviderID}" />
                             </Grid>
 
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <Grid Margin="0,0,0,8" ColumnDefinitions="100,*,Auto">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding [Settings.Agent.ModelName], Source={x:Static loc:Loc.Instance}}"
                                            VerticalAlignment="Center" />
@@ -760,11 +673,7 @@
                 BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="24,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <Grid ColumnDefinitions="*,Auto">
 
                 <TextBlock Grid.Column="0"
                            Text="{Binding ValidationMessage}"

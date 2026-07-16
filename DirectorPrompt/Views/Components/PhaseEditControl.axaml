@@ -5,11 +5,7 @@
              xmlns:loc="clr-namespace:DirectorPrompt.Localization"
              xmlns:components="clr-namespace:DirectorPrompt.Views.Components">
     <StackPanel x:Name="RootPanel">
-        <Grid Margin="0,12,0,4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <Grid Margin="0,12,0,4" ColumnDefinitions="*,Auto">
             <TextBlock Grid.Column="0"
                        Text="{Binding [State.Attribute.Phases], Source={x:Static loc:Loc.Instance}}"
                        FontWeight="SemiBold"
@@ -38,11 +34,7 @@
                             BorderThickness="1"
                             CornerRadius="4">
                         <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock Text="{Binding Name}"
                                                FontWeight="SemiBold"

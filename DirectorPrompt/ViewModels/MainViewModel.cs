@@ -771,6 +771,7 @@ public sealed partial class MainViewModel
         sessionLoadCts = new CancellationTokenSource();
         var token = sessionLoadCts.Token;
 
+        IsLoadingDialog = false;
         Dialog.Clear();
         previousDialogRoundID = null;
         HasEarlierDialogEntries = false;
@@ -876,7 +877,8 @@ public sealed partial class MainViewModel
         }
         finally
         {
-            IsLoadingDialog = false;
+            if (!token.IsCancellationRequested && CurrentSession?.ID == sessionID)
+                IsLoadingDialog = false;
         }
     }
 

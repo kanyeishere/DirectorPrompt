@@ -17,14 +17,7 @@
                         <StackPanel>
                             <!-- 有 TTL 指令: 两行布局, 第一行类型+TTL+按钮, 第二行内容 -->
                             <StackPanel IsVisible="{Binding HasTTL, Converter={StaticResource BoolToVisibility}}">
-                                <Grid Margin="0,0,0,4">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                <Grid Margin="0,0,0,4" ColumnDefinitions="Auto,Auto,Auto,*,Auto">
                                     <TextBlock Grid.Column="0"
                                                Text="{Binding TypeDisplay}"
                                                FontWeight="SemiBold"
@@ -79,12 +72,8 @@
                             </StackPanel>
                             <!-- 无 TTL 指令: 单行布局 -->
                             <Grid
-                                IsVisible="{Binding HasTTL, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                                IsVisible="{Binding HasTTL, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}"
+                                ColumnDefinitions="Auto,*,Auto">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding TypeDisplay}"
                                            FontWeight="SemiBold"
@@ -131,12 +120,7 @@
         </ItemsControl>
 
         <StackPanel Margin="0,4,0,0">
-            <Grid Margin="0,0,0,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <Grid Margin="0,0,0,4" ColumnDefinitions="Auto,Auto,*">
                 <ComboBox Grid.Column="0"
                           Width="200"
                           SelectedIndex="0"
