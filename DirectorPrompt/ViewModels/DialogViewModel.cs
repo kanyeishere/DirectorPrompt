@@ -312,7 +312,7 @@ public sealed class DialogViewModel
 
     private void ClearLastFlag()
     {
-        foreach (var entry in Entries)
-            entry.IsLast = false;
+        if (Entries.Count > 0)
+            Entries[^1].IsLast = false;
     }
 }

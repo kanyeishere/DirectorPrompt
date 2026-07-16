@@ -36,6 +36,7 @@ public sealed partial class MainViewModel
 {
     private CancellationTokenSource? generationCts;
     private CancellationTokenSource? sessionLoadCts;
+    private long?                    previousDialogRoundID;
 
     private DialogEntryViewModel? errorStreamingEntry;
     private DialogEntryViewModel? errorDirectorEntry;
@@ -67,6 +68,12 @@ public sealed partial class MainViewModel
 
     [ObservableProperty]
     public partial bool IsLoadingDialog { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLoadingEarlierDialog { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasEarlierDialogEntries { get; set; }
 
     public bool IsProjectSelected => CurrentProject is not null;
 
@@ -765,6 +772,8 @@ public sealed partial class MainViewModel
         var token = sessionLoadCts.Token;
 
         Dialog.Clear();
+        previousDialogRoundID = null;
+        HasEarlierDialogEntries = false;
         DirectiveInput.Clear();
         ResetPipelineStages();
         ClearErrorState();
@@ -854,29 +863,12 @@ public sealed partial class MainViewModel
 
         try
         {
-            var result = await dialogHistoryService.LoadAsync(sessionID, token);
+            var result = await dialogHistoryService.LoadAsync(sessionID, token: token);
 
             if (token.IsCancellationRequested)
                 return;
 
-            foreach (var round in result.Rounds)
-            {
-                if (round.DirectorBlocks.Count > 0)
-                {
-                    Dialog.AddDirectorEntry(round.RoundID, round.DirectorBlocks, true);
-
-                    if (round.DirectorEventID.HasValue)
-                        Dialog.Entries[^1].EventID = round.DirectorEventID;
-                }
-
-                if (!string.IsNullOrWhiteSpace(round.NarrativeText))
-                {
-                    Dialog.AddNarrativeEntry(round.RoundID, round.NarrativeText, renderImmediately: true);
-
-                    if (round.NarrativeEventID.HasValue)
-                        Dialog.Entries[^1].EventID = round.NarrativeEventID;
-                }
-            }
+            AddDialogHistory(result, false);
         }
         catch (Exception ex)
         {
@@ -886,6 +878,104 @@ public sealed partial class MainViewModel
         {
             IsLoadingDialog = false;
         }
+    }
+
+    public async Task LoadEarlierDialogHistoryAsync()
+    {
+        if (CurrentSession is null || previousDialogRoundID is null || IsLoadingEarlierDialog)
+            return;
+
+        var sessionID = CurrentSession.ID;
+        var token     = sessionLoadCts?.Token ?? CancellationToken.None;
+        IsLoadingEarlierDialog = true;
+
+        try
+        {
+            var result = await dialogHistoryService.LoadAsync(sessionID, previousDialogRoundID, token);
+
+            if (token.IsCancellationRequested || CurrentSession?.ID != sessionID)
+                return;
+
+            AddDialogHistory(result, true);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "加载更早对话历史失败: 对话={SessionID}", sessionID);
+        }
+        finally
+        {
+            IsLoadingEarlierDialog = false;
+        }
+    }
+
+    private void AddDialogHistory(DialogHistoryResult result, bool prepend)
+    {
+        var entries = new List<DialogEntryViewModel>();
+
+        foreach (var round in result.Rounds)
+        {
+            if (round.DirectorBlocks.Count > 0)
+            {
+                var entry = new DialogEntryViewModel
+                {
+                    RoundID = round.RoundID,
+                    EventID = round.DirectorEventID,
+                    Type    = EventType.DirectorInput,
+                    Content = string.Join("\n", round.DirectorBlocks.Select(block => $"[{block.Type}] {block.Content}"))
+                };
+
+                foreach (var block in round.DirectorBlocks)
+                {
+                    entry.DirectorBlocks.Add
+                    (
+                        new DirectorContentBlockViewModel
+                        {
+                            Type    = block.Type,
+                            Content = block.Content
+                        }
+                    );
+                }
+
+                entries.Add(entry);
+            }
+
+            if (!string.IsNullOrWhiteSpace(round.NarrativeText))
+            {
+                entries.Add
+                (
+                    new DialogEntryViewModel
+                    {
+                        RoundID = round.RoundID,
+                        EventID = round.NarrativeEventID,
+                        Type    = EventType.NarrativeOutput,
+                        Content = round.NarrativeText
+                    }
+                );
+            }
+        }
+
+        if (prepend)
+        {
+            for (var index = entries.Count - 1; index >= 0; index--)
+                Dialog.Entries.Insert(0, entries[index]);
+        }
+        else
+        {
+            if (Dialog.Entries.Count > 0 && entries.Count > 0)
+                Dialog.Entries[^1].IsLast = false;
+
+            foreach (var entry in entries)
+                Dialog.Entries.Add(entry);
+
+            if (entries.Count > 0)
+                entries[^1].IsLast = true;
+        }
+
+        previousDialogRoundID   = result.PreviousRoundID;
+        HasEarlierDialogEntries = previousDialogRoundID is not null;
     }
 
     private async Task RefreshSidebarAsync(CancellationToken token = default)

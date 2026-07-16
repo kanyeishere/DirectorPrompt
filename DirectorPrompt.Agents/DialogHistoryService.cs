@@ -11,28 +11,27 @@ public sealed class DialogHistoryService
     IEventRepository eventRepository
 )
 {
-    public async Task<DialogHistoryResult> LoadAsync(long sessionID, CancellationToken token = default)
+    public async Task<DialogHistoryResult> LoadAsync
+    (
+        long              sessionID,
+        long?             beforeRoundID = null,
+        CancellationToken token         = default
+    )
     {
         var events = new List<PlaythroughEvent>();
-        events.AddRange(await eventRepository.GetByRoundAsync(sessionID, 0, token));
 
-        long? beforeRoundID = null;
+        if (beforeRoundID is null)
+            events.AddRange(await eventRepository.GetByRoundAsync(sessionID, 0, token));
 
-        do
-        {
-            var page = await eventRepository.GetDialogPageAsync
-                       (
-                           new DialogPageQuery(sessionID, beforeRoundID, 100),
-                           token
-                       );
-
-            events.AddRange(page.Events);
-            beforeRoundID = page.PreviousRoundID;
-        }
-        while (beforeRoundID is not null && !token.IsCancellationRequested);
+        var page = await eventRepository.GetDialogPageAsync
+                   (
+                       new DialogPageQuery(sessionID, beforeRoundID, 20),
+                       token
+                   );
+        events.AddRange(page.Events);
 
         if (token.IsCancellationRequested)
-            return new DialogHistoryResult([]);
+            return new DialogHistoryResult([], null);
 
         var directorEvents = events
                              .Where(e => e.Type == EventType.DirectorInput)
@@ -82,6 +81,6 @@ public sealed class DialogHistoryService
             rounds.Count
         );
 
-        return new DialogHistoryResult(rounds);
+        return new DialogHistoryResult(rounds, page.PreviousRoundID);
     }
 }

@@ -223,12 +223,27 @@
                 </ItemsControl>
 
                 <Grid Grid.Row="1" ClipToBounds="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
+                    <Button Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="16,8,8,0"
+                            HorizontalAlignment="Center"
+                            Click="OnLoadEarlierDialog"
+                            IsVisible="{Binding HasEarlierDialogEntries}"
+                            IsEnabled="{Binding IsLoadingEarlierDialog, Converter={StaticResource InverseBool}}">
+                        <TextBlock Text="{Binding [Dialog.LoadEarlier], Source={x:Static loc:Loc.Instance}}" />
+                    </Button>
+
                     <ListBox x:Name="DialogListBox"
+                             Grid.Row="1"
                              Grid.Column="0"
                              ItemsSource="{Binding Dialog.Entries}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -416,7 +431,8 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <components:MessageRail Grid.Column="1"
+                    <components:MessageRail Grid.Row="1"
+                                            Grid.Column="1"
                                             Entries="{Binding Dialog.Entries}"
                                             TargetListBox="{Binding ElementName=DialogListBox}"
                                             MaxHeight="400"

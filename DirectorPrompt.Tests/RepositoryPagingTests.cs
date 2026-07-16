@@ -1,4 +1,5 @@
 using Dapper;
+using DirectorPrompt.Agents;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Infrastructure;
@@ -33,6 +34,39 @@ public sealed class RepositoryPagingTests
         Assert.Equal(11, firstPage.Events.Min(item => item.RoundID));
         Assert.Equal(1,  secondPage.Events.Min(item => item.RoundID));
         Assert.Null(secondPage.PreviousRoundID);
+    }
+
+    [Fact]
+    public async Task DialogHistoryLoadsOnePageAtATime()
+    {
+        await using var context    = await DatabaseTestContext.CreateAsync();
+        var             repository = new EventRepository(context.Scheduler);
+
+        for (var roundID = 1; roundID <= 50; roundID++)
+        {
+            await repository.AppendBatchAsync
+            (
+                [
+                    CreateEvent(roundID, EventType.DirectorInput,   $"[{{\"type\":\"Plot\",\"content\":\"input-{roundID}\",\"order\":1}}]"),
+                    CreateEvent(roundID, EventType.NarrativeOutput, $"output-{roundID}")
+                ]
+            );
+        }
+
+        var service    = new DialogHistoryService(repository);
+        var firstPage  = await service.LoadAsync(1);
+        var secondPage = await service.LoadAsync(1, firstPage.PreviousRoundID);
+        var thirdPage  = await service.LoadAsync(1, secondPage.PreviousRoundID);
+
+        Assert.Equal(20, firstPage.Rounds.Count);
+        Assert.Equal(31, firstPage.Rounds[0].RoundID);
+        Assert.Equal(31, firstPage.PreviousRoundID);
+        Assert.Equal(20, secondPage.Rounds.Count);
+        Assert.Equal(11, secondPage.Rounds[0].RoundID);
+        Assert.Equal(11, secondPage.PreviousRoundID);
+        Assert.Equal(10, thirdPage.Rounds.Count);
+        Assert.Equal(1, thirdPage.Rounds[0].RoundID);
+        Assert.Null(thirdPage.PreviousRoundID);
     }
 
     [Fact]

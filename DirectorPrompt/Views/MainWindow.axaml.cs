@@ -55,7 +55,7 @@ public partial class MainWindow : FAAppWindow
         if (e.Action == NotifyCollectionChangedAction.Reset)
             return;
 
-        if (viewModel.IsLoadingDialog)
+        if (viewModel.IsLoadingDialog || viewModel.IsLoadingEarlierDialog)
             return;
 
         ScrollDialogToBottom();
@@ -84,6 +84,30 @@ public partial class MainWindow : FAAppWindow
     {
         if (sender is MenuItem { Tag: DialogEntryViewModel })
             _ = viewModel.RollbackLastRoundCommand.ExecuteAsync(null);
+    }
+
+    private async void OnLoadEarlierDialog(object? sender, RoutedEventArgs e)
+    {
+        if (dialogScrollViewer is null)
+            return;
+
+        var oldExtent = dialogScrollViewer.Extent.Height;
+        var oldOffset = dialogScrollViewer.Offset;
+
+        await viewModel.LoadEarlierDialogHistoryAsync();
+
+        Dispatcher.UIThread.Post
+        (
+            () =>
+            {
+                if (dialogScrollViewer is null)
+                    return;
+
+                var addedHeight = dialogScrollViewer.Extent.Height - oldExtent;
+                dialogScrollViewer.Offset = oldOffset.WithY(oldOffset.Y + addedHeight);
+            },
+            DispatcherPriority.ContextIdle
+        );
     }
 
     private async void OnCopyEntry(object sender, RoutedEventArgs e)
