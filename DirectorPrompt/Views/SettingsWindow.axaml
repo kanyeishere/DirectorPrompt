@@ -329,7 +329,7 @@
                                                                Text="{Binding [Settings.Agent.Temperature], Source={x:Static loc:Loc.Instance}}"
                                                                VerticalAlignment="Center" />
                                                     <fa:FANumberBox Grid.Column="1"
-                                                                    Value="{Binding Temperature}"
+                                                                    Value="{Binding Temperature, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
                                                                     Minimum="0"
                                                                     Maximum="2"
                                                                     SmallChange="0.1"
@@ -607,7 +607,7 @@
                                 <TextBlock Text="{Binding [Memory.RecallTopK], Source={x:Static loc:Loc.Instance}}"
                                            FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Memory.RecallTopK}"
+                            <fa:FANumberBox Value="{Binding Memory.RecallTopK, Converter={StaticResource NumberBoxValue}}"
                                             Minimum="1"
                                             Maximum="100"
                                             Margin="0,0,0,12"
@@ -616,7 +616,7 @@
                                 <TextBlock Text="{Binding [Memory.TokenBudget], Source={x:Static loc:Loc.Instance}}"
                                            FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Memory.TokenBudget}"
+                            <fa:FANumberBox Value="{Binding Memory.TokenBudget, Converter={StaticResource NumberBoxValue}}"
                                             Minimum="100"
                                             Maximum="10000"
                                             Margin="0,0,0,12"
@@ -625,7 +625,7 @@
                                 <TextBlock Text="{Binding [Memory.MinRelevance], Source={x:Static loc:Loc.Instance}}"
                                            FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Memory.MinRelevance}"
+                            <fa:FANumberBox Value="{Binding Memory.MinRelevance, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
                                             Minimum="0"
                                             Maximum="1"
                                             Margin="0,0,0,12"
@@ -635,7 +635,7 @@
                                     Text="{Binding [Memory.TimeDecayLambda], Source={x:Static loc:Loc.Instance}}"
                                     FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Memory.TimeDecayLambda}"
+                            <fa:FANumberBox Value="{Binding Memory.TimeDecayLambda, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
                                             Minimum="0"
                                             Maximum="1"
                                             HorizontalAlignment="Stretch" />
@@ -653,7 +653,7 @@
                                     Text="{Binding [Knowledge.Retrieval.SemanticTopK], Source={x:Static loc:Loc.Instance}}"
                                     FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Knowledge.SemanticTopK}"
+                            <fa:FANumberBox Value="{Binding Knowledge.SemanticTopK, Converter={StaticResource NumberBoxValue}}"
                                             Minimum="1"
                                             Maximum="100"
                                             Margin="0,0,0,12"
@@ -663,7 +663,7 @@
                                     Text="{Binding [Knowledge.Retrieval.TokenBudget], Source={x:Static loc:Loc.Instance}}"
                                     FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Knowledge.TokenBudget}"
+                            <fa:FANumberBox Value="{Binding Knowledge.TokenBudget, Converter={StaticResource NumberBoxValue}}"
                                             Minimum="100"
                                             Maximum="10000"
                                             Margin="0,0,0,12"
@@ -673,7 +673,7 @@
                                     Text="{Binding [Knowledge.Retrieval.MinRelevance], Source={x:Static loc:Loc.Instance}}"
                                     FontWeight="SemiBold" />
                             </StackPanel>
-                            <fa:FANumberBox Value="{Binding Knowledge.MinRelevance}"
+                            <fa:FANumberBox Value="{Binding Knowledge.MinRelevance, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
                                             Minimum="0"
                                             Maximum="1"
                                             HorizontalAlignment="Stretch" />
