@@ -10,6 +10,8 @@ public sealed partial class EnumTransitionEditViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsRandom))]
     [NotifyPropertyChangedFor(nameof(IsExpression))]
+    [NotifyPropertyChangedFor(nameof(IsAlways))]
+    [NotifyPropertyChangedFor(nameof(IsOnce))]
     public partial EnumTransitionMethod Method { get; set; } = EnumTransitionMethod.Random;
 
     [ObservableProperty]
