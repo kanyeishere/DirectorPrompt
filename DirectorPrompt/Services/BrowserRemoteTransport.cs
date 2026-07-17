@@ -35,6 +35,8 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
 
     public event Action<IAvaloniaRemoteTransportConnection, Exception>? OnException;
 
+    public event Action<double, double>? ViewportChanged;
+
     public BrowserRemoteTransport(IPAddress address, int port)
     {
         this.address = address;
@@ -283,7 +285,8 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
         }
     }
 
-    private void Resize(double width, double height, double dpi = 96) =>
+    private void Resize(double width, double height, double dpi = 96)
+    {
         OnMessage?.Invoke(this, new ClientViewportAllocatedMessage
         {
             Width  = width,
@@ -291,6 +294,9 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
             DpiX   = dpi,
             DpiY   = dpi
         });
+
+        ViewportChanged?.Invoke(width, height);
+    }
 
     private static EncodedFrame EncodeFrame(byte[] data)
     {

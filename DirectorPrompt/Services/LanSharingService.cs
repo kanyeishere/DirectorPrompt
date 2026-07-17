@@ -133,7 +133,8 @@ public sealed class LanSharingService
                     }
                 );
             }
-            currentTransport.OnException -= OnTransportException;
+            currentTransport.OnException     -= OnTransportException;
+            currentTransport.ViewportChanged -= OnRemoteViewportChanged;
             await currentTransport.DisposeAsync();
             throw;
         }
@@ -168,7 +169,8 @@ public sealed class LanSharingService
 
         if (transport is not null)
         {
-            transport.OnException -= OnTransportException;
+            transport.OnException     -= OnTransportException;
+            transport.ViewportChanged -= OnRemoteViewportChanged;
             await transport.DisposeAsync().ConfigureAwait(false);
             transport = null;
         }
@@ -176,7 +178,7 @@ public sealed class LanSharingService
         Log.Information("局域网共享已关闭");
     }
 
-    private void CreateRemoteVisual(IAvaloniaRemoteTransportConnection currentTransport)
+    private void CreateRemoteVisual(BrowserRemoteTransport currentTransport)
     {
         var currentWindowService = new RemoteWindowService(serviceProvider, userSettings, this);
         var viewModel = ActivatorUtilities.CreateInstance<MainViewModel>(serviceProvider, currentWindowService);
@@ -205,8 +207,24 @@ public sealed class LanSharingService
 
         serverType.GetProperty("Content")!.SetValue(remoteServer, content);
         currentWindowService.Attach(remoteOverlay, remotePopupLayer);
+        currentTransport.ViewportChanged += OnRemoteViewportChanged;
         remoteWindowService = currentWindowService;
         _ = viewModel.LoadProjectsCommand.ExecuteAsync(null);
+    }
+
+    private void OnRemoteViewportChanged(double width, double height)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            remoteWindow?.SetRemoteViewportWidth(width);
+            return;
+        }
+
+        Dispatcher.UIThread.Post
+        (
+            () => remoteWindow?.SetRemoteViewportWidth(width),
+            DispatcherPriority.Send
+        );
     }
 
     private static IPAddress GetLanAddress()

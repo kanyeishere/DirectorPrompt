@@ -80,16 +80,14 @@ public partial class MainWindow : FAAppWindow
             viewModel.PropertyChanged                  += OnViewModelPropertyChanged;
             Loaded                                     += OnLoaded;
         }
-        else
-            RootLayout.SizeChanged += OnRemoteRootSizeChanged;
     }
 
-    private void OnRemoteRootSizeChanged(object? sender, SizeChangedEventArgs e)
+    internal void SetRemoteViewportWidth(double width)
     {
-        if (!isRemote || e.NewSize.Width <= 0)
+        if (!isRemote || width <= 0)
             return;
 
-        var useMobileLayout = e.NewSize.Width < 720;
+        var useMobileLayout = width < 720;
 
         if (useMobileLayout == isMobileRemote)
             return;
