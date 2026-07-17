@@ -219,9 +219,33 @@
                                              Grid.Column="1"
                                              Margin="0,0,4,0"
                                              ItemsSource="{Binding Projects}"
-                                             DisplayMemberPath="Name"
                                              SelectedItem="{Binding CurrentProject}"
-                                             IsEnabled="{Binding IsNotProcessing}" />
+                                             IsEnabled="{Binding IsNotProcessing}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Tag="{Binding}"
+                                        Background="Transparent"
+                                        PointerPressed="OnProjectItemPointerPressed"
+                                        ContextRequested="OnProjectItemContextRequested">
+                                    <Border.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuItem Tag="{Binding}"
+                                                      Header="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}"
+                                                      Click="OnEditProjectItem" />
+                                            <MenuItem Tag="{Binding}"
+                                                      Header="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}"
+                                                      Click="OnExportProjectItem" />
+                                            <MenuItem Tag="{Binding}"
+                                                      Header="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}"
+                                                      Click="OnDeleteProjectItem" />
+                                        </MenuFlyout>
+                                    </Border.ContextFlyout>
+                                    <TextBlock Text="{Binding Name}"
+                                               IsHitTestVisible="False" />
+                                </Border>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </components:PathComboBox>
                     <Button x:Name="EditProjectButton"
                             Grid.Column="2"
                             Padding="12,6"
@@ -347,7 +371,24 @@
                              Padding="0,0,0,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                <Border Tag="{Binding}"
+                                        Background="Transparent"
+                                        PointerPressed="OnSessionItemPointerPressed"
+                                        ContextRequested="OnSessionItemContextRequested">
+                                    <Border.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuItem Tag="{Binding}"
+                                                      Header="{Binding [Navigation.RenameSession], Source={x:Static loc:Loc.Instance}}"
+                                                      Click="OnRenameSessionItem" />
+                                            <MenuItem Tag="{Binding}"
+                                                      Header="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}"
+                                                      Click="OnDeleteSessionItem" />
+                                        </MenuFlyout>
+                                    </Border.ContextFlyout>
+                                    <TextBlock Text="{Binding Title}"
+                                               TextTrimming="CharacterEllipsis"
+                                               IsHitTestVisible="False" />
+                                </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -1228,10 +1269,90 @@
                Grid.RowSpan="2"
                ZIndex="1000"
                IsVisible="False">
+            <Panel.Styles>
+                <Style Selector="Button.remote-menu-item">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    <Setter Property="Padding" Value="12,10" />
+                    <Setter Property="CornerRadius" Value="4" />
+                </Style>
+                <Style Selector="Button.remote-menu-item:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                </Style>
+            </Panel.Styles>
             <Canvas x:Name="RemotePopupLayer"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     IsHitTestVisible="True" />
+            <Border x:Name="RemoteProjectMenu"
+                    Width="220"
+                    Padding="4"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    IsVisible="False">
+                <StackPanel Spacing="2">
+                    <Button Classes="remote-menu-item"
+                            Tag="{Binding}"
+                            Click="OnEditProjectItem">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fa:FASymbolIcon Symbol="Edit" FontSize="16" />
+                            <TextBlock Text="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="remote-menu-item"
+                            Tag="{Binding}"
+                            Click="OnExportProjectItem">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fa:FASymbolIcon Symbol="Upload" FontSize="16" />
+                            <TextBlock Text="{Binding [Navigation.ExportProject], Source={x:Static loc:Loc.Instance}}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="remote-menu-item"
+                            Tag="{Binding}"
+                            Click="OnDeleteProjectItem">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fa:FASymbolIcon Symbol="Delete" FontSize="16" />
+                            <TextBlock Text="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+            <Border x:Name="RemoteSessionMenu"
+                    Width="220"
+                    Padding="4"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    IsVisible="False">
+                <StackPanel Spacing="2">
+                    <Button Classes="remote-menu-item"
+                            Tag="{Binding}"
+                            Click="OnRenameSessionItem">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fa:FASymbolIcon Symbol="Edit" FontSize="16" />
+                            <TextBlock Text="{Binding [Navigation.RenameSession], Source={x:Static loc:Loc.Instance}}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="remote-menu-item"
+                            Tag="{Binding}"
+                            Click="OnDeleteSessionItem">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fa:FASymbolIcon Symbol="Delete" FontSize="16" />
+                            <TextBlock Text="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
             <Border x:Name="RemoteImportMenu"
                     Width="260"
                     Padding="4"

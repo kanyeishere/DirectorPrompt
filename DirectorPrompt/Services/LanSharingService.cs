@@ -183,6 +183,7 @@ public sealed class LanSharingService
         var currentWindowService = new RemoteWindowService(serviceProvider, userSettings, this);
         var viewModel = ActivatorUtilities.CreateInstance<MainViewModel>(serviceProvider, currentWindowService);
         remoteWindow  = new MainWindow(viewModel, false);
+        remoteWindow.RemoteDialogHost = currentWindowService;
 
         if (remoteWindow.Content is not Control content)
             throw new InvalidOperationException("主界面内容无法用于远程控制");

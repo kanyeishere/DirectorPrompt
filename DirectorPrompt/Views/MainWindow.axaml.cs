@@ -20,12 +20,13 @@ using Serilog;
 
 namespace DirectorPrompt.Views;
 
-public partial class MainWindow : FAAppWindow
+public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
 {
     private readonly MainViewModel       viewModel;
     private readonly bool                isRemote;
     private readonly ILanSharingService? lanSharingService;
 
+    private ListBox       dialogList = null!;
     private ScrollViewer? dialogScrollViewer;
     
     private int  dialogScrollRequestID;
@@ -35,10 +36,13 @@ public partial class MainWindow : FAAppWindow
 
     private Panel?   remoteOverlay;
     private Border?  remoteImportMenu;
-    private Control? remoteImportMenuOwner;
+    private Border?  remoteProjectMenu;
+    private Border?  remoteSessionMenu;
+    private Border?  remoteMenu;
+    private Control? remoteMenuOwner;
+    private PathComboBox? projectComboBox;
 
-    private ListBox DialogList =>
-        this.GetLogicalDescendants().OfType<ListBox>().First(control => control.Name == "DialogListBox");
+    public IRemoteDialogHost? RemoteDialogHost { get; set; }
 
     public MainWindow()
     {
@@ -68,18 +72,21 @@ public partial class MainWindow : FAAppWindow
         MobileSessionsToggle      = this.FindControl<ToggleButton>(nameof(MobileSessionsToggle))!;
         MobileDetailsToggle       = this.FindControl<ToggleButton>(nameof(MobileDetailsToggle))!;
         MobileMoreActionsButton   = this.FindControl<ToggleButton>(nameof(MobileMoreActionsButton))!;
+        dialogList                = this.FindControl<ListBox>("DialogListBox")!;
         remoteOverlay    = this.FindControl<Panel>(nameof(RemoteOverlay));
         remoteImportMenu = this.FindControl<Border>(nameof(RemoteImportMenu));
+        remoteProjectMenu = this.FindControl<Border>(nameof(RemoteProjectMenu));
+        remoteSessionMenu = this.FindControl<Border>(nameof(RemoteSessionMenu));
+        projectComboBox = this.FindControl<PathComboBox>(nameof(ProjectComboBox));
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         Title = $"DirectorPrompt {version}";
 
+        viewModel.Dialog.Entries.CollectionChanged += OnDialogEntriesChanged;
+        viewModel.PropertyChanged                  += OnViewModelPropertyChanged;
+
         if (attachWindowBehavior)
-        {
-            viewModel.Dialog.Entries.CollectionChanged += OnDialogEntriesChanged;
-            viewModel.PropertyChanged                  += OnViewModelPropertyChanged;
             Loaded                                     += OnLoaded;
-        }
     }
 
     internal void SetRemoteViewportWidth(double width)
@@ -153,12 +160,12 @@ public partial class MainWindow : FAAppWindow
         MobileSessionsToggle.IsChecked    = false;
         MobileDetailsToggle.IsChecked     = false;
         MobileMoreActionsButton.IsChecked = false;
-        CloseRemoteImportMenu();
+        CloseRemoteMenu();
     }
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        dialogScrollViewer = DialogList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+        dialogScrollViewer = dialogList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
         await viewModel.LoadProjectsCommand.ExecuteAsync(null);
     }
 
@@ -233,17 +240,19 @@ public partial class MainWindow : FAAppWindow
             viewModel.IsLoadingDialog)
             return;
 
+        dialogScrollViewer ??= dialogList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+
         if (dialogScrollViewer is null)
         {
             if (viewModel.Dialog.Entries.Count > 0)
-                DialogList.ScrollIntoView(viewModel.Dialog.Entries[^1]);
+                dialogList.ScrollIntoView(viewModel.Dialog.Entries[^1]);
 
             return;
         }
 
         var lastEntryRealized = viewModel.Dialog.Entries.Count == 0 ||
-                                DialogList.ContainerFromItem(viewModel.Dialog.Entries[^1]) is not null;
-        var markdownCurrent = DialogList.GetVisualDescendants()
+                                dialogList.ContainerFromItem(viewModel.Dialog.Entries[^1]) is not null;
+        var markdownCurrent = dialogList.GetVisualDescendants()
                                         .OfType<LiveMarkdownView>()
                                         .All(view => view.IsRenderCurrent);
         var extent = dialogScrollViewer.Extent.Height;
@@ -340,7 +349,7 @@ public partial class MainWindow : FAAppWindow
     {
         if (isRemote)
         {
-            OpenRemoteImportMenu((Control)sender);
+            OpenRemoteMenu((Control)sender, remoteImportMenu!);
             e.Handled = true;
             return;
         }
@@ -358,43 +367,44 @@ public partial class MainWindow : FAAppWindow
     private void OnImportSillyTavern(object sender, RoutedEventArgs e) =>
         viewModel.ImportSillyTavernProjectCommand.Execute(null);
 
-    private void OpenRemoteImportMenu(Control owner)
+    private void OpenRemoteMenu(Control owner, Border menu)
     {
-        CloseRemoteImportMenu();
+        CloseRemoteMenu();
 
-        var menu = remoteImportMenu!;
         (menu.Parent as Panel)?.Children.Remove(menu);
         menu.IsVisible = true;
 
-        if (RemotePopupHost.Show(owner, menu, menu.Width, RestoreRemoteImportMenu))
+        if (RemotePopupHost.Show(owner, menu, menu.Width, RestoreRemoteMenu))
         {
-            remoteImportMenuOwner = owner;
+            remoteMenu      = menu;
+            remoteMenuOwner = owner;
             return;
         }
 
-        RestoreRemoteImportMenu(menu);
+        RestoreRemoteMenu(menu);
     }
 
-    private void CloseRemoteImportMenu()
+    private void CloseRemoteMenu()
     {
-        if (remoteImportMenuOwner is { } owner)
+        if (remoteMenuOwner is { } owner)
         {
             var menu = RemotePopupHost.Hide(owner);
 
             if (menu is not null)
-                RestoreRemoteImportMenu(menu);
+                RestoreRemoteMenu(menu);
 
             return;
         }
 
-        if (remoteImportMenu is not null)
-            remoteImportMenu.IsVisible = false;
+        if (remoteMenu is not null)
+            remoteMenu.IsVisible = false;
     }
 
-    private void RestoreRemoteImportMenu(Control content)
+    private void RestoreRemoteMenu(Control content)
     {
-        remoteImportMenuOwner = null;
-        content.IsVisible     = false;
+        remoteMenuOwner    = null;
+        remoteMenu         = null;
+        content.IsVisible  = false;
 
         if (remoteOverlay is not null && content.Parent is null)
             remoteOverlay.Children.Add(content);
@@ -402,39 +412,93 @@ public partial class MainWindow : FAAppWindow
 
     private void OnRemoteImportDirectorPromptClick(object? sender, RoutedEventArgs e)
     {
-        CloseRemoteImportMenu();
+        CloseRemoteMenu();
         viewModel.ImportProjectCommand.Execute(null);
     }
 
     private void OnRemoteImportSillyTavernClick(object? sender, RoutedEventArgs e)
     {
-        CloseRemoteImportMenu();
+        CloseRemoteMenu();
         viewModel.ImportSillyTavernProjectCommand.Execute(null);
+    }
+
+    private void OnProjectItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Border { Tag: Project project } item ||
+            !e.GetCurrentPoint(item).Properties.IsRightButtonPressed)
+            return;
+
+        if (isRemote)
+        {
+            remoteProjectMenu!.DataContext = project;
+            OpenRemoteMenu(projectComboBox!, remoteProjectMenu);
+        }
+        else
+            OpenLocalMenu(item, project);
+
+        e.Handled = true;
+    }
+
+    private void OnSessionItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Border { Tag: Session session } item ||
+            !e.GetCurrentPoint(item).Properties.IsRightButtonPressed)
+            return;
+
+        if (isRemote)
+        {
+            remoteSessionMenu!.DataContext = session;
+            OpenRemoteMenu(item, remoteSessionMenu);
+        }
+        else
+            OpenLocalMenu(item, session);
+
+        e.Handled = true;
+    }
+
+    private void OnProjectItemContextRequested(object? sender, ContextRequestedEventArgs e) =>
+        e.Handled = true;
+
+    private void OnSessionItemContextRequested(object? sender, ContextRequestedEventArgs e) =>
+        e.Handled = true;
+
+    private static void OpenLocalMenu(Control owner, object item)
+    {
+        if (owner.ContextFlyout is not MenuFlyout menu)
+            return;
+
+        foreach (var menuItem in menu.Items.OfType<MenuItem>())
+            menuItem.Tag = item;
+
+        menu.ShowAt(owner);
     }
 
     private void OnEditProjectItem(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: Project project })
+        if (sender is not Control { Tag: Project project })
             return;
 
+        CloseRemoteMenu();
         viewModel.CurrentProject = project;
         viewModel.EditProjectCommand.Execute(null);
     }
 
     private void OnExportProjectItem(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: Project project })
+        if (sender is not Control { Tag: Project project })
             return;
 
+        CloseRemoteMenu();
         viewModel.CurrentProject = project;
         viewModel.ExportProjectCommand.Execute(null);
     }
 
     private async void OnDeleteProjectItem(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: Project project })
+        if (sender is not Control { Tag: Project project })
             return;
 
+        CloseRemoteMenu();
         var message = Loc.Get("Dialog.ConfirmDeleteProject", project.Name);
 
         if (await PromptDialog.ConfirmAsync(this, Loc.Get("Common.Delete"), message, true))
@@ -443,9 +507,10 @@ public partial class MainWindow : FAAppWindow
 
     private async void OnRenameSessionItem(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: Session session })
+        if (sender is not Control { Tag: Session session })
             return;
 
+        CloseRemoteMenu();
         var newTitle = await PromptDialog.InputAsync
                        (
                            this,
@@ -460,9 +525,10 @@ public partial class MainWindow : FAAppWindow
 
     private async void OnDeleteSessionItem(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: Session session })
+        if (sender is not Control { Tag: Session session })
             return;
 
+        CloseRemoteMenu();
         var message = Loc.Get("Dialog.ConfirmDeleteSession", session.Title);
 
         if (await PromptDialog.ConfirmAsync(this, Loc.Get("Common.Delete"), message, true))
