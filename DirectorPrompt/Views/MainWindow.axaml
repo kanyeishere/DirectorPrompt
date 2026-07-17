@@ -17,44 +17,42 @@
                        MinHeight="600"
                        Icon="/Assets/Images/Icon-NoBackground.ico"
                        TransparencyLevelHint="Mica">
-    <windowing:FAAppWindow.Styles>
-        <Style Selector="Button.sidebar-toggle">
-            <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="Opacity" Value="1" />
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="4">
-                        <ContentPresenter Content="{TemplateBinding Content}"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.sidebar-toggle:pointerover">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-        </Style>
-        <Style Selector="Button.sidebar-toggle fa|FASymbolIcon">
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-        </Style>
-        <Style Selector="Button.sidebar-toggle:pointerover fa|FASymbolIcon">
-            <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-        </Style>
-        <Style Selector="Button.sidebar-toggle:pressed">
-            <Setter Property="BorderThickness" Value="2" />
-        </Style>
-    </windowing:FAAppWindow.Styles>
     <Grid x:Name="RootLayout" RowDefinitions="Auto,*">
         <Grid.Styles>
+            <Style Selector="Button.sidebar-toggle">
+                <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Setter Property="Opacity" Value="1" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+            <Style Selector="Button.sidebar-toggle:pointerover">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+            </Style>
+            <Style Selector="Button.sidebar-toggle fa|FASymbolIcon">
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            </Style>
+            <Style Selector="Button.sidebar-toggle:pointerover fa|FASymbolIcon">
+                <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+            </Style>
+            <Style Selector="Button.sidebar-toggle:pressed">
+                <Setter Property="BorderThickness" Value="2" />
+            </Style>
             <Style Selector="Grid#ProjectActions">
                 <Setter Property="HorizontalAlignment" Value="Left" />
             </Style>
