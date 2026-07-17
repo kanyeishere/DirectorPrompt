@@ -33,8 +33,9 @@ public partial class MainWindow : FAAppWindow
     private bool closeAuthorized;
     private bool closeInProgress;
 
-    private Border? remoteImportMenu;
-    private Border? remoteImportMenuBackdrop;
+    private Panel?   remoteOverlay;
+    private Border?  remoteImportMenu;
+    private Control? remoteImportMenuOwner;
 
     private ListBox DialogList =>
         this.GetLogicalDescendants().OfType<ListBox>().First(control => control.Name == "DialogListBox");
@@ -67,8 +68,8 @@ public partial class MainWindow : FAAppWindow
         MobileSessionsToggle      = this.FindControl<ToggleButton>(nameof(MobileSessionsToggle))!;
         MobileDetailsToggle       = this.FindControl<ToggleButton>(nameof(MobileDetailsToggle))!;
         MobileMoreActionsButton   = this.FindControl<ToggleButton>(nameof(MobileMoreActionsButton))!;
-        remoteImportMenu          = this.FindControl<Border>(nameof(RemoteImportMenu));
-        remoteImportMenuBackdrop  = this.FindControl<Border>(nameof(RemoteImportMenuBackdrop));
+        remoteOverlay    = this.FindControl<Panel>(nameof(RemoteOverlay));
+        remoteImportMenu = this.FindControl<Border>(nameof(RemoteImportMenu));
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         Title = $"DirectorPrompt {version}";
@@ -154,8 +155,7 @@ public partial class MainWindow : FAAppWindow
         MobileSessionsToggle.IsChecked    = false;
         MobileDetailsToggle.IsChecked     = false;
         MobileMoreActionsButton.IsChecked = false;
-        remoteImportMenu!.IsVisible        = false;
-        remoteImportMenuBackdrop!.IsVisible = false;
+        CloseRemoteImportMenu();
     }
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
@@ -342,16 +342,15 @@ public partial class MainWindow : FAAppWindow
     {
         if (isRemote)
         {
-            remoteImportMenu!.IsVisible         = true;
-            remoteImportMenuBackdrop!.IsVisible = true;
-            e.Handled                            = true;
+            OpenRemoteImportMenu((Control)sender);
+            e.Handled = true;
             return;
         }
 
-        if (sender is not Control { ContextMenu: { } menu } element)
+        if (sender is not Control element)
             return;
 
-        menu.Open(element);
+        FlyoutBase.ShowAttachedFlyout(element);
         e.Handled = true;
     }
 
@@ -361,23 +360,57 @@ public partial class MainWindow : FAAppWindow
     private void OnImportSillyTavern(object sender, RoutedEventArgs e) =>
         viewModel.ImportSillyTavernProjectCommand.Execute(null);
 
-    private void OnRemoteImportMenuBackdropPressed(object? sender, PointerPressedEventArgs e)
+    private void OpenRemoteImportMenu(Control owner)
     {
-        remoteImportMenu!.IsVisible         = false;
-        remoteImportMenuBackdrop!.IsVisible = false;
+        CloseRemoteImportMenu();
+
+        var menu = remoteImportMenu!;
+        (menu.Parent as Panel)?.Children.Remove(menu);
+        menu.IsVisible = true;
+
+        if (RemotePopupHost.Show(owner, menu, menu.Width, RestoreRemoteImportMenu))
+        {
+            remoteImportMenuOwner = owner;
+            return;
+        }
+
+        RestoreRemoteImportMenu(menu);
+    }
+
+    private void CloseRemoteImportMenu()
+    {
+        if (remoteImportMenuOwner is { } owner)
+        {
+            var menu = RemotePopupHost.Hide(owner);
+
+            if (menu is not null)
+                RestoreRemoteImportMenu(menu);
+
+            return;
+        }
+
+        if (remoteImportMenu is not null)
+            remoteImportMenu.IsVisible = false;
+    }
+
+    private void RestoreRemoteImportMenu(Control content)
+    {
+        remoteImportMenuOwner = null;
+        content.IsVisible     = false;
+
+        if (remoteOverlay is not null && content.Parent is null)
+            remoteOverlay.Children.Add(content);
     }
 
     private void OnRemoteImportDirectorPromptClick(object? sender, RoutedEventArgs e)
     {
-        remoteImportMenu!.IsVisible         = false;
-        remoteImportMenuBackdrop!.IsVisible = false;
+        CloseRemoteImportMenu();
         viewModel.ImportProjectCommand.Execute(null);
     }
 
     private void OnRemoteImportSillyTavernClick(object? sender, RoutedEventArgs e)
     {
-        remoteImportMenu!.IsVisible         = false;
-        remoteImportMenuBackdrop!.IsVisible = false;
+        CloseRemoteImportMenu();
         viewModel.ImportSillyTavernProjectCommand.Execute(null);
     }
 

@@ -29,6 +29,10 @@ public partial class PromptDialog : FAAppWindow
     public PromptDialog()
     {
         AvaloniaXamlLoader.Load(this);
+        MessageText    = this.FindControl<TextBlock>(nameof(MessageText))!;
+        InputBox       = this.FindControl<TextBox>(nameof(InputBox))!;
+        PrimaryButton  = this.FindControl<Button>(nameof(PrimaryButton))!;
+        SecondaryButton = this.FindControl<Button>(nameof(SecondaryButton))!;
     }
 
     internal void SetRemoteCompletion(Action<object?>? completion) =>
