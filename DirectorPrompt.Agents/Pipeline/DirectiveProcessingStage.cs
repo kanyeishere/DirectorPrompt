@@ -30,19 +30,21 @@ public sealed class DirectiveProcessingStage
         CancellationToken       cancellationToken
     )
     {
+        DirectiveItem? initialSceneChangeDirective = null;
+
         if (activeScene is null)
         {
-            var sceneChangeDirective = batch.Directives.FirstOrDefault(d => d.Type == DirectiveType.SceneChange);
+            initialSceneChangeDirective = batch.Directives.FirstOrDefault(d => d.Type == DirectiveType.SceneChange);
 
-            if (sceneChangeDirective is not null)
+            if (initialSceneChangeDirective is not null)
             {
-                Log.Information("无活跃场景, 通过 Scene Agent 创建: {Description}", sceneChangeDirective.Content);
+                Log.Information("无活跃场景, 通过 Scene Agent 创建: {Description}", initialSceneChangeDirective.Content);
                 await CreateSceneViaAgentAsync
                 (
                     batch.ProjectID,
                     sessionID,
                     roundID,
-                    sceneChangeDirective.Content,
+                    initialSceneChangeDirective.Content,
                     activeScene,
                     embeddingConfig,
                     cancellationToken
@@ -103,6 +105,9 @@ public sealed class DirectiveProcessingStage
                     break;
 
                 case DirectiveType.SceneChange:
+                    if (ReferenceEquals(directive, initialSceneChangeDirective))
+                        break;
+
                     await CreateSceneViaAgentAsync
                     (
                         batch.ProjectID,
