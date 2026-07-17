@@ -125,10 +125,10 @@ public sealed class AvaloniaInteractionTests
         messageMenuButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.True(entry.IsMenuOpen);
         var messageActionsPanel = content.GetVisualDescendants()
-                                         .OfType<Border>()
-                                         .First(border => border.Name == "MessageActionsPanel");
-        Assert.True(messageActionsPanel.IsHitTestVisible);
-        Assert.Contains("open", messageActionsPanel.Classes);
+                                         .OfType<StackPanel>()
+                                         .First(panel => panel.Classes.Contains("message-actions"));
+        Assert.True(messageActionsPanel.IsVisible);
+        Assert.Contains("open", messageMenuButton.Classes);
         Assert.Same(messageActionsPanel.Parent, messageMenuButton.Parent);
 
         var sessionsWidth = controls["MobileSessionsToggle"].Bounds.Width;
