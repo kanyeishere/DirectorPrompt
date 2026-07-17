@@ -44,11 +44,11 @@ jobs:
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
 
-      - name: Build Release
-        run: dotnet build DirectorPrompt.slnx -c Release
+      - name: Publish Release
+        run: dotnet publish DirectorPrompt\DirectorPrompt.csproj -c Release -r win-x64 --self-contained false --no-restore -o .\bin\publish
 
       - name: Generate Hashes File
-        run: .\scripts\CreateHashList.ps1 .\bin\Release
+        run: .\scripts\CreateHashList.ps1 .\bin\publish
 
       - name: Velopack Build and Upload
         id: build-velopack
@@ -116,14 +116,14 @@ jobs:
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
 
-      - name: Build Release
-        run: dotnet build DirectorPrompt.slnx -c Release
+      - name: Publish Release
+        run: dotnet publish DirectorPrompt\DirectorPrompt.csproj -c Release -r win-x64 --self-contained false --no-restore -o .\bin\publish
 
       - name: Generate Hashes File
-        run: .\scripts\CreateHashList.ps1 .\bin\Release
+        run: .\scripts\CreateHashList.ps1 .\bin\publish
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: directorprompt-artifact
-          path: bin\Release\
+          path: bin\publish\
