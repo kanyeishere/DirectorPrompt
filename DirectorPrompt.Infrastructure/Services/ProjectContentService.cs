@@ -1797,12 +1797,12 @@ public sealed class ProjectContentService
             Changed?.Invoke(change);
     }
 
-    private sealed class ChangeBatch : IDisposable
+    private sealed class ChangeBatch
+    (
+        ProjectContentService service
+    ) : IDisposable
     {
-        private ProjectContentService? service;
-
-        public ChangeBatch(ProjectContentService service) =>
-            this.service = service;
+        private ProjectContentService? service = service;
 
         public void Dispose()
         {
