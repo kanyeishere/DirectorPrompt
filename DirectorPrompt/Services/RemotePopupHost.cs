@@ -80,6 +80,12 @@ public static class RemotePopupHost
         if (popupLayer is null || currentPopup is null)
             return;
 
+        var layerWidth  = popupLayer.Bounds.Width;
+        var layerHeight = popupLayer.Bounds.Height;
+
+        if (layerWidth <= 0 || layerHeight <= 0)
+            return;
+
         var point = currentPopup.Owner.TranslatePoint
         (
             new Point(0, currentPopup.Owner.Bounds.Height),
@@ -92,14 +98,14 @@ public static class RemotePopupHost
         var left = Math.Max(8, point.Value.X);
         var top  = Math.Max(8, point.Value.Y);
 
-        if (popupLayer.Bounds.Width > 0 && currentPopup.Content.Width > popupLayer.Bounds.Width - 16)
-            currentPopup.Content.Width = Math.Max(0, popupLayer.Bounds.Width - 16);
+        if (currentPopup.Content.Width > layerWidth - 16)
+            currentPopup.Content.Width = Math.Max(1, layerWidth - 16);
 
-        currentPopup.DismissLayer.Width  = Math.Max(0, popupLayer.Bounds.Width);
-        currentPopup.DismissLayer.Height = Math.Max(0, popupLayer.Bounds.Height);
+        currentPopup.DismissLayer.Width  = layerWidth;
+        currentPopup.DismissLayer.Height = layerHeight;
 
-        if (left + currentPopup.Content.Width > popupLayer.Bounds.Width - 8)
-            left = Math.Max(8, popupLayer.Bounds.Width - currentPopup.Content.Width - 8);
+        if (left + currentPopup.Content.Width > layerWidth - 8)
+            left = Math.Max(8, layerWidth - currentPopup.Content.Width - 8);
 
         Canvas.SetLeft(currentPopup.Content, left);
         Canvas.SetTop(currentPopup.Content, top);

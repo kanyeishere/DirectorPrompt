@@ -28,6 +28,7 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
 
     private WebApplication? application;
     private PendingFrame?   latestFrame;
+    private bool            isStarted;
     private long            sentSequenceID = -1;
     private WebSocket?      socket;
 
@@ -70,6 +71,18 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
 
     public void Start()
     {
+        isStarted = true;
+        StartRemoteSession();
+    }
+
+    private void StartRemoteSession()
+    {
+        lock (connectionLock)
+        {
+            if (!isStarted || socket is null)
+                return;
+        }
+
         OnMessage?.Invoke
         (
             this,
@@ -164,7 +177,7 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
             sentSequenceID = -1;
         }
 
-        Resize(1280, 800);
+        StartRemoteSession();
         await SendLatestFrameAsync();
 
         try
@@ -301,6 +314,9 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
 
     private void Resize(double width, double height, double dpi = 96)
     {
+        if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
+            return;
+
         OnMessage?.Invoke
         (
             this,

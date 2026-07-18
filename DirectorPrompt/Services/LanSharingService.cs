@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
+using Avalonia.Controls.Embedding;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Remote.Protocol;
@@ -28,10 +29,12 @@ public sealed class LanSharingService
 
     private BrowserRemoteTransport? transport;
     private IDisposable?            remoteServer;
+    private EmbeddableControlRoot?  remoteRoot;
     private Control?                remoteContent;
     private MainWindow?             remoteWindow;
     private RemoteWindowService?    remoteWindowService;
     private Uri?                    endpoint;
+    private bool                    remoteRenderingStarted;
 
     public Uri? Endpoint
     {
@@ -109,7 +112,6 @@ public sealed class LanSharingService
                 );
             }
 
-            currentTransport.Start();
             transport = currentTransport;
             Endpoint  = new Uri($"http://{address}:{port}/");
 
@@ -173,6 +175,8 @@ public sealed class LanSharingService
     {
         remoteServer?.Dispose();
         remoteServer = null;
+        remoteRoot = null;
+        remoteRenderingStarted = false;
         remoteContent?.RemoveHandler(InputElement.PointerReleasedEvent, OnRemoteInteraction);
         remoteContent?.RemoveHandler(InputElement.KeyDownEvent,         OnRemoteInteraction);
         remoteContent?.DataContext = null;
@@ -215,10 +219,15 @@ public sealed class LanSharingService
                        ) ??
                        throw new InvalidOperationException("Avalonia 远程控制服务不可用");
 
+        remoteRoot = serverType.GetField("_topLevel", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(remoteServer) as EmbeddableControlRoot ??
+                     throw new InvalidOperationException("Avalonia 远程控制根不可用");
+        remoteRoot.StopRendering();
+
         serverType.GetProperty("Content")!.SetValue(remoteServer, content);
         currentWindowService.Attach(remoteOverlay, remotePopupLayer);
         remoteInteractionRouter.Attach(currentWindowService);
         currentTransport.ViewportChanged += OnRemoteViewportChanged;
+        currentTransport.Start();
         remoteContent                    =  content;
         remoteWindowService              =  currentWindowService;
         return remoteWindow;
@@ -237,16 +246,37 @@ public sealed class LanSharingService
 
     private void OnRemoteViewportChanged(double width, double height)
     {
+        if (width <= 0 || height <= 0)
+            return;
+
         if (Dispatcher.UIThread.CheckAccess())
         {
             remoteWindow?.SetRemoteViewportWidth(width);
+            ScheduleRemoteRendering();
             return;
         }
 
         Dispatcher.UIThread.Post
         (
-            () => remoteWindow?.SetRemoteViewportWidth(width),
+            () =>
+            {
+                remoteWindow?.SetRemoteViewportWidth(width);
+                ScheduleRemoteRendering();
+            },
             DispatcherPriority.Send
+        );
+    }
+
+    private void ScheduleRemoteRendering()
+    {
+        if (remoteRenderingStarted)
+            return;
+
+        remoteRenderingStarted = true;
+        Dispatcher.UIThread.Post
+        (
+            () => remoteRoot?.StartRendering(),
+            DispatcherPriority.Render
         );
     }
 
