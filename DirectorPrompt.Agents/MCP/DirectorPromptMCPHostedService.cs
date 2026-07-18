@@ -37,14 +37,24 @@ public sealed class DirectorPromptMCPHostedService
         (options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.OnRejected = (context, _) =>
+                {
+                    Log.Warning
+                    (
+                        "内部 MCP 请求已被限流: {Method} {Path}",
+                        context.HttpContext.Request.Method,
+                        context.HttpContext.Request.Path
+                    );
+                    return ValueTask.CompletedTask;
+                };
                 options.AddConcurrencyLimiter
                 (
                     RATE_LIMITER_POLICY,
                     limiterOptions =>
                     {
-                        limiterOptions.PermitLimit          = 16;
+                        limiterOptions.PermitLimit          = 1;
                         limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                        limiterOptions.QueueLimit           = 64;
+                        limiterOptions.QueueLimit           = 16;
                     }
                 );
             }
@@ -53,11 +63,36 @@ public sealed class DirectorPromptMCPHostedService
                (options => options.ServerInfo = new Implementation
                    {
                        Name    = "director-prompt",
-                       Version = "1"
+                       Version = "2"
                    }
                )
                .WithHttpTransport()
-               .WithTools(projectTools);
+               .WithTools(projectTools)
+               .WithMessageFilters
+               (filters => filters.AddIncomingFilter
+                (next => async (context, cancellationToken) =>
+                    {
+                        if (context.JsonRpcMessage is JsonRpcRequest
+                            {
+                                Method: RequestMethods.ToolsCall,
+                                Params: not null
+                            } request)
+                        {
+                            var toolName  = request.Params["name"]?.GetValue<string>();
+                            var arguments = request.Params["arguments"]?.ToJsonString();
+
+                            Log.Information
+                            (
+                                "内部 MCP 工具请求: {ToolName}, 参数={Arguments}",
+                                toolName,
+                                arguments
+                            );
+                        }
+
+                        await next(context, cancellationToken);
+                    }
+                )
+               );
 
         var created = builder.Build();
         created.UseRateLimiter();

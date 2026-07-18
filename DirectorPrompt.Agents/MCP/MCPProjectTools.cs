@@ -1,10 +1,13 @@
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Services;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
+using Serilog;
 
 namespace DirectorPrompt.Agents.MCP;
 
@@ -26,7 +29,7 @@ public sealed class MCPProjectTools
     )]
     [Description("列出所有项目的基础信息，不包含知识、人物分类或状态属性的详情")]
     public Task<IReadOnlyList<Project>> ListProjectsAsync(CancellationToken cancellationToken = default) =>
-        ExecuteAsync(() => projectContentService.ListProjectsAsync(cancellationToken));
+        ExecuteAsync(new { }, () => projectContentService.ListProjectsAsync(cancellationToken));
 
     [McpServerTool
     (
@@ -44,7 +47,7 @@ public sealed class MCPProjectTools
         [Description("项目 ID")] long projectID,
         CancellationToken           cancellationToken = default
     ) =>
-        ExecuteAsync(() => GetRequiredProjectSnapshotAsync(projectID, cancellationToken));
+        ExecuteAsync(new { projectID }, () => GetRequiredProjectSnapshotAsync(projectID, cancellationToken));
 
     [McpServerTool
     (
@@ -67,7 +70,8 @@ public sealed class MCPProjectTools
         CancellationToken                               cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.CreateProjectAsync
+        (new { name, description, openingMessage, blueprint, dryRun },
+         () => projectContentService.CreateProjectAsync
          (
              name,
              description,
@@ -98,7 +102,8 @@ public sealed class MCPProjectTools
         CancellationToken                 cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.PatchProjectAsync
+        (new { projectID, name, description, openingMessage },
+         () => projectContentService.PatchProjectAsync
          (
              projectID,
              new ProjectPatch
@@ -127,7 +132,7 @@ public sealed class MCPProjectTools
         [Description("项目 ID")] long projectID,
         CancellationToken           cancellationToken = default
     ) =>
-        ExecuteAsync(() => projectContentService.DeleteProjectAsync(projectID, cancellationToken));
+        ExecuteAsync(new { projectID }, () => projectContentService.DeleteProjectAsync(projectID, cancellationToken));
 
     [McpServerTool
     (
@@ -148,7 +153,8 @@ public sealed class MCPProjectTools
         CancellationToken cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { sourcePath, format },
+         async () =>
             {
                 var path = ValidateAbsolutePath(sourcePath, nameof(sourcePath));
 
@@ -188,7 +194,8 @@ public sealed class MCPProjectTools
         CancellationToken                   cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, destinationPath, overwrite },
+         async () =>
             {
                 var path = ValidateAbsolutePath(destinationPath, nameof(destinationPath));
 
@@ -236,7 +243,8 @@ public sealed class MCPProjectTools
         CancellationToken                    cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.ManageKnowledgeGroupAsync
+        (new { projectID, name, description, active },
+         () => projectContentService.ManageKnowledgeGroupAsync
          (
              projectID,
              ProjectContentAction.Create,
@@ -272,7 +280,8 @@ public sealed class MCPProjectTools
         CancellationToken                  cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.PatchKnowledgeGroupAsync
+        (new { projectID, groupID, name, description, active },
+         () => projectContentService.PatchKnowledgeGroupAsync
          (
              projectID,
              groupID,
@@ -304,7 +313,8 @@ public sealed class MCPProjectTools
         CancellationToken             cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.ManageKnowledgeGroupAsync
+        (new { projectID, groupID },
+         () => projectContentService.ManageKnowledgeGroupAsync
          (
              projectID,
              ProjectContentAction.Delete,
@@ -336,7 +346,8 @@ public sealed class MCPProjectTools
         CancellationToken                     cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.ManageKnowledgeEntryAsync
+        (new { projectID, remarks, content, groupID, keywords, active },
+         () => projectContentService.ManageKnowledgeEntryAsync
          (
              projectID,
              ProjectContentAction.Create,
@@ -376,7 +387,8 @@ public sealed class MCPProjectTools
         CancellationToken                               cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, entryID, remarks, content, keywords, groupID, active },
+         async () =>
             {
                 var entry = await GetRequiredKnowledgeEntryAsync(projectID, entryID, cancellationToken);
 
@@ -418,7 +430,8 @@ public sealed class MCPProjectTools
         CancellationToken             cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.ManageKnowledgeEntryAsync
+        (new { projectID, entryID },
+         () => projectContentService.ManageKnowledgeEntryAsync
          (
              projectID,
              ProjectContentAction.Delete,
@@ -448,7 +461,8 @@ public sealed class MCPProjectTools
         CancellationToken                  cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.ManageCharacterCategoryAsync
+        (new { projectID, name, description, parentCategoryIDs },
+         () => projectContentService.ManageCharacterCategoryAsync
          (
              projectID,
              ProjectContentAction.Create,
@@ -484,7 +498,8 @@ public sealed class MCPProjectTools
         CancellationToken                    cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.PatchCharacterCategoryAsync
+        (new { projectID, categoryID, name, description, parentCategoryIDs },
+         () => projectContentService.PatchCharacterCategoryAsync
          (
              projectID,
              categoryID,
@@ -516,7 +531,8 @@ public sealed class MCPProjectTools
         CancellationToken             cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => projectContentService.ManageCharacterCategoryAsync
+        (new { projectID, categoryID },
+         () => projectContentService.ManageCharacterCategoryAsync
          (
              projectID,
              ProjectContentAction.Delete,
@@ -544,7 +560,8 @@ public sealed class MCPProjectTools
         CancellationToken             cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, categoryID },
+         async () =>
             {
                 var snapshot = await GetRequiredProjectSnapshotAsync(projectID, cancellationToken);
 
@@ -586,7 +603,8 @@ public sealed class MCPProjectTools
         CancellationToken               cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => CreateStateAttributeAsync
+        (new { projectID, name, displayName, categoryID, driver, min, max, unit, changeRules },
+         () => CreateStateAttributeAsync
          (
              projectID,
              new StateAttributeDefinition
@@ -633,7 +651,8 @@ public sealed class MCPProjectTools
         CancellationToken                                 cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => CreateStateAttributeAsync
+        (new { projectID, name, displayName, options, trigger, categoryID },
+         () => CreateStateAttributeAsync
          (
              projectID,
              new StateAttributeDefinition
@@ -679,7 +698,8 @@ public sealed class MCPProjectTools
         CancellationToken                             cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, attributeID, name, displayName, scope, categoryID, numericDriver },
+         async () =>
             {
                 var attribute = await GetProjectStateAttributeAsync(projectID, attributeID, cancellationToken);
 
@@ -731,7 +751,8 @@ public sealed class MCPProjectTools
         CancellationToken                  cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, attributeID, min, max, unit, changeRules },
+         async () =>
             {
                 var attribute = await GetProjectStateAttributeAsync(projectID, attributeID, cancellationToken);
                 EnsureStateValueType(attribute, StateValueType.Numeric);
@@ -775,7 +796,8 @@ public sealed class MCPProjectTools
         CancellationToken                           cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, attributeID, options, trigger },
+         async () =>
             {
                 var attribute = await GetProjectStateAttributeAsync(projectID, attributeID, cancellationToken);
                 EnsureStateValueType(attribute, StateValueType.Enum);
@@ -821,7 +843,8 @@ public sealed class MCPProjectTools
         CancellationToken                                               cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, attributeID, transitions },
+         async () =>
             {
                 var attribute = await GetProjectStateAttributeAsync(projectID, attributeID, cancellationToken);
                 EnsureStateValueType(attribute, StateValueType.Enum);
@@ -867,7 +890,8 @@ public sealed class MCPProjectTools
         CancellationToken                                  cancellationToken = default
     ) =>
         ExecuteAsync
-        (() => PatchStateAttributeAsync
+        (new { projectID, attributeID, phases },
+         () => PatchStateAttributeAsync
          (
              projectID,
              attributeID,
@@ -894,7 +918,8 @@ public sealed class MCPProjectTools
         CancellationToken             cancellationToken = default
     ) =>
         ExecuteAsync
-        (async () =>
+        (new { projectID, attributeID },
+         async () =>
             {
                 var attribute = await GetProjectStateAttributeAsync(projectID, attributeID, cancellationToken);
 
@@ -1062,22 +1087,59 @@ public sealed class MCPProjectTools
         return Path.GetFullPath(value);
     }
 
-    private static async Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+    private static async Task<T> ExecuteAsync<T>
+    (
+        object       arguments,
+        Func<Task<T>> operation,
+        [CallerMemberName] string toolName = ""
+    )
     {
+        var startTimestamp = Stopwatch.GetTimestamp();
+
+        Log.Information("内部 MCP 工具调用: {ToolName}, 参数={@Arguments}", toolName, arguments);
+
         try
         {
-            return await operation();
+            var result = await operation();
+
+            Log.Information
+            (
+                "内部 MCP 工具返回: {ToolName}, 耗时={ElapsedMilliseconds}ms, 返回={@Result}",
+                toolName,
+                Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds,
+                result
+            );
+
+            return result;
         }
-        catch (Exception exception) when
-        (
-            exception is ArgumentException or
-            InvalidOperationException or
-            InvalidDataException or
-            IOException or
-                UnauthorizedAccessException
-        )
+        catch (OperationCanceledException)
         {
-            throw new McpException(exception.Message, exception);
+            Log.Information
+            (
+                "内部 MCP 工具调用已取消: {ToolName}, 耗时={ElapsedMilliseconds}ms",
+                toolName,
+                Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds
+            );
+            throw;
+        }
+        catch (Exception exception)
+        {
+            Log.Warning
+            (
+                exception,
+                "内部 MCP 工具调用失败: {ToolName}, 耗时={ElapsedMilliseconds}ms",
+                toolName,
+                Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds
+            );
+
+            if (exception is ArgumentException or
+                InvalidOperationException or
+                InvalidDataException or
+                IOException or
+                UnauthorizedAccessException)
+                throw new McpException(exception.Message, exception);
+
+            throw;
         }
     }
 }

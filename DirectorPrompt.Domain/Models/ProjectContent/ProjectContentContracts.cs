@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 namespace DirectorPrompt.Domain.Models;
@@ -145,6 +146,7 @@ public sealed record ProjectStateAttribute
     string               Name,
     string               DisplayName,
     StateScope           Scope,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     long?                CategoryID,
     StateValueType       ValueType,
     Driver               Driver,

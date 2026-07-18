@@ -748,6 +748,7 @@ public sealed class ProjectContentService
         var trigger = Enum.TryParse<SystemTrigger>(config.Trigger, true, out var parsedTrigger) ?
                           parsedTrigger :
                           SystemTrigger.SceneChange;
+        var scope = patch.Scope ?? attribute.Scope;
 
         return await ManageStateAttributeAsync
         (
@@ -757,8 +758,10 @@ public sealed class ProjectContentService
             {
                 Name        = patch.Name        ?? attribute.Name,
                 DisplayName = patch.DisplayName ?? attribute.DisplayName,
-                Scope       = patch.Scope       ?? attribute.Scope,
-                CategoryID  = patch.CategoryID  ?? attribute.CategoryID,
+                Scope       = scope,
+                CategoryID = scope == StateScope.Global ?
+                                 null :
+                                 patch.CategoryID ?? attribute.CategoryID,
                 ValueType   = patch.ValueType   ?? attribute.ValueType,
                 Driver      = patch.Driver      ?? attribute.Driver,
                 Numeric = patch.Numeric ?? new NumericStateDefinition
