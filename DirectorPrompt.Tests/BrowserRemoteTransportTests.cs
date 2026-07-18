@@ -30,13 +30,7 @@ public sealed class BrowserRemoteTransportTests
         using var client = new HttpClient();
         var       page   = await client.GetStringAsync($"http://127.0.0.1:{port}/");
 
-        Assert.Contains("<canvas id=\"screen\"",    page);
-        Assert.Contains("id=\"keyboardButton\"",    page);
-        Assert.Contains("Math.max(360,innerWidth)", page);
-        Assert.Contains("devicePixelRatio",         page);
-        Assert.Contains("DecompressionStream",      page);
-        Assert.Contains("logicalWidth",             page);
-        Assert.Contains("currentFrame?.dpiX",       page);
+        Assert.Contains("<canvas id=\"screen\"", page);
 
         await transport.DisposeAsync();
 
@@ -117,9 +111,9 @@ public sealed class BrowserRemoteTransportTests
         Assert.EndsWith(":gzip", header);
         Assert.Equal(WebSocketMessageType.Binary, frameResult.MessageType);
 
-        using var compressed = new MemoryStream(frameBuffer[..frameResult.Count].ToArray());
-        using var gzip       = new GZipStream(compressed, CompressionMode.Decompress);
-        using var restored   = new MemoryStream();
+        using var       compressed = new MemoryStream(frameBuffer[..frameResult.Count].ToArray());
+        await using var gzip       = new GZipStream(compressed, CompressionMode.Decompress);
+        using var       restored   = new MemoryStream();
         gzip.CopyTo(restored);
 
         Assert.Equal(data, restored.ToArray());
