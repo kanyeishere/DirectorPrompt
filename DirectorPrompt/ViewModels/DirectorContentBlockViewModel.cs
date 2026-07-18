@@ -1,5 +1,6 @@
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Localization;
+using Markdig.Syntax;
 
 namespace DirectorPrompt.ViewModels;
 
@@ -8,6 +9,8 @@ public sealed class DirectorContentBlockViewModel
     public DirectiveType Type { get; init; }
 
     public string Content { get; init; } = string.Empty;
+
+    public MarkdownDocument? MarkdownDocument { get; set; }
 
     public string TypeDisplay => Type switch
     {

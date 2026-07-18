@@ -1,8 +1,11 @@
 <Solution>
-    <Project Path="DirectorPrompt.Domain/DirectorPrompt.Domain.csproj"/>
-    <Project Path="DirectorPrompt.Agents/DirectorPrompt.Agents.csproj"/>
-    <Project Path="DirectorPrompt.Infrastructure/DirectorPrompt.Infrastructure.csproj"/>
-    <Project Path="DirectorPrompt/DirectorPrompt.csproj"/>
-    <Project Path="DirectorPrompt.Tests/DirectorPrompt.Tests.csproj"/>
-    <Project Path="DirectorPrompt.Benchmarks/DirectorPrompt.Benchmarks.csproj"/>
+    <Project Path="DirectorPrompt.Domain/DirectorPrompt.Domain.csproj" />
+    <Folder Name="/libs/">
+        <Project Path="lib/LiveMarkdown.Avalonia/src/LiveMarkdown.Avalonia/LiveMarkdown.Avalonia.csproj" />
+    </Folder>
+    <Project Path="DirectorPrompt.Agents/DirectorPrompt.Agents.csproj" />
+    <Project Path="DirectorPrompt.Infrastructure/DirectorPrompt.Infrastructure.csproj" />
+    <Project Path="DirectorPrompt/DirectorPrompt.csproj" />
+    <Project Path="DirectorPrompt.Tests/DirectorPrompt.Tests.csproj" />
+    <Project Path="DirectorPrompt.Benchmarks/DirectorPrompt.Benchmarks.csproj" />
 </Solution>

@@ -30,6 +30,7 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
     private ScrollViewer? dialogScrollViewer;
     
     private int  dialogScrollRequestID;
+    private bool isFollowingDialogTail = true;
     private bool isMobileRemote;
     private bool closeAuthorized;
     private bool closeInProgress;
@@ -175,6 +176,10 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
         dialogScrollViewer = dialogList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+
+        if (dialogScrollViewer is not null)
+            dialogScrollViewer.ScrollChanged += OnDialogScrollChanged;
+
         await viewModel.LoadProjectsCommand.ExecuteAsync(null);
     }
 
@@ -220,29 +225,35 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MainViewModel.IsLoadingDialog) && !viewModel.IsLoadingDialog)
-            ScrollDialogToBottom();
+            ScrollDialogToBottom(true);
     }
 
-    private void ScrollDialogToBottom()
+    private void OnDialogScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
+        if (dialogScrollViewer is null)
+            return;
+
+        var maximum = Math.Max(0, dialogScrollViewer.Extent.Height - dialogScrollViewer.Viewport.Height);
+
+        isFollowingDialogTail = maximum - dialogScrollViewer.Offset.Y <= 1;
+    }
+
+    private void ScrollDialogToBottom(bool force = false)
+    {
+        if (!force && !isFollowingDialogTail)
+            return;
+
         var requestID = ++dialogScrollRequestID;
         var sessionID = viewModel.CurrentSession?.ID;
 
         Dispatcher.UIThread.Post
         (
-            () => ScrollDialogToBottomWhenStable(requestID, sessionID, 0, double.NaN, 0),
-            DispatcherPriority.ContextIdle
+            () => ScrollDialogToBottomAfterLayout(requestID, sessionID),
+            DispatcherPriority.Render
         );
     }
 
-    private void ScrollDialogToBottomWhenStable
-    (
-        int    requestID,
-        long?  sessionID,
-        int    attempt,
-        double previousExtent,
-        int    stablePasses
-    )
+    private void ScrollDialogToBottomAfterLayout(int requestID, long? sessionID)
     {
         if (requestID != dialogScrollRequestID        ||
             sessionID != viewModel.CurrentSession?.ID ||
@@ -252,38 +263,28 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
         dialogScrollViewer ??= dialogList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
 
         if (dialogScrollViewer is null)
-        {
-            if (viewModel.Dialog.Entries.Count > 0)
-                dialogList.ScrollIntoView(viewModel.Dialog.Entries[^1]);
-
             return;
-        }
 
-        var lastEntryRealized = viewModel.Dialog.Entries.Count == 0 ||
-                                dialogList.ContainerFromItem(viewModel.Dialog.Entries[^1]) is not null;
-        var markdownCurrent = dialogList.GetVisualDescendants()
-                                        .OfType<LiveMarkdownView>()
-                                        .All(view => view.IsRenderCurrent);
-        var extent = dialogScrollViewer.Extent.Height;
+        if (viewModel.Dialog.Entries.Count > 0)
+            dialogList.ScrollIntoView(viewModel.Dialog.Entries[^1]);
 
         dialogScrollViewer.ScrollToEnd();
 
-        if (lastEntryRealized             &&
-            markdownCurrent               &&
-            !double.IsNaN(previousExtent) &&
-            Math.Abs(extent - previousExtent) < 0.5)
-            stablePasses++;
-        else
-            stablePasses = 0;
-
-        if (stablePasses >= 2 || attempt >= 31)
-            return;
-
         Dispatcher.UIThread.Post
         (
-            () => ScrollDialogToBottomWhenStable(requestID, sessionID, attempt + 1, extent, stablePasses),
+            () => CompleteDialogScrollToBottom(requestID, sessionID),
             DispatcherPriority.ContextIdle
         );
+    }
+
+    private void CompleteDialogScrollToBottom(int requestID, long? sessionID)
+    {
+        if (requestID != dialogScrollRequestID        ||
+            sessionID != viewModel.CurrentSession?.ID ||
+            viewModel.IsLoadingDialog)
+            return;
+
+        dialogScrollViewer?.ScrollToEnd();
     }
 
     private void OnRollbackRound(object sender, RoutedEventArgs e)
@@ -300,23 +301,32 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
         if (dialogScrollViewer is null)
             return;
 
-        var oldExtent = dialogScrollViewer.Extent.Height;
-        var oldOffset = dialogScrollViewer.Offset;
+        var previousExtent = dialogScrollViewer.Extent.Height;
+        var previousOffset = dialogScrollViewer.Offset;
+        var sessionID      = viewModel.CurrentSession?.ID;
 
         await viewModel.LoadEarlierDialogHistoryAsync();
 
+        if (sessionID != viewModel.CurrentSession?.ID)
+            return;
+
         Dispatcher.UIThread.Post
         (
-            () =>
-            {
-                if (dialogScrollViewer is null)
-                    return;
-
-                var addedHeight = dialogScrollViewer.Extent.Height - oldExtent;
-                dialogScrollViewer.Offset = oldOffset.WithY(oldOffset.Y + addedHeight);
-            },
-            DispatcherPriority.ContextIdle
+            () => RestoreDialogOffset(previousExtent, previousOffset),
+            DispatcherPriority.Render
         );
+    }
+
+    private void RestoreDialogOffset(double previousExtent, Vector previousOffset)
+    {
+        if (dialogScrollViewer is null)
+            return;
+
+        var maximum = Math.Max(0, dialogScrollViewer.Extent.Height - dialogScrollViewer.Viewport.Height);
+        var addedHeight = Math.Max(0, dialogScrollViewer.Extent.Height - previousExtent);
+        var offset      = Math.Clamp(previousOffset.Y + addedHeight, 0, maximum);
+
+        dialogScrollViewer.Offset = dialogScrollViewer.Offset.WithY(offset);
     }
 
     private async void OnCopyEntry(object sender, RoutedEventArgs e)

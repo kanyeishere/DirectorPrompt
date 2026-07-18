@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Localization;
+using Markdig.Syntax;
 
 namespace DirectorPrompt.ViewModels;
 
@@ -10,6 +11,7 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
 {
     private string thinking     = string.Empty;
     private string errorMessage = string.Empty;
+    private MarkdownDocument? markdownDocument;
 
     public long ID { get; init; }
 
@@ -31,6 +33,7 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
             if (field != value)
             {
                 field = value;
+                MarkdownDocument = null;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Content)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Preview)));
             }
@@ -100,6 +103,19 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
     }
 
     public bool HasError => !string.IsNullOrWhiteSpace(errorMessage);
+
+    public MarkdownDocument? MarkdownDocument
+    {
+        get => markdownDocument;
+        set
+        {
+            if (ReferenceEquals(markdownDocument, value))
+                return;
+
+            markdownDocument = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MarkdownDocument)));
+        }
+    }
 
     public bool IsStreaming
     {

@@ -13,6 +13,7 @@
         <ProjectReference Include="..\DirectorPrompt.Agents\DirectorPrompt.Agents.csproj"/>
         <ProjectReference Include="..\DirectorPrompt.Domain\DirectorPrompt.Domain.csproj"/>
         <ProjectReference Include="..\DirectorPrompt.Infrastructure\DirectorPrompt.Infrastructure.csproj"/>
+        <ProjectReference Include="..\lib\LiveMarkdown.Avalonia\src\LiveMarkdown.Avalonia\LiveMarkdown.Avalonia.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -29,7 +30,6 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="FluentAvaloniaUI"/>
-        <PackageReference Include="LiveMarkdown.Avalonia"/>
         <PackageReference Include="ModelContextProtocol.AspNetCore"/>
         <PackageReference Include="Serilog"/>
         <PackageReference Include="Serilog.Extensions.Hosting"/>

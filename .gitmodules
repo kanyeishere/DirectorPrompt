@@ -1,0 +1,3 @@
+[submodule "lib/LiveMarkdown.Avalonia"]
+	path = lib/LiveMarkdown.Avalonia
+	url = https://github.com/AtmoOmen/LiveMarkdown.Avalonia.git

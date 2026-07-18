@@ -503,7 +503,7 @@
                              Focusable="False">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel />
+                                <VirtualizingStackPanel CacheLength="1" />
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                         <ListBox.Styles>
@@ -650,8 +650,9 @@
                                                                            FontSize="11"
                                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                                            Margin="0,0,0,2" />
-                                                                <components:LiveMarkdownView
-                                                                    Markdown="{Binding Content}" />
+                                                                 <components:LiveMarkdownView
+                                                                    Markdown="{Binding Content}"
+                                                                    MarkdownDocument="{Binding MarkdownDocument}" />
                                                             </StackPanel>
                                                         </Border>
                                                     </DataTemplate>
@@ -660,7 +661,9 @@
 
                                             <!-- 叙事输出: 已渲染 Markdown 与尚未渲染的流式文本尾部同时显示 -->
                                             <StackPanel IsVisible="{Binding ShowNarrativeContent}">
-                                                <components:LiveMarkdownView Markdown="{Binding Content}" />
+                                                <components:LiveMarkdownView Markdown="{Binding Content}"
+                                                                             IsStreaming="{Binding IsStreaming}"
+                                                                             MarkdownDocument="{Binding MarkdownDocument}" />
                                             </StackPanel>
 
                                             <!-- 编辑模式: TextBox 替换正文 -->

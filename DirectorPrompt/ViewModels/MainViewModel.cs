@@ -13,6 +13,7 @@ using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Localization;
 using DirectorPrompt.Services;
+using LiveMarkdown.Avalonia;
 using Serilog;
 
 namespace DirectorPrompt.ViewModels;
@@ -589,6 +590,8 @@ public sealed partial class MainViewModel : ObservableObject
 
             directorEntry = Dialog.AddDirectorEntry(0, items.Select(d => (d.Type, d.Content)).ToList());
 
+            await PrepareMarkdownDocumentsAsync([directorEntry], token);
+
             DirectiveInput.Clear();
 
             streamingEntry = Dialog.BeginStreamingNarrative(0);
@@ -609,6 +612,12 @@ public sealed partial class MainViewModel : ObservableObject
             StopStreamingTimer();
             FlushStreamingUpdate();
 
+            var markdownDocument = await Task.Run
+            (
+                () => MarkdownRenderer.ParseDocument(result.Narrative),
+                token
+            );
+
             if (CurrentSession?.ID != sessionID)
             {
                 await orchestrator.DeleteRoundAsync(sessionID, result.RoundID, token);
@@ -619,6 +628,7 @@ public sealed partial class MainViewModel : ObservableObject
             streamingEntry.RoundID  = result.RoundID;
             streamingEntry.Content  = result.Narrative;
             streamingEntry.Thinking = result.Thinking;
+            streamingEntry.MarkdownDocument = markdownDocument;
             streamingEntry.RenderMarkdown();
 
             Log.Information
@@ -943,7 +953,7 @@ public sealed partial class MainViewModel : ObservableObject
             if (token.IsCancellationRequested)
                 return;
 
-            AddDialogHistory(result, false);
+            await AddDialogHistoryAsync(result, false, token);
         }
         catch (Exception ex)
         {
@@ -972,7 +982,7 @@ public sealed partial class MainViewModel : ObservableObject
             if (token.IsCancellationRequested || CurrentSession?.ID != sessionID)
                 return;
 
-            AddDialogHistory(result, true);
+            await AddDialogHistoryAsync(result, true, token);
         }
         catch (OperationCanceledException)
         {
@@ -987,7 +997,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    private void AddDialogHistory(DialogHistoryResult result, bool prepend)
+    private async Task AddDialogHistoryAsync(DialogHistoryResult result, bool prepend, CancellationToken token)
     {
         var entries = new List<DialogEntryViewModel>();
 
@@ -1033,6 +1043,11 @@ public sealed partial class MainViewModel : ObservableObject
             }
         }
 
+        await PrepareMarkdownDocumentsAsync(entries, token);
+
+        if (token.IsCancellationRequested)
+            return;
+
         if (prepend)
         {
             for (var index = entries.Count - 1; index >= 0; index--)
@@ -1053,6 +1068,27 @@ public sealed partial class MainViewModel : ObservableObject
         previousDialogRoundID   = result.PreviousRoundID;
         HasEarlierDialogEntries = previousDialogRoundID is not null;
     }
+
+    private static Task PrepareMarkdownDocumentsAsync(IReadOnlyList<DialogEntryViewModel> entries, CancellationToken token) =>
+        Parallel.ForEachAsync
+        (
+            entries,
+            new ParallelOptions
+            {
+                CancellationToken      = token,
+                MaxDegreeOfParallelism = 2
+            },
+            static (entry, _) =>
+            {
+                if (entry.IsNarrative)
+                    entry.MarkdownDocument = MarkdownRenderer.ParseDocument(entry.Content);
+
+                foreach (var block in entry.DirectorBlocks)
+                    block.MarkdownDocument = MarkdownRenderer.ParseDocument(block.Content);
+
+                return ValueTask.CompletedTask;
+            }
+        );
 
     private async Task RefreshSidebarAsync(CancellationToken token = default)
     {

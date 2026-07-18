@@ -1,9 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using LiveMarkdown.Avalonia;
+using Markdig.Syntax;
 
 namespace DirectorPrompt.Views.Components;
 
@@ -12,11 +13,18 @@ public sealed partial class LiveMarkdownView : UserControl
     public static readonly StyledProperty<string> MarkdownProperty =
         AvaloniaProperty.Register<LiveMarkdownView, string>(nameof(Markdown), string.Empty);
 
-    private string renderedMarkdown = string.Empty;
-    private bool   updateScheduled;
+    public static readonly StyledProperty<bool> IsStreamingProperty =
+        AvaloniaProperty.Register<LiveMarkdownView, bool>(nameof(IsStreaming));
 
-    private MarkdownRenderer RendererControl =>
-        this.GetLogicalDescendants().OfType<MarkdownRenderer>().First(control => control.Name == "Renderer");
+    public static readonly StyledProperty<MarkdownDocument?> MarkdownDocumentProperty =
+        AvaloniaProperty.Register<LiveMarkdownView, MarkdownDocument?>(nameof(MarkdownDocument));
+
+    private string renderedMarkdown = string.Empty;
+    private string queuedMarkdown = string.Empty;
+    private bool   updateScheduled;
+    private IDisposable? fallbackRelease;
+    private readonly TextBlock       fallbackText;
+    private readonly MarkdownRenderer renderer;
 
     public string Markdown
     {
@@ -24,17 +32,61 @@ public sealed partial class LiveMarkdownView : UserControl
         set => SetValue(MarkdownProperty, value);
     }
 
+    public bool IsStreaming
+    {
+        get => GetValue(IsStreamingProperty);
+        set => SetValue(IsStreamingProperty, value);
+    }
+
+    public MarkdownDocument? MarkdownDocument
+    {
+        get => GetValue(MarkdownDocumentProperty);
+        set => SetValue(MarkdownDocumentProperty, value);
+    }
+
     internal ObservableStringBuilder MarkdownBuilder { get; } = new();
 
     internal bool IsRenderCurrent => string.Equals(Markdown ?? string.Empty, renderedMarkdown, StringComparison.Ordinal);
 
-    static LiveMarkdownView() =>
-        MarkdownProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.ScheduleMarkdownUpdate());
+    static LiveMarkdownView()
+    {
+        MarkdownProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.RefreshMarkdown());
+        IsStreamingProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.RefreshMarkdown());
+        MarkdownDocumentProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.RefreshMarkdown());
+    }
 
     public LiveMarkdownView()
     {
         AvaloniaXamlLoader.Load(this);
-        RendererControl.MarkdownBuilder = MarkdownBuilder;
+        fallbackText = this.FindControl<TextBlock>(nameof(FallbackText))!;
+        renderer     = this.FindControl<MarkdownRenderer>(nameof(Renderer))!;
+        renderer.MarkdownBuilder = MarkdownBuilder;
+        renderer.Rendered += OnRendererRendered;
+        EffectiveViewportChanged += OnEffectiveViewportChanged;
+        DetachedFromVisualTree += OnDetachedFromVisualTree;
+    }
+
+    private void RefreshMarkdown()
+    {
+        if (MarkdownDocument is not null)
+        {
+            ShowMarkdownDocument();
+            return;
+        }
+
+        ScheduleMarkdownUpdate();
+    }
+
+    private void ShowMarkdownDocument()
+    {
+        fallbackRelease?.Dispose();
+        fallbackRelease        = null;
+        fallbackText.Text      = string.Empty;
+        fallbackText.IsVisible = false;
+        queuedMarkdown         = Markdown ?? string.Empty;
+        renderedMarkdown       = queuedMarkdown;
+        renderer.MarkdownDocument = MarkdownDocument;
+        renderer.IsVisible     = true;
     }
 
     private void ScheduleMarkdownUpdate()
@@ -43,14 +95,19 @@ public sealed partial class LiveMarkdownView : UserControl
             return;
 
         updateScheduled = true;
+
         Dispatcher.UIThread.Post
         (
             () =>
             {
                 updateScheduled = false;
+
+                if (MarkdownDocument is not null)
+                    return;
+
                 UpdateMarkdown();
             },
-            DispatcherPriority.Background
+            DispatcherPriority.Render
         );
     }
 
@@ -59,19 +116,85 @@ public sealed partial class LiveMarkdownView : UserControl
         if (!Dispatcher.UIThread.CheckAccess())
             throw new InvalidOperationException("Markdown updates must run on the UI thread");
 
-        var markdown = Markdown ?? string.Empty;
-
-        if (markdown == renderedMarkdown)
+        if (MarkdownDocument is not null)
             return;
 
-        if (markdown.StartsWith(renderedMarkdown, StringComparison.Ordinal))
-            MarkdownBuilder.Append(markdown[renderedMarkdown.Length..]);
-        else
+        var markdown = Markdown ?? string.Empty;
+
+        if (renderer.MarkdownDocument is not null)
         {
-            MarkdownBuilder.Clear();
-            MarkdownBuilder.Append(markdown);
+            renderer.MarkdownDocument = null;
+            queuedMarkdown            = string.Empty;
+            renderedMarkdown          = string.Empty;
         }
 
+        if (markdown == queuedMarkdown)
+            return;
+
+        var append = IsStreaming && markdown.StartsWith(queuedMarkdown, StringComparison.Ordinal);
+
+        if (!append || !renderer.IsVisible)
+            ShowFallback(markdown);
+        else
+            fallbackText.Text = markdown;
+
+        if (append)
+            MarkdownBuilder.Append(markdown[queuedMarkdown.Length..]);
+        else
+            MarkdownBuilder.Set(markdown);
+
+        queuedMarkdown   = markdown;
         renderedMarkdown = markdown;
+    }
+
+    private void ShowFallback(string markdown)
+    {
+        fallbackRelease?.Dispose();
+        fallbackRelease       = null;
+        fallbackText.Text    = markdown;
+        fallbackText.IsVisible = true;
+        fallbackText.Opacity = 1;
+        renderer.IsVisible   = false;
+    }
+
+    private void OnRendererRendered(object? sender, EventArgs e)
+    {
+        if (!string.Equals(MarkdownBuilder.ToString(), queuedMarkdown, StringComparison.Ordinal))
+            return;
+
+        fallbackText.Opacity   = 0;
+        renderer.IsVisible     = true;
+        ScheduleFallbackRelease();
+    }
+
+    private void OnEffectiveViewportChanged(object? sender, EventArgs e)
+    {
+        if (renderer.IsVisible && fallbackText.IsVisible)
+            ScheduleFallbackRelease();
+    }
+
+    private void ScheduleFallbackRelease()
+    {
+        fallbackRelease?.Dispose();
+        fallbackRelease = DispatcherTimer.RunOnce
+        (
+            ReleaseFallbackLayout,
+            TimeSpan.FromMilliseconds(250),
+            DispatcherPriority.Background
+        );
+    }
+
+    private void ReleaseFallbackLayout()
+    {
+        fallbackRelease = null;
+
+        if (renderer.IsVisible && string.Equals(MarkdownBuilder.ToString(), queuedMarkdown, StringComparison.Ordinal))
+            fallbackText.IsVisible = false;
+    }
+
+    private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        fallbackRelease?.Dispose();
+        fallbackRelease = null;
     }
 }
