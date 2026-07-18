@@ -1,3 +1,5 @@
+<!-- 仅做占位用, 承接开发过程中的临时代码, 不允许引入常态代码 -->
+
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
