@@ -35,6 +35,11 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IFilePickerService      filePickerService;
     private readonly IProjectContentService? projectContentService;
 
+    private readonly Lock                     projectContentChangeSync = new();
+    private readonly Dictionary<long, bool>   pendingProjectChanges    = [];
+
+    private bool projectContentRefreshScheduled;
+
     private CancellationTokenSource? generationCts;
     private CancellationTokenSource? sessionLoadCts;
     private long?                    previousDialogRoundID;
@@ -145,19 +150,52 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<PipelineStageViewModel> PipelineStages { get; } = [];
 
-    private void OnProjectContentChanged(ProjectContentChange change) =>
-        Dispatcher.UIThread.Post
-        (async () =>
-            {
-                if (change.IsDeleted && CurrentProject?.ID == change.ProjectID)
-                {
-                    CurrentProject = null;
-                    CurrentSession = null;
-                }
+    private void OnProjectContentChanged(ProjectContentChange change)
+    {
+        lock (projectContentChangeSync)
+        {
+            pendingProjectChanges[change.ProjectID] = change.IsDeleted ||
+                                                     pendingProjectChanges.GetValueOrDefault(change.ProjectID);
 
-                await LoadProjectsAsync();
+            if (projectContentRefreshScheduled)
+                return;
+
+            projectContentRefreshScheduled = true;
+        }
+
+        Dispatcher.UIThread.Post(RefreshProjectContentAsync);
+    }
+
+    private async void RefreshProjectContentAsync()
+    {
+        while (true)
+        {
+            ProjectContentChange[] changes;
+
+            lock (projectContentChangeSync)
+            {
+                changes = [.. pendingProjectChanges.Select(change => new ProjectContentChange(change.Key, change.Value))];
+                pendingProjectChanges.Clear();
             }
-        );
+
+            if (changes.Any(change => change.IsDeleted && CurrentProject?.ID == change.ProjectID))
+            {
+                CurrentProject = null;
+                CurrentSession = null;
+            }
+
+            await LoadProjectsAsync();
+
+            lock (projectContentChangeSync)
+            {
+                if (pendingProjectChanges.Count == 0)
+                {
+                    projectContentRefreshScheduled = false;
+                    return;
+                }
+            }
+        }
+    }
 
     [RelayCommand]
     private async Task LoadProjectsAsync()

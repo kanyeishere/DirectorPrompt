@@ -5,10 +5,11 @@ using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
+using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Infrastructure;
 using Microsoft.Data.Sqlite;
 
-namespace DirectorPrompt.Services;
+namespace DirectorPrompt.Infrastructure.Services;
 
 public sealed class ProjectContentService
 (
@@ -273,6 +274,31 @@ public sealed class ProjectContentService
         return updated;
     }
 
+    public async Task<Project> PatchProjectAsync
+    (
+        long              projectID,
+        ProjectPatch      patch,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (patch.Name is null && patch.Description is null && patch.OpeningMessage is null)
+            throw new ArgumentException("至少提供一个要更新的项目字段", nameof(patch));
+
+        var snapshot = await GetProjectAsync(projectID, cancellationToken) ??
+                       throw new InvalidOperationException($"项目不存在: ID={projectID}");
+
+        return await UpdateProjectAsync
+        (
+            snapshot.Project with
+            {
+                Name           = patch.Name           ?? snapshot.Project.Name,
+                Description    = patch.Description    ?? snapshot.Project.Description,
+                OpeningMessage = patch.OpeningMessage ?? snapshot.Project.OpeningMessage
+            },
+            cancellationToken
+        );
+    }
+
     public async Task<ProjectDeleteSummary> DeleteProjectAsync(long projectID, CancellationToken cancellationToken = default)
     {
         var snapshot = await GetProjectAsync(projectID, cancellationToken) ??
@@ -376,6 +402,34 @@ public sealed class ProjectContentService
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
         }
+    }
+
+    public async Task<KnowledgeGroup> PatchKnowledgeGroupAsync
+    (
+        long                projectID,
+        long                groupID,
+        KnowledgeGroupPatch patch,
+        CancellationToken   cancellationToken = default
+    )
+    {
+        var snapshot = await GetProjectAsync(projectID, cancellationToken) ??
+                       throw new InvalidOperationException($"项目不存在: ID={projectID}");
+        var group = snapshot.KnowledgeGroups.FirstOrDefault(item => item.Group.ID == groupID)?.Group ??
+                    throw new InvalidOperationException($"知识分组不存在: ID={groupID}");
+
+        return await ManageKnowledgeGroupAsync
+        (
+            projectID,
+            ProjectContentAction.Update,
+            group with
+            {
+                Name        = patch.Name        ?? group.Name,
+                Description = patch.Description ?? group.Description,
+                Active      = patch.Active      ?? group.Active
+            },
+            groupID,
+            cancellationToken
+        );
     }
 
     public async Task<KnowledgeEntry> ManageKnowledgeEntryAsync
@@ -492,6 +546,41 @@ public sealed class ProjectContentService
         }
     }
 
+    public async Task<KnowledgeEntry> PatchKnowledgeEntryAsync
+    (
+        long                projectID,
+        long                entryID,
+        KnowledgeEntryPatch patch,
+        CancellationToken   cancellationToken = default
+    )
+    {
+        if (patch is { GroupID: not null, MoveToUngrouped: true })
+            throw new ArgumentException("知识条目不能同时指定分组和移出分组", nameof(patch));
+
+        var snapshot = await GetProjectAsync(projectID, cancellationToken) ??
+                       throw new InvalidOperationException($"项目不存在: ID={projectID}");
+        var entry = snapshot.UngroupedKnowledgeEntries
+                            .Concat(snapshot.KnowledgeGroups.SelectMany(group => group.Entries))
+                            .FirstOrDefault(item => item.ID == entryID) ??
+                    throw new InvalidOperationException($"知识条目不存在: ID={entryID}");
+
+        return await ManageKnowledgeEntryAsync
+        (
+            projectID,
+            ProjectContentAction.Update,
+            entry with
+            {
+                Remarks = patch.Remarks ?? entry.Remarks,
+                Content  = patch.Content  ?? entry.Content,
+                Keywords = patch.Keywords ?? entry.Keywords,
+                GroupID  = patch.MoveToUngrouped == true ? null : patch.GroupID ?? entry.GroupID,
+                Active   = patch.Active ?? entry.Active
+            },
+            entryID,
+            cancellationToken
+        );
+    }
+
     public async Task<CharacterCategory> ManageCharacterCategoryAsync
     (
         long                 projectID,
@@ -574,6 +663,34 @@ public sealed class ProjectContentService
         }
     }
 
+    public async Task<CharacterCategory> PatchCharacterCategoryAsync
+    (
+        long                   projectID,
+        long                   categoryID,
+        CharacterCategoryPatch patch,
+        CancellationToken      cancellationToken = default
+    )
+    {
+        var snapshot = await GetProjectAsync(projectID, cancellationToken) ??
+                       throw new InvalidOperationException($"项目不存在: ID={projectID}");
+        var category = snapshot.CharacterCategories.FirstOrDefault(item => item.ID == categoryID) ??
+                       throw new InvalidOperationException($"人物分类不存在: ID={categoryID}");
+
+        return await ManageCharacterCategoryAsync
+        (
+            projectID,
+            ProjectContentAction.Update,
+            category with
+            {
+                Name              = patch.Name              ?? category.Name,
+                Description       = patch.Description       ?? category.Description,
+                ParentCategoryIDs = patch.ParentCategoryIDs ?? category.ParentCategoryIDs
+            },
+            categoryID,
+            cancellationToken
+        );
+    }
+
     public async Task<StateAttribute> ManageStateAttributeAsync
     (
         long                      projectID,
@@ -615,6 +732,65 @@ public sealed class ProjectContentService
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
         }
+    }
+
+    public async Task<StateAttribute> PatchStateAttributeAsync
+    (
+        long                projectID,
+        long                attributeID,
+        StateAttributePatch patch,
+        CancellationToken   cancellationToken = default
+    )
+    {
+        var snapshot = await GetProjectAsync(projectID, cancellationToken) ??
+                       throw new InvalidOperationException($"项目不存在: ID={projectID}");
+        var attribute = snapshot.StateAttributes.FirstOrDefault(item => item.ID == attributeID) ??
+                        throw new InvalidOperationException($"状态属性不存在: ID={attributeID}");
+        var config = attribute.Configuration;
+        var trigger = Enum.TryParse<SystemTrigger>(config.Trigger, true, out var parsedTrigger) ?
+                          parsedTrigger :
+                          SystemTrigger.SceneChange;
+
+        return await ManageStateAttributeAsync
+        (
+            projectID,
+            ProjectContentAction.Update,
+            new StateAttributeDefinition
+            {
+                Name        = patch.Name        ?? attribute.Name,
+                DisplayName = patch.DisplayName ?? attribute.DisplayName,
+                Scope       = patch.Scope       ?? attribute.Scope,
+                CategoryID  = patch.CategoryID  ?? attribute.CategoryID,
+                ValueType   = patch.ValueType   ?? attribute.ValueType,
+                Driver      = patch.Driver      ?? attribute.Driver,
+                Numeric = patch.Numeric ?? new NumericStateDefinition
+                {
+                    Min         = config.Min,
+                    Max         = config.Max,
+                    Unit        = config.Unit,
+                    ChangeRules = config.ChangeRules
+                },
+                Enumeration = patch.Enumeration ?? new EnumStateDefinition
+                {
+                    Options     = config.Options ?? [],
+                    Trigger     = trigger,
+                    Transitions = config.Transitions ?? []
+                },
+                Phases = patch.Phases ?? config.Phases.Select
+                (phase => new PhaseDefinition
+                    {
+                        Name              = phase.Name,
+                        Expression        = phase.Expression,
+                        KnowledgeEntryIDs = [.. phase.KnowledgeIDs],
+                        KnowledgeGroupIDs = [.. phase.KnowledgeGroupIDs],
+                        EnterDirectives   = [.. phase.EnterDirectives],
+                        ExitDirectives    = [.. phase.ExitDirectives]
+                    }
+                ).ToList()
+            },
+            attributeID,
+            cancellationToken
+        );
     }
 
     private async Task<KnowledgeGroup> DeleteKnowledgeGroupAsync(long projectID, long groupID, CancellationToken cancellationToken) =>

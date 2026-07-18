@@ -1,6 +1,6 @@
 using DirectorPrompt.Domain.Models;
 
-namespace DirectorPrompt.Services;
+namespace DirectorPrompt.Domain.Services;
 
 public interface IProjectContentService
 {
@@ -26,6 +26,13 @@ public interface IProjectContentService
 
     Task<Project> UpdateProjectAsync(Project project, CancellationToken cancellationToken = default);
 
+    Task<Project> PatchProjectAsync
+    (
+        long              projectID,
+        ProjectPatch      patch,
+        CancellationToken cancellationToken = default
+    );
+
     Task<ProjectDeleteSummary> DeleteProjectAsync(long projectID, CancellationToken cancellationToken = default);
 
     Task<KnowledgeGroup> ManageKnowledgeGroupAsync
@@ -37,6 +44,14 @@ public interface IProjectContentService
         CancellationToken    cancellationToken = default
     );
 
+    Task<KnowledgeGroup> PatchKnowledgeGroupAsync
+    (
+        long                projectID,
+        long                groupID,
+        KnowledgeGroupPatch patch,
+        CancellationToken   cancellationToken = default
+    );
+
     Task<KnowledgeEntry> ManageKnowledgeEntryAsync
     (
         long                 projectID,
@@ -44,6 +59,14 @@ public interface IProjectContentService
         KnowledgeEntry?      entry,
         long?                entryID,
         CancellationToken    cancellationToken = default
+    );
+
+    Task<KnowledgeEntry> PatchKnowledgeEntryAsync
+    (
+        long                projectID,
+        long                entryID,
+        KnowledgeEntryPatch patch,
+        CancellationToken   cancellationToken = default
     );
 
     Task<CharacterCategory> ManageCharacterCategoryAsync
@@ -55,6 +78,14 @@ public interface IProjectContentService
         CancellationToken    cancellationToken = default
     );
 
+    Task<CharacterCategory> PatchCharacterCategoryAsync
+    (
+        long                   projectID,
+        long                   categoryID,
+        CharacterCategoryPatch patch,
+        CancellationToken      cancellationToken = default
+    );
+
     Task<StateAttribute> ManageStateAttributeAsync
     (
         long                      projectID,
@@ -62,5 +93,13 @@ public interface IProjectContentService
         StateAttributeDefinition? definition,
         long?                     attributeID,
         CancellationToken         cancellationToken = default
+    );
+
+    Task<StateAttribute> PatchStateAttributeAsync
+    (
+        long                projectID,
+        long                attributeID,
+        StateAttributePatch patch,
+        CancellationToken   cancellationToken = default
     );
 }

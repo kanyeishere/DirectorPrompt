@@ -1,11 +1,14 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 using Serilog;
 
-namespace DirectorPrompt.MCP;
+namespace DirectorPrompt.Agents.MCP;
 
 public sealed class DirectorPromptMCPHostedService
 (
@@ -13,6 +16,8 @@ public sealed class DirectorPromptMCPHostedService
 ) : IHostedService, IAsyncDisposable, IDirectorPromptMCPStatus
 {
     private const string ENDPOINT = "http://127.0.0.1:33145/mcp";
+
+    private const string RATE_LIMITER_POLICY = "mcp";
 
     private WebApplication? application;
 
@@ -28,6 +33,22 @@ public sealed class DirectorPromptMCPHostedService
         builder.Logging.ClearProviders();
         builder.WebHost.UseSetting("urls", "http://127.0.0.1:33145");
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(3));
+        builder.Services.AddRateLimiter
+        (options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.AddConcurrencyLimiter
+                (
+                    RATE_LIMITER_POLICY,
+                    limiterOptions =>
+                    {
+                        limiterOptions.PermitLimit          = 16;
+                        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                        limiterOptions.QueueLimit           = 64;
+                    }
+                );
+            }
+        );
         builder.Services.AddMcpServer
                (options => options.ServerInfo = new Implementation
                    {
@@ -39,7 +60,8 @@ public sealed class DirectorPromptMCPHostedService
                .WithTools(projectTools);
 
         var created = builder.Build();
-        created.MapMcp("/mcp");
+        created.UseRateLimiter();
+        created.MapMcp("/mcp").RequireRateLimiting(RATE_LIMITER_POLICY);
 
         try
         {

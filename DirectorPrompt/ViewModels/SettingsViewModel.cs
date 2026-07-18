@@ -7,7 +7,6 @@ using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Services;
 using DirectorPrompt.Localization;
-using DirectorPrompt.MCP;
 using Serilog;
 
 namespace DirectorPrompt.ViewModels;

@@ -1,8 +1,6 @@
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
-using DirectorPrompt.Domain.Models;
-
-namespace DirectorPrompt.Services;
+namespace DirectorPrompt.Domain.Models;
 
 public enum ProjectContentAction
 {

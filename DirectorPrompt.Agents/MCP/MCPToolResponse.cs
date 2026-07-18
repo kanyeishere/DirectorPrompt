@@ -1,9 +1,10 @@
-namespace DirectorPrompt.MCP;
+namespace DirectorPrompt.Agents.MCP;
 
 public sealed record MCPToolResponse
 (
     int     SchemaVersion,
     bool    Success,
     object? Data,
-    string? Error = null
+    string? Error = null,
+    string? ErrorCode = null
 );

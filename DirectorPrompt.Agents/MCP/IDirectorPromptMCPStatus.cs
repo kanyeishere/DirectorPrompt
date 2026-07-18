@@ -1,4 +1,4 @@
-namespace DirectorPrompt.MCP;
+namespace DirectorPrompt.Agents.MCP;
 
 public interface IDirectorPromptMCPStatus
 {
