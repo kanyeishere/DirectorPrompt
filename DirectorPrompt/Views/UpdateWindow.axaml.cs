@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
@@ -69,4 +70,10 @@ public partial class UpdateWindow : FAAppWindow
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) =>
         closeCompletion?.TrySetResult();
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        closeCompletion?.TrySetResult();
+    }
 }

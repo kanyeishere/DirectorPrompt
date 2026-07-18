@@ -71,7 +71,7 @@ internal class UpdateOrchestrator
 
             var message = $"{Loc.Get("Update.FailedMessage", GetUpdateFailureMessage(ex))}{Environment.NewLine}{Environment.NewLine}{Loc.Get("Update.FailedHint")}";
 
-            return (true, message);
+            return (false, message);
         }
     }
 
