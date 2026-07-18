@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using LiveMarkdown.Avalonia;
 using Markdig.Syntax;
 
@@ -19,11 +18,11 @@ public sealed partial class LiveMarkdownView : UserControl
     public static readonly StyledProperty<MarkdownDocument?> MarkdownDocumentProperty =
         AvaloniaProperty.Register<LiveMarkdownView, MarkdownDocument?>(nameof(MarkdownDocument));
 
-    private string renderedMarkdown = string.Empty;
-    private string queuedMarkdown = string.Empty;
-    private bool   updateScheduled;
-    private IDisposable? fallbackRelease;
-    private readonly TextBlock       fallbackText;
+    private          string           renderedMarkdown = string.Empty;
+    private          string           queuedMarkdown   = string.Empty;
+    private          bool             updateScheduled;
+    private          IDisposable?     fallbackRelease;
+    private readonly TextBlock        fallbackText;
     private readonly MarkdownRenderer renderer;
 
     public string Markdown
@@ -46,24 +45,25 @@ public sealed partial class LiveMarkdownView : UserControl
 
     internal ObservableStringBuilder MarkdownBuilder { get; } = new();
 
-    internal bool IsRenderCurrent => string.Equals(Markdown ?? string.Empty, renderedMarkdown, StringComparison.Ordinal);
+    internal bool IsRenderCurrent =>
+        string.Equals(Markdown ?? string.Empty, renderedMarkdown, StringComparison.Ordinal);
 
     static LiveMarkdownView()
     {
-        MarkdownProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.RefreshMarkdown());
-        IsStreamingProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.RefreshMarkdown());
+        MarkdownProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view,         _) => view.RefreshMarkdown());
+        IsStreamingProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view,      _) => view.RefreshMarkdown());
         MarkdownDocumentProperty.Changed.AddClassHandler<LiveMarkdownView>(static (view, _) => view.RefreshMarkdown());
     }
 
     public LiveMarkdownView()
     {
         AvaloniaXamlLoader.Load(this);
-        fallbackText = this.FindControl<TextBlock>(nameof(FallbackText))!;
-        renderer     = this.FindControl<MarkdownRenderer>(nameof(Renderer))!;
-        renderer.MarkdownBuilder = MarkdownBuilder;
-        renderer.Rendered += OnRendererRendered;
+        fallbackText             =  this.FindControl<TextBlock>(nameof(FallbackText));
+        renderer                 =  this.FindControl<MarkdownRenderer>(nameof(Renderer));
+        renderer.MarkdownBuilder =  MarkdownBuilder;
+        renderer.Rendered        += OnRendererRendered;
         EffectiveViewportChanged += OnEffectiveViewportChanged;
-        DetachedFromVisualTree += OnDetachedFromVisualTree;
+        DetachedFromVisualTree   += OnDetachedFromVisualTree;
     }
 
     private void RefreshMarkdown()
@@ -80,13 +80,13 @@ public sealed partial class LiveMarkdownView : UserControl
     private void ShowMarkdownDocument()
     {
         fallbackRelease?.Dispose();
-        fallbackRelease        = null;
-        fallbackText.Text      = string.Empty;
-        fallbackText.IsVisible = false;
-        queuedMarkdown         = Markdown ?? string.Empty;
-        renderedMarkdown       = queuedMarkdown;
+        fallbackRelease           = null;
+        fallbackText.Text         = string.Empty;
+        fallbackText.IsVisible    = false;
+        queuedMarkdown            = Markdown ?? string.Empty;
+        renderedMarkdown          = queuedMarkdown;
         renderer.MarkdownDocument = MarkdownDocument;
-        renderer.IsVisible     = true;
+        renderer.IsVisible        = true;
     }
 
     private void ScheduleMarkdownUpdate()
@@ -150,11 +150,11 @@ public sealed partial class LiveMarkdownView : UserControl
     private void ShowFallback(string markdown)
     {
         fallbackRelease?.Dispose();
-        fallbackRelease       = null;
-        fallbackText.Text    = markdown;
+        fallbackRelease        = null;
+        fallbackText.Text      = markdown;
         fallbackText.IsVisible = true;
-        fallbackText.Opacity = 1;
-        renderer.IsVisible   = false;
+        fallbackText.Opacity   = 1;
+        renderer.IsVisible     = false;
     }
 
     private void OnRendererRendered(object? sender, EventArgs e)
@@ -162,8 +162,8 @@ public sealed partial class LiveMarkdownView : UserControl
         if (!string.Equals(MarkdownBuilder.ToString(), queuedMarkdown, StringComparison.Ordinal))
             return;
 
-        fallbackText.Opacity   = 0;
-        renderer.IsVisible     = true;
+        fallbackText.Opacity = 0;
+        renderer.IsVisible   = true;
         ScheduleFallbackRelease();
     }
 

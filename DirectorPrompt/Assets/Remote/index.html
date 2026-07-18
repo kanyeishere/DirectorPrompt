@@ -5,7 +5,57 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <title>DirectorPrompt</title>
     <style>
-        html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#111;color-scheme:dark;touch-action:none}canvas{display:block;width:100%;height:100%;object-fit:contain;outline:0;touch-action:none}textarea{position:fixed;left:0;top:0;width:1px;height:1px;opacity:.01;border:0;padding:0}#keyboardButton{display:none;position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(76px,calc(env(safe-area-inset-bottom) + 76px));width:48px;height:48px;border:1px solid #777;border-radius:50%;background:#292929;color:#fff;font-size:22px;line-height:1;box-shadow:0 2px 8px #0008}@media(pointer:coarse){#keyboardButton{display:block}}
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: #111;
+            color-scheme: dark;
+            touch-action: none
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            outline: 0;
+            touch-action: none
+        }
+
+        textarea {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 1px;
+            height: 1px;
+            opacity: .01;
+            border: 0;
+            padding: 0
+        }
+
+        #keyboardButton {
+            display: none;
+            position: fixed;
+            right: max(12px, env(safe-area-inset-right));
+            bottom: max(76px, calc(env(safe-area-inset-bottom) + 76px));
+            width: 48px;
+            height: 48px;
+            border: 1px solid #777;
+            border-radius: 50%;
+            background: #292929;
+            color: #fff;
+            font-size: 22px;
+            line-height: 1;
+            box-shadow: 0 2px 8px #0008
+        }
+
+        @media (pointer: coarse) {
+            #keyboardButton {
+                display: block
+            }
+        }
     </style>
 </head>
 <body>
@@ -13,178 +63,193 @@
 <textarea id="keyboard" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
 <button id="keyboardButton" type="button" title="键盘" aria-label="键盘">⌨</button>
 <script>
-const canvas=document.getElementById('screen');
-const keyboard=document.getElementById('keyboard');
-const keyboardButton=document.getElementById('keyboardButton');
-const context=canvas.getContext('2d');
-let socket;
-let frame;
-let renderedFrame;
-let buttons=0;
-let touch;
-let composing=false;
-let deviceScale=1;
+    const canvas = document.getElementById('screen');
+    const keyboard = document.getElementById('keyboard');
+    const keyboardButton = document.getElementById('keyboardButton');
+    const context = canvas.getContext('2d');
+    let socket;
+    let frame;
+    let renderedFrame;
+    let buttons = 0;
+    let touch;
+    let composing = false;
+    let deviceScale = 1;
 
-function connect(){
-    socket=new WebSocket(`ws://${location.host}/remote`);
-    socket.binaryType='arraybuffer';
-    socket.onopen=()=>resize();
-    socket.onclose=()=>setTimeout(connect,1000);
-    socket.onmessage=async event=>{
-        if(typeof event.data==='string'){
-            const parts=event.data.split(':');
-            if(parts[0]==='frame'){
-                frame={sequence:parts[1],width:+parts[2],height:+parts[3],stride:+parts[4],dpiX:+parts[5],dpiY:+parts[6],compression:parts[7]||'raw'};
+    function connect() {
+        socket = new WebSocket(`ws://${location.host}/remote`);
+        socket.binaryType = 'arraybuffer';
+        socket.onopen = () => resize();
+        socket.onclose = () => setTimeout(connect, 1000);
+        socket.onmessage = async event => {
+            if (typeof event.data === 'string') {
+                const parts = event.data.split(':');
+                if (parts[0] === 'frame') {
+                    frame = {
+                        sequence: parts[1],
+                        width: +parts[2],
+                        height: +parts[3],
+                        stride: +parts[4],
+                        dpiX: +parts[5],
+                        dpiY: +parts[6],
+                        compression: parts[7] || 'raw'
+                    };
+                }
+                return;
             }
+            if (!frame) return;
+            const currentFrame = frame;
+            frame = null;
+            renderedFrame = currentFrame;
+            const bytes = await decodeFrame(event.data, currentFrame.compression);
+            const pixels = toPixels(bytes, currentFrame);
+            canvas.width = currentFrame.width;
+            canvas.height = currentFrame.height;
+            context.putImageData(new ImageData(pixels, currentFrame.width, currentFrame.height), 0, 0);
+            send(`frame-received:${currentFrame.sequence}`);
+        };
+    }
+
+    async function decodeFrame(data, compression) {
+        if (compression !== 'gzip') return new Uint8Array(data);
+        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip'));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    function toPixels(bytes, currentFrame) {
+        const rowSize = currentFrame.width * 4;
+        if (currentFrame.stride === rowSize) return new Uint8ClampedArray(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const pixels = new Uint8ClampedArray(rowSize * currentFrame.height);
+        for (let row = 0; row < currentFrame.height; row++) {
+            pixels.set(bytes.subarray(row * currentFrame.stride, row * currentFrame.stride + rowSize), row * rowSize);
+        }
+        return pixels;
+    }
+
+    function send(message) {
+        if (socket?.readyState === WebSocket.OPEN) socket.send(message);
+    }
+
+    function modifiers(event) {
+        const values = [];
+        if (event.altKey) values.push('Alt');
+        if (event.ctrlKey) values.push('Control');
+        if (event.shiftKey) values.push('Shift');
+        if (event.metaKey) values.push('Windows');
+        if (buttons & 1) values.push('LeftMouseButton');
+        if (buttons & 2) values.push('RightMouseButton');
+        if (buttons & 4) values.push('MiddleMouseButton');
+        return values.join(',');
+    }
+
+    function point(event) {
+        const rect = canvas.getBoundingClientRect();
+        const currentFrame = renderedFrame;
+        const scale = currentFrame?.dpiX > 0 ? currentFrame.dpiX / 96 : deviceScale;
+        const logicalWidth = currentFrame?.width > 0 ? currentFrame.width / scale : innerWidth;
+        const logicalHeight = currentFrame?.height > 0 ? currentFrame.height / scale : innerHeight;
+        const contentScale = Math.min(rect.width / logicalWidth, rect.height / logicalHeight);
+        const contentWidth = logicalWidth * contentScale;
+        const contentHeight = logicalHeight * contentScale;
+        const contentLeft = rect.left + (rect.width - contentWidth) / 2;
+        const contentTop = rect.top + (rect.height - contentHeight) / 2;
+        const x = (event.clientX - contentLeft) / contentScale;
+        const y = (event.clientY - contentTop) / contentScale;
+        return [Math.max(0, Math.min(logicalWidth, x)), Math.max(0, Math.min(logicalHeight, y))];
+    }
+
+    function button(value) {
+        return value === 0 ? 'Left' : value === 1 ? 'Middle' : value === 2 ? 'Right' : 'None';
+    }
+
+    function pointerMessage(kind, event) {
+        const [x, y] = point(event);
+        send(`${kind}:${modifiers(event)}:${x}:${y}:${button(event.button)}`);
+    }
+
+    canvas.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'touch') {
+            canvas.setPointerCapture(event.pointerId);
+            touch = {
+                pointerId: event.pointerId,
+                startX: event.clientX,
+                startY: event.clientY,
+                lastX: event.clientX,
+                lastY: event.clientY,
+                moved: false
+            };
             return;
         }
-        if(!frame)return;
-        const currentFrame=frame;
-        frame=null;
-        renderedFrame=currentFrame;
-        const bytes=await decodeFrame(event.data,currentFrame.compression);
-        const pixels=toPixels(bytes,currentFrame);
-        canvas.width=currentFrame.width;
-        canvas.height=currentFrame.height;
-        context.putImageData(new ImageData(pixels,currentFrame.width,currentFrame.height),0,0);
-        send(`frame-received:${currentFrame.sequence}`);
-    };
-}
-
-async function decodeFrame(data,compression){
-    if(compression!=='gzip')return new Uint8Array(data);
-    const stream=new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip'));
-    return new Uint8Array(await new Response(stream).arrayBuffer());
-}
-
-function toPixels(bytes,currentFrame){
-    const rowSize=currentFrame.width*4;
-    if(currentFrame.stride===rowSize)return new Uint8ClampedArray(bytes.buffer,bytes.byteOffset,bytes.byteLength);
-    const pixels=new Uint8ClampedArray(rowSize*currentFrame.height);
-    for(let row=0;row<currentFrame.height;row++){
-        pixels.set(bytes.subarray(row*currentFrame.stride,row*currentFrame.stride+rowSize),row*rowSize);
-    }
-    return pixels;
-}
-
-function send(message){
-    if(socket?.readyState===WebSocket.OPEN)socket.send(message);
-}
-
-function modifiers(event){
-    const values=[];
-    if(event.altKey)values.push('Alt');
-    if(event.ctrlKey)values.push('Control');
-    if(event.shiftKey)values.push('Shift');
-    if(event.metaKey)values.push('Windows');
-    if(buttons&1)values.push('LeftMouseButton');
-    if(buttons&2)values.push('RightMouseButton');
-    if(buttons&4)values.push('MiddleMouseButton');
-    return values.join(',');
-}
-
-function point(event){
-    const rect=canvas.getBoundingClientRect();
-    const currentFrame=renderedFrame;
-    const scale=currentFrame?.dpiX>0?currentFrame.dpiX/96:deviceScale;
-    const logicalWidth=currentFrame?.width>0?currentFrame.width/scale:innerWidth;
-    const logicalHeight=currentFrame?.height>0?currentFrame.height/scale:innerHeight;
-    const contentScale=Math.min(rect.width/logicalWidth,rect.height/logicalHeight);
-    const contentWidth=logicalWidth*contentScale;
-    const contentHeight=logicalHeight*contentScale;
-    const contentLeft=rect.left+(rect.width-contentWidth)/2;
-    const contentTop=rect.top+(rect.height-contentHeight)/2;
-    const x=(event.clientX-contentLeft)/contentScale;
-    const y=(event.clientY-contentTop)/contentScale;
-    return [Math.max(0,Math.min(logicalWidth,x)),Math.max(0,Math.min(logicalHeight,y))];
-}
-
-function button(value){
-    return value===0?'Left':value===1?'Middle':value===2?'Right':'None';
-}
-
-function pointerMessage(kind,event){
-    const [x,y]=point(event);
-    send(`${kind}:${modifiers(event)}:${x}:${y}:${button(event.button)}`);
-}
-
-canvas.addEventListener('pointerdown',event=>{
-    if(event.pointerType==='touch'){
+        buttons = event.buttons;
         canvas.setPointerCapture(event.pointerId);
-        touch={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,lastX:event.clientX,lastY:event.clientY,moved:false};
-        return;
-    }
-    buttons=event.buttons;
-    canvas.setPointerCapture(event.pointerId);
-    pointerMessage('pointer-pressed',event);
-    keyboard.focus({preventScroll:true});
-});
-canvas.addEventListener('pointermove',event=>{
-    if(event.pointerType==='touch'&&touch?.pointerId===event.pointerId){
-        const dx=event.clientX-touch.lastX;
-        const dy=event.clientY-touch.lastY;
-        if(Math.hypot(event.clientX-touch.startX,event.clientY-touch.startY)>6)touch.moved=true;
-        if(touch.moved){
-            const [x,y]=point(event);
-            send(`scroll::${x}:${y}:${dx/30}:${dy/30}`);
+        pointerMessage('pointer-pressed', event);
+        keyboard.focus({preventScroll: true});
+    });
+    canvas.addEventListener('pointermove', event => {
+        if (event.pointerType === 'touch' && touch?.pointerId === event.pointerId) {
+            const dx = event.clientX - touch.lastX;
+            const dy = event.clientY - touch.lastY;
+            if (Math.hypot(event.clientX - touch.startX, event.clientY - touch.startY) > 6) touch.moved = true;
+            if (touch.moved) {
+                const [x, y] = point(event);
+                send(`scroll::${x}:${y}:${dx / 30}:${dy / 30}`);
+            }
+            touch.lastX = event.clientX;
+            touch.lastY = event.clientY;
+            return;
         }
-        touch.lastX=event.clientX;
-        touch.lastY=event.clientY;
-        return;
-    }
-    buttons=event.buttons;
-    const [x,y]=point(event);
-    send(`pointer-moved:${modifiers(event)}:${x}:${y}`);
-});
-canvas.addEventListener('pointerup',event=>{
-    if(event.pointerType==='touch'&&touch?.pointerId===event.pointerId){
-        if(!touch.moved){
-            const [x,y]=point(event);
-            send(`pointer-pressed::${x}:${y}:Left`);
-            send(`pointer-released::${x}:${y}:Left`);
+        buttons = event.buttons;
+        const [x, y] = point(event);
+        send(`pointer-moved:${modifiers(event)}:${x}:${y}`);
+    });
+    canvas.addEventListener('pointerup', event => {
+        if (event.pointerType === 'touch' && touch?.pointerId === event.pointerId) {
+            if (!touch.moved) {
+                const [x, y] = point(event);
+                send(`pointer-pressed::${x}:${y}:Left`);
+                send(`pointer-released::${x}:${y}:Left`);
+            }
+            touch = null;
+            return;
         }
-        touch=null;
-        return;
+        pointerMessage('pointer-released', event);
+        buttons = event.buttons;
+    });
+    canvas.addEventListener('wheel', event => {
+        event.preventDefault();
+        const [x, y] = point(event);
+        send(`scroll:${modifiers(event)}:${x}:${y}:${-event.deltaX / 100}:${-event.deltaY / 100}`);
+    }, {passive: false});
+    canvas.addEventListener('contextmenu', event => event.preventDefault());
+    canvas.addEventListener('pointercancel', () => touch = null);
+    keyboardButton.addEventListener('click', () => keyboard.focus({preventScroll: true}));
+
+    keyboard.addEventListener('keydown', event => {
+        if (event.isComposing) return;
+        send(`key:down:${modifiers(event)}:${event.key}:${event.code}`);
+        if (event.key === 'Tab' || event.key.startsWith('Arrow') || event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter') event.preventDefault();
+    });
+    keyboard.addEventListener('keyup', event => {
+        if (!event.isComposing) send(`key:up:${modifiers(event)}:${event.key}:${event.code}`);
+    });
+    keyboard.addEventListener('compositionstart', () => composing = true);
+    keyboard.addEventListener('compositionend', event => {
+        composing = false;
+        if (event.data) send(`text:${encodeURIComponent(event.data)}`);
+        keyboard.value = '';
+    });
+    keyboard.addEventListener('input', () => {
+        if (composing) return;
+        if (keyboard.value) send(`text:${encodeURIComponent(keyboard.value)}`);
+        keyboard.value = '';
+    });
+
+    function resize() {
+        deviceScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+        send(`resize:${Math.max(360, innerWidth)}:${Math.max(480, innerHeight)}:${deviceScale}`);
     }
-    pointerMessage('pointer-released',event);
-    buttons=event.buttons;
-});
-canvas.addEventListener('wheel',event=>{
-    event.preventDefault();
-    const [x,y]=point(event);
-    send(`scroll:${modifiers(event)}:${x}:${y}:${-event.deltaX/100}:${-event.deltaY/100}`);
-},{passive:false});
-canvas.addEventListener('contextmenu',event=>event.preventDefault());
-canvas.addEventListener('pointercancel',()=>touch=null);
-keyboardButton.addEventListener('click',()=>keyboard.focus({preventScroll:true}));
 
-keyboard.addEventListener('keydown',event=>{
-    if(event.isComposing)return;
-    send(`key:down:${modifiers(event)}:${event.key}:${event.code}`);
-    if(event.key==='Tab'||event.key.startsWith('Arrow')||event.key==='Backspace'||event.key==='Delete'||event.key==='Enter')event.preventDefault();
-});
-keyboard.addEventListener('keyup',event=>{
-    if(!event.isComposing)send(`key:up:${modifiers(event)}:${event.key}:${event.code}`);
-});
-keyboard.addEventListener('compositionstart',()=>composing=true);
-keyboard.addEventListener('compositionend',event=>{
-    composing=false;
-    if(event.data)send(`text:${encodeURIComponent(event.data)}`);
-    keyboard.value='';
-});
-keyboard.addEventListener('input',()=>{
-    if(composing)return;
-    if(keyboard.value)send(`text:${encodeURIComponent(keyboard.value)}`);
-    keyboard.value='';
-});
-
-function resize(){
-    deviceScale=Math.min(2,Math.max(1,window.devicePixelRatio||1));
-    send(`resize:${Math.max(360,innerWidth)}:${Math.max(480,innerHeight)}:${deviceScale}`);
-}
-
-addEventListener('resize',resize);
-connect();
+    addEventListener('resize', resize);
+    connect();
 </script>
 </body>
 </html>

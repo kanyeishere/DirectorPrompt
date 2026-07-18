@@ -13,7 +13,7 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
 
     private readonly Dictionary<string, Connection> connections = [];
-    private readonly SemaphoreSlim gate = new(1, 1);
+    private readonly SemaphoreSlim                  gate        = new(1, 1);
 
     public async Task<IReadOnlyList<AIFunction>> GetToolsAsync
     (
@@ -30,12 +30,11 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
 
             return connection.Tools
                              .Select
-                             (
-                                 tool => (AIFunction)new TimeoutMCPFunction
-                                 (
-                                     tool.WithName(CreateFunctionName(config.ID, tool.Name)),
-                                     config.DisplayName
-                                 )
+                             (tool => (AIFunction)new TimeoutMCPFunction
+                              (
+                                  tool.WithName(CreateFunctionName(config.ID, tool.Name)),
+                                  config.DisplayName
+                              )
                              )
                              .ToList();
         }
@@ -56,7 +55,7 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
         try
         {
             var connection = await GetConnectionAsync(config, refresh, cancellationToken);
-            var tools = connection.Tools.Select(tool => new MCPToolInfo(tool.Name, tool.Description ?? string.Empty)).ToList();
+            var tools      = connection.Tools.Select(tool => new MCPToolInfo(tool.Name, tool.Description ?? string.Empty)).ToList();
 
             return new MCPServerInspection(true, tools, null);
         }
@@ -107,7 +106,7 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
         try
         {
             if (connections.TryGetValue(config.ID, out var existing) &&
-                !refresh &&
+                !refresh                                             &&
                 existing.Fingerprint == fingerprint)
                 return existing;
 
@@ -128,7 +127,7 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
                              new McpClientOptions { InitializationTimeout = Timeout },
                              cancellationToken: timeout.Token
                          );
-                var tools = await client.ListToolsAsync(cancellationToken: timeout.Token);
+                var tools   = await client.ListToolsAsync(cancellationToken: timeout.Token);
                 var created = new Connection(fingerprint, client, tools.ToList());
 
                 connections[config.ID] = created;
@@ -155,10 +154,12 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
             (
                 new StdioClientTransportOptions
                 {
-                    Name                 = config.DisplayName,
-                    Command              = config.Command,
-                    Arguments            = config.Arguments,
-                    WorkingDirectory     = string.IsNullOrWhiteSpace(config.WorkingDirectory) ? null : config.WorkingDirectory,
+                    Name      = config.DisplayName,
+                    Command   = config.Command,
+                    Arguments = config.Arguments,
+                    WorkingDirectory = string.IsNullOrWhiteSpace(config.WorkingDirectory) ?
+                                           null :
+                                           config.WorkingDirectory,
                     EnvironmentVariables = config.Environment.ToDictionary(pair => pair.Key, pair => (string?)pair.Value)
                 }
             ),
@@ -179,13 +180,20 @@ public sealed class ExternalMCPToolRegistry : IExternalMCPToolRegistry
     private static string CreateFunctionName(string serverID, string toolName)
     {
         var safeServerID = string.Concat(serverID.Take(8).Where(char.IsLetterOrDigit));
-        var safeToolName = string.Concat(toolName.Select(character => char.IsLetterOrDigit(character) ? character : '_'));
+        var safeToolName = string.Concat
+        (
+            toolName.Select
+            (character => char.IsLetterOrDigit(character) ?
+                              character :
+                              '_'
+            )
+        );
         var hash = Convert.ToHexString
-                   (
-                       SHA256.HashData(Encoding.UTF8.GetBytes($"{serverID}\0{toolName}"))
-                   )[..8]
-                   .ToLowerInvariant();
-        var prefix = $"mcp_{safeServerID}_";
+                          (
+                              SHA256.HashData(Encoding.UTF8.GetBytes($"{serverID}\0{toolName}"))
+                          )[..8]
+                          .ToLowerInvariant();
+        var prefix          = $"mcp_{safeServerID}_";
         var availableLength = Math.Max(1, 64 - prefix.Length - hash.Length - 1);
         var normalizedToolName = safeToolName.Length > availableLength ?
                                      safeToolName[..availableLength] :

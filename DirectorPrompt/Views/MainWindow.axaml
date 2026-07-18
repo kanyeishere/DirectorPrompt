@@ -212,30 +212,32 @@
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
 
                 <ToggleButton x:Name="MobileSessionsToggle"
-                               Grid.Column="0"
-                               Width="36"
-                               Height="36"
-                               Padding="0"
-                               Margin="0,0,8,0"
-                               Click="OnMobileSessionsToggleClick"
-                               ToolTip.Tip="{Binding [Navigation.Sessions], Source={x:Static loc:Loc.Instance}}">
+                              Grid.Column="0"
+                              Width="36"
+                              Height="36"
+                              Padding="0"
+                              Margin="0,0,8,0"
+                              Click="OnMobileSessionsToggleClick"
+                              ToolTip.Tip="{Binding [Navigation.Sessions], Source={x:Static loc:Loc.Instance}}">
                     <fa:FASymbolIcon Symbol="List" FontSize="18" />
                 </ToggleButton>
 
-                <StackPanel x:Name="ProjectActions" 
-                            Grid.Column="1" 
-                            Orientation="Horizontal" 
-                            Spacing="8" 
+                <StackPanel x:Name="ProjectActions"
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Left">
-                    
-                    <fa:FASymbolIcon Symbol="Folder" FontSize="16" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" VerticalAlignment="Center"/>
-                    
+
+                    <fa:FASymbolIcon Symbol="Folder" FontSize="16"
+                                     Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                     VerticalAlignment="Center" />
+
                     <TextBlock x:Name="ProjectLabel"
                                Text="{Binding [Navigation.Project], Source={x:Static loc:Loc.Instance}}"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center" />
-                    
+
                     <components:PathComboBox x:Name="ProjectComboBox"
                                              Width="220"
                                              ItemsSource="{Binding Projects}"
@@ -267,7 +269,7 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </components:PathComboBox>
-                    
+
                     <Button x:Name="EditProjectButton"
                             Command="{Binding EditProjectCommand}"
                             IsEnabled="{Binding CanInteractProject}"
@@ -277,7 +279,7 @@
                             ToolTip.Tip="{Binding [Navigation.EditProject], Source={x:Static loc:Loc.Instance}}">
                         <fa:FASymbolIcon Symbol="Edit" FontSize="15" />
                     </Button>
-                    
+
                     <Button x:Name="NewProjectButton"
                             Command="{Binding NewProjectCommand}"
                             IsEnabled="{Binding IsNotProcessing}"
@@ -287,7 +289,7 @@
                             ToolTip.Tip="{Binding [Navigation.NewProject], Source={x:Static loc:Loc.Instance}}">
                         <fa:FASymbolIcon Symbol="Add" FontSize="15" />
                     </Button>
-                    
+
                     <Button x:Name="ImportButton"
                             Click="OnImportButtonClick"
                             IsEnabled="{Binding IsNotProcessing}"
@@ -407,30 +409,30 @@
                                                       Click="OnDeleteSessionItem" />
                                         </MenuFlyout>
                                     </Border.ContextFlyout>
-                                    
+
                                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                                        <fa:FASymbolIcon Grid.Column="0" Grid.RowSpan="2" 
-                                                         Symbol="Message" 
-                                                         FontSize="16" 
-                                                         Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" 
-                                                         Margin="0,0,12,0" 
-                                                         VerticalAlignment="Center" 
+                                        <fa:FASymbolIcon Grid.Column="0" Grid.RowSpan="2"
+                                                         Symbol="Message"
+                                                         FontSize="16"
+                                                         Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                                         Margin="0,0,12,0"
+                                                         VerticalAlignment="Center"
                                                          IsHitTestVisible="False" />
-                                        
-                                        <TextBlock Grid.Column="1" Grid.Row="0" 
-                                                   Text="{Binding Title}" 
-                                                   FontWeight="SemiBold" 
-                                                   FontSize="13" 
-                                                   TextTrimming="CharacterEllipsis" 
-                                                   VerticalAlignment="Center" 
+
+                                        <TextBlock Grid.Column="1" Grid.Row="0"
+                                                   Text="{Binding Title}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="13"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"
                                                    IsHitTestVisible="False" />
-                                        
-                                        <TextBlock Grid.Column="1" Grid.Row="1" 
-                                                   Text="{Binding UpdatedAt, StringFormat={}{0:yyyy/MM/dd HH:mm}}" 
-                                                   FontSize="11" 
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" 
-                                                   Margin="0,2,0,0" 
-                                                   VerticalAlignment="Center" 
+
+                                        <TextBlock Grid.Column="1" Grid.Row="1"
+                                                   Text="{Binding UpdatedAt, StringFormat={}{0:yyyy/MM/dd HH:mm}}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   Margin="0,2,0,0"
+                                                   VerticalAlignment="Center"
                                                    IsHitTestVisible="False" />
                                     </Grid>
                                 </Border>
@@ -567,10 +569,10 @@
                                                        VerticalAlignment="Center" />
 
                                             <StackPanel Grid.Column="2"
-                                                Orientation="Horizontal"
-                                                Spacing="4"
-                                                VerticalAlignment="Center"
-                                                IsVisible="{Binding IsNarrative}">
+                                                        Orientation="Horizontal"
+                                                        Spacing="4"
+                                                        VerticalAlignment="Center"
+                                                        IsVisible="{Binding IsNarrative}">
                                                 <StackPanel Classes="message-actions"
                                                             Orientation="Horizontal"
                                                             Spacing="6"
@@ -650,7 +652,7 @@
                                                                            FontSize="11"
                                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                                            Margin="0,0,0,2" />
-                                                                 <components:LiveMarkdownView
+                                                                <components:LiveMarkdownView
                                                                     Markdown="{Binding Content}"
                                                                     MarkdownDocument="{Binding MarkdownDocument}" />
                                                             </StackPanel>
@@ -757,7 +759,8 @@
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Top" Margin="0,0,0,6">
                             <fa:FASymbolIcon Symbol="Flag" FontSize="16" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding [State.Panel.Title], Source={x:Static loc:Loc.Instance}}" FontSize="20" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding [State.Panel.Title], Source={x:Static loc:Loc.Instance}}"
+                                       FontSize="20" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,8,0,0">
@@ -765,8 +768,11 @@
                             <Expander IsExpanded="True" Margin="0,0,0,8">
                                 <Expander.Header>
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <fa:FASymbolIcon Symbol="Play" FontSize="14" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding [State.Panel.Title], Source={x:Static loc:Loc.Instance}}" FontWeight="SemiBold"/>
+                                        <fa:FASymbolIcon Symbol="Play" FontSize="14"
+                                                         Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                        <TextBlock
+                                            Text="{Binding [State.Panel.Title], Source={x:Static loc:Loc.Instance}}"
+                                            FontWeight="SemiBold" />
                                     </StackPanel>
                                 </Expander.Header>
                                 <StackPanel>
@@ -795,8 +801,11 @@
                             <Expander IsExpanded="True" Margin="0,0,0,8">
                                 <Expander.Header>
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <fa:FASymbolIcon Symbol="Message" FontSize="14" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding [Directive.Panel.Title], Source={x:Static loc:Loc.Instance}}" FontWeight="SemiBold"/>
+                                        <fa:FASymbolIcon Symbol="Message" FontSize="14"
+                                                         Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                        <TextBlock
+                                            Text="{Binding [Directive.Panel.Title], Source={x:Static loc:Loc.Instance}}"
+                                            FontWeight="SemiBold" />
                                     </StackPanel>
                                 </Expander.Header>
                                 <ItemsControl ItemsSource="{Binding DirectivesPanel.Directives}">
@@ -832,7 +841,8 @@
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Top" Margin="0,0,0,6">
                             <fa:FASymbolIcon Symbol="People" FontSize="16" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding [Character.Panel.Title], Source={x:Static loc:Loc.Instance}}" FontSize="20" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding [Character.Panel.Title], Source={x:Static loc:Loc.Instance}}"
+                                       FontSize="20" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0" RowDefinitions="Auto,Auto,*">
@@ -842,7 +852,8 @@
                                  PlaceholderText="{Binding [Character.Panel.SearchPlaceholder], Source={x:Static loc:Loc.Instance}}"
                                  Margin="0,0,0,6">
                             <TextBox.InnerLeftContent>
-                                <fa:FASymbolIcon Symbol="Find" FontSize="14" Margin="8,0,0,0" Foreground="Gray" VerticalAlignment="Center"/>
+                                <fa:FASymbolIcon Symbol="Find" FontSize="14" Margin="8,0,0,0" Foreground="Gray"
+                                                 VerticalAlignment="Center" />
                             </TextBox.InnerLeftContent>
                         </TextBox>
 
@@ -877,11 +888,11 @@
                                                                     Padding="{TemplateBinding Padding}">
                                                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                                                     <fa:FASymbolIcon Grid.Column="0"
-                                                                                     Symbol="ChevronRight"
-                                                                                     FontSize="12"
-                                                                                     Margin="0,0,8,0"
-                                                                                     VerticalAlignment="Center"
-                                                                                     Classes.expanded="{TemplateBinding IsChecked}"/>
+                                                                            Symbol="ChevronRight"
+                                                                            FontSize="12"
+                                                                            Margin="0,0,8,0"
+                                                                            VerticalAlignment="Center"
+                                                                            Classes.expanded="{TemplateBinding IsChecked}" />
                                                                     <TextBlock Grid.Column="1"
                                                                                Text="{Binding CategoryName}"
                                                                                FontWeight="SemiBold"
@@ -938,15 +949,19 @@
                                                                                 Cursor="Hand"
                                                                                 VerticalAlignment="Center">
                                                                             <ToggleButton.Template>
-                                                                                <ControlTemplate TargetType="ToggleButton">
-                                                                                    <fa:FASymbolIcon Symbol="ChevronRight"
-                                                                                                     FontSize="12"
-                                                                                                     Classes.expanded="{TemplateBinding IsChecked}"/>
+                                                                                <ControlTemplate
+                                                                                    TargetType="ToggleButton">
+                                                                                    <fa:FASymbolIcon
+                                                                                        Symbol="ChevronRight"
+                                                                                        FontSize="12"
+                                                                                        Classes.expanded="{TemplateBinding IsChecked}" />
                                                                                 </ControlTemplate>
                                                                             </ToggleButton.Template>
                                                                             <ToggleButton.Styles>
-                                                                                <Style Selector="fa|FASymbolIcon.expanded">
-                                                                                    <Setter Property="Symbol" Value="ChevronDown" />
+                                                                                <Style
+                                                                                    Selector="fa|FASymbolIcon.expanded">
+                                                                                    <Setter Property="Symbol"
+                                                                                        Value="ChevronDown" />
                                                                                 </Style>
                                                                             </ToggleButton.Styles>
                                                                         </ToggleButton>
@@ -1034,7 +1049,8 @@
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Top" Margin="0,0,0,6">
                             <fa:FASymbolIcon Symbol="Clock" FontSize="16" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding [Memory.Panel.Title], Source={x:Static loc:Loc.Instance}}" FontSize="20" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding [Memory.Panel.Title], Source={x:Static loc:Loc.Instance}}"
+                                       FontSize="20" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0" RowDefinitions="Auto,Auto,*">
@@ -1045,7 +1061,8 @@
                                  PlaceholderText="{Binding [Memory.Panel.SearchPlaceholder], Source={x:Static loc:Loc.Instance}}"
                                  Margin="0,0,0,6">
                             <TextBox.InnerLeftContent>
-                                <fa:FASymbolIcon Symbol="Find" FontSize="14" Margin="8,0,0,0" Foreground="Gray" VerticalAlignment="Center"/>
+                                <fa:FASymbolIcon Symbol="Find" FontSize="14" Margin="8,0,0,0" Foreground="Gray"
+                                                 VerticalAlignment="Center" />
                             </TextBox.InnerLeftContent>
                         </TextBox>
 
@@ -1095,11 +1112,11 @@
                                                                     Padding="{TemplateBinding Padding}">
                                                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                                                     <fa:FASymbolIcon Grid.Column="0"
-                                                                                     Symbol="ChevronRight"
-                                                                                     FontSize="12"
-                                                                                     Margin="0,0,8,0"
-                                                                                     VerticalAlignment="Center"
-                                                                                     Classes.expanded="{TemplateBinding IsChecked}"/>
+                                                                            Symbol="ChevronRight"
+                                                                            FontSize="12"
+                                                                            Margin="0,0,8,0"
+                                                                            VerticalAlignment="Center"
+                                                                            Classes.expanded="{TemplateBinding IsChecked}" />
                                                                     <TextBlock Grid.Column="1"
                                                                                Text="{Binding SceneLabel}"
                                                                                FontWeight="SemiBold"
@@ -1152,8 +1169,8 @@
                                                                                 VerticalAlignment="Center"
                                                                                 DockPanel.Dock="Left" />
                                                                             <StackPanel Orientation="Horizontal"
-                                                                                     HorizontalAlignment="Right"
-                                                                                     DockPanel.Dock="Right">
+                                                                                    HorizontalAlignment="Right"
+                                                                                    DockPanel.Dock="Right">
                                                                                 <Button
                                                                                     Padding="6,4"
                                                                                     Background="Transparent"
@@ -1162,7 +1179,8 @@
                                                                                     Click="OnEditMemory"
                                                                                     Tag="{Binding}"
                                                                                     ToolTip.Tip="{Binding [Common.Edit], Source={x:Static loc:Loc.Instance}}">
-                                                                                    <fa:FASymbolIcon Symbol="Edit" FontSize="12" />
+                                                                                    <fa:FASymbolIcon Symbol="Edit"
+                                                                                        FontSize="12" />
                                                                                 </Button>
                                                                                 <Button
                                                                                     Padding="6,4"
@@ -1172,7 +1190,8 @@
                                                                                     Click="OnDeleteMemory"
                                                                                     Tag="{Binding}"
                                                                                     ToolTip.Tip="{Binding [Common.Delete], Source={x:Static loc:Loc.Instance}}">
-                                                                                    <fa:FASymbolIcon Symbol="Delete" FontSize="12" />
+                                                                                    <fa:FASymbolIcon Symbol="Delete"
+                                                                                        FontSize="12" />
                                                                                 </Button>
                                                                             </StackPanel>
                                                                         </DockPanel>
@@ -1460,8 +1479,9 @@
                             IsEnabled="{Binding IsNotProcessing}">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <fa:FASymbolIcon Symbol="Import" FontSize="16" />
-                            <TextBlock Text="{Binding [Navigation.ImportDirectorPrompt], Source={x:Static loc:Loc.Instance}}"
-                                       VerticalAlignment="Center" />
+                            <TextBlock
+                                Text="{Binding [Navigation.ImportDirectorPrompt], Source={x:Static loc:Loc.Instance}}"
+                                VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                     <Button Classes="menu-item"
@@ -1469,8 +1489,9 @@
                             IsEnabled="{Binding IsNotProcessing}">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <fa:FASymbolIcon Symbol="Import" FontSize="16" />
-                            <TextBlock Text="{Binding [Navigation.ImportSillyTavern], Source={x:Static loc:Loc.Instance}}"
-                                       VerticalAlignment="Center" />
+                            <TextBlock
+                                Text="{Binding [Navigation.ImportSillyTavern], Source={x:Static loc:Loc.Instance}}"
+                                VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                 </StackPanel>

@@ -39,13 +39,10 @@ public partial class MessageRail : UserControl
         set => SetValue(TargetListBoxProperty, value);
     }
 
-    static MessageRail()
-    {
+    static MessageRail() =>
         TargetListBoxProperty.Changed.AddClassHandler<MessageRail>
-        (
-            static (rail, _) => rail.HookTargetScrollViewer()
+        (static (rail, _) => rail.HookTargetScrollViewer()
         );
-    }
 
     public MessageRail()
     {
@@ -95,8 +92,12 @@ public partial class MessageRail : UserControl
             return;
 
         var panel = TargetListBox.GetVisualDescendants().OfType<VirtualizingStackPanel>().FirstOrDefault();
-        var firstIndex = panel is { FirstRealizedIndex: >= 0 } ? panel.FirstRealizedIndex : 0;
-        var lastIndex = panel is { LastRealizedIndex: >= 0 } ? panel.LastRealizedIndex : items.Count - 1;
+        var firstIndex = panel is { FirstRealizedIndex: >= 0 } ?
+                             panel.FirstRealizedIndex :
+                             0;
+        var lastIndex = panel is { LastRealizedIndex: >= 0 } ?
+                            panel.LastRealizedIndex :
+                            items.Count - 1;
 
         object? topEntry    = null;
         var     targetIndex = -1;
@@ -122,7 +123,7 @@ public partial class MessageRail : UserControl
 
                     if (y <= 1 && y + height > 1)
                     {
-                        topEntry = item;
+                        topEntry    = item;
                         targetIndex = index;
                         break;
                     }
@@ -146,12 +147,10 @@ public partial class MessageRail : UserControl
             if (targetIndex >= 0 && items.Count > 1)
             {
                 double lastItemHeight = 80;
-                var lastContainer = TargetListBox.ContainerFromIndex(items.Count - 1);
+                var    lastContainer  = TargetListBox.ContainerFromIndex(items.Count - 1);
 
                 if (lastContainer is not null)
-                {
                     lastItemHeight = lastContainer.Bounds.Height;
-                }
 
                 var effectiveMaximum = targetScrollViewer.Extent.Height - Math.Max(targetScrollViewer.Viewport.Height, lastItemHeight);
                 var railMaximum      = Math.Max(0, railScrollViewer.Extent.Height - railScrollViewer.Viewport.Height);
@@ -216,7 +215,7 @@ public partial class MessageRail : UserControl
             return;
 
         var maximum = Math.Max(0, targetScrollViewer.Extent.Height - targetScrollViewer.Viewport.Height);
-        var offset = Math.Clamp(targetScrollViewer.Offset.Y + position.Value.Y, 0, maximum);
+        var offset  = Math.Clamp(targetScrollViewer.Offset.Y       + position.Value.Y, 0, maximum);
 
         targetScrollViewer.Offset = targetScrollViewer.Offset.WithY(offset);
     }

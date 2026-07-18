@@ -286,12 +286,10 @@ public class App : Application
         services.AddSingleton<MCPProjectTools>();
         services.AddSingleton<DirectorPromptMCPHostedService>();
         services.AddSingleton<IDirectorPromptMCPStatus>
-        (
-            serviceProvider => serviceProvider.GetRequiredService<DirectorPromptMCPHostedService>()
+        (serviceProvider => serviceProvider.GetRequiredService<DirectorPromptMCPHostedService>()
         );
         services.AddHostedService
-        (
-            serviceProvider => serviceProvider.GetRequiredService<DirectorPromptMCPHostedService>()
+        (serviceProvider => serviceProvider.GetRequiredService<DirectorPromptMCPHostedService>()
         );
         services.AddSingleton<IWindowService, WindowService>();
         services.AddSingleton<IFilePickerService, FilePickerService>();

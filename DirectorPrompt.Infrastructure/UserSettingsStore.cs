@@ -50,7 +50,7 @@ public sealed class UserSettingsStore : IUserSettingsStore
             !doc.RootElement.TryGetProperty("orchestrator", out orch))
             return false;
 
-        if (!orch.TryGetProperty("Providers", out _) &&
+        if (!orch.TryGetProperty("Providers", out _)        &&
             orch.TryGetProperty("Agents", out var agentsEl) &&
             agentsEl.ValueKind == JsonValueKind.Array)
         {
@@ -138,10 +138,10 @@ public sealed class UserSettingsStore : IUserSettingsStore
 
             var taskType = roleStr switch
             {
-                "Narrator" => AgentTaskType.Narrator,
+                "Narrator"          => AgentTaskType.Narrator,
                 "Memory" or "State" => AgentTaskType.MemoryUpdate,
-                "Scene" => AgentTaskType.Scene,
-                _ => (AgentTaskType?)null
+                "Scene"             => AgentTaskType.Scene,
+                _                   => (AgentTaskType?)null
             };
 
             if (taskType is { } activeTaskType)
@@ -224,8 +224,8 @@ public sealed class UserSettingsStore : IUserSettingsStore
         if (root is null)
             return false;
 
-        var orchestrator = root["Orchestrator"]?.AsObject() ?? root["orchestrator"]?.AsObject();
-        var tasks = orchestrator?["AgentTasks"]?.AsArray() ?? orchestrator?["agentTasks"]?.AsArray();
+        var orchestrator = root["Orchestrator"]?.AsObject()       ?? root["orchestrator"]?.AsObject();
+        var tasks        = orchestrator?["AgentTasks"]?.AsArray() ?? orchestrator?["agentTasks"]?.AsArray();
 
         if (tasks is null)
             return false;
@@ -234,7 +234,7 @@ public sealed class UserSettingsStore : IUserSettingsStore
 
         for (var index = tasks.Count - 1; index >= 0; index--)
         {
-            var task = tasks[index]?.AsObject();
+            var task     = tasks[index]?.AsObject();
             var taskType = task?["TaskType"]?.GetValue<string>() ?? task?["taskType"]?.GetValue<string>();
 
             if (taskType is not ("Knowledge" or "MemoryRecall"))

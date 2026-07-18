@@ -14,10 +14,10 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed partial class SettingsViewModel : ObservableObject
 {
-    private readonly IModelConnectionTester connectionTester;
-    private readonly ILocalizationService   localizationService;
-    private readonly UserSettings           userSettings;
-    private readonly IUserSettingsStore     userSettingsStore;
+    private readonly IModelConnectionTester   connectionTester;
+    private readonly ILocalizationService     localizationService;
+    private readonly UserSettings             userSettings;
+    private readonly IUserSettingsStore       userSettingsStore;
     private readonly IExternalMCPToolRegistry externalMCPToolRegistry;
     private readonly IDirectorPromptMCPStatus directorPromptMCPStatus;
 
@@ -66,22 +66,22 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel
     (
-        UserSettings           userSettings,
-        IModelConnectionTester connectionTester,
-        ILocalizationService   localizationService,
-        IUserSettingsStore     userSettingsStore,
+        UserSettings             userSettings,
+        IModelConnectionTester   connectionTester,
+        ILocalizationService     localizationService,
+        IUserSettingsStore       userSettingsStore,
         IExternalMCPToolRegistry externalMCPToolRegistry,
         IDirectorPromptMCPStatus directorPromptMCPStatus
     )
     {
-        this.connectionTester    = connectionTester;
-        this.localizationService = localizationService;
-        this.userSettings        = userSettings;
-        this.userSettingsStore   = userSettingsStore;
+        this.connectionTester        = connectionTester;
+        this.localizationService     = localizationService;
+        this.userSettings            = userSettings;
+        this.userSettingsStore       = userSettingsStore;
         this.externalMCPToolRegistry = externalMCPToolRegistry;
         this.directorPromptMCPStatus = directorPromptMCPStatus;
 
-        SelectedLanguage = userSettings.Localization.Language;
+        SelectedLanguage    = userSettings.Localization.Language;
         IsLanSharingEnabled = userSettings.RemoteControl.IsLanSharingEnabled;
 
         if (string.IsNullOrEmpty(SelectedLanguage))
@@ -108,14 +108,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         AgentTasks = new ObservableCollection<AgentTaskSettingViewModel>
         (
             userSettings.Orchestrator.AgentTasks.Select
-            (
-                task => new AgentTaskSettingViewModel(task, userSettings.MCPServers)
+            (task => new AgentTaskSettingViewModel(task, userSettings.MCPServers)
             )
         );
         Embedding = new EmbeddingSettingViewModel(userSettings.EmbeddingConfig);
         Memory    = new MemorySettingViewModel(userSettings.Orchestrator.MemoryConfig);
         Knowledge = new KnowledgeSettingViewModel(userSettings.Orchestrator.KnowledgeConfig);
-        _ = InitializeMCPServersAsync();
+        _         = InitializeMCPServersAsync();
     }
 
     private async Task InitializeMCPServersAsync()
@@ -125,9 +124,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         foreach (var server in MCPServers)
         {
             if (server.Enabled)
-            {
                 _ = RefreshMCPServerAsync(server);
-            }
         }
     }
 
@@ -195,28 +192,28 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void AddPrompt(object? parameter = null)
     {
-        string? presetType = parameter as string;
+        var presetType = parameter as string;
 
         var displayName = string.IsNullOrEmpty(presetType) ?
                               Loc.Get("Settings.Prompt.NewPromptDefaultName") :
                               presetType switch
                               {
-                                  "Narrator" => Loc.Get("Settings.Prompt.Preset.Narrator"),
+                                  "Narrator"     => Loc.Get("Settings.Prompt.Preset.Narrator"),
                                   "MemoryUpdate" => Loc.Get("Settings.Prompt.Preset.MemoryUpdate"),
-                                  "Scene" => Loc.Get("Settings.Prompt.Preset.Scene"),
+                                  "Scene"        => Loc.Get("Settings.Prompt.Preset.Scene"),
                                   "SceneSummary" => Loc.Get("Settings.Prompt.Preset.SceneSummary"),
-                                  _ => Loc.Get("Settings.Prompt.NewPromptDefaultName")
+                                  _              => Loc.Get("Settings.Prompt.NewPromptDefaultName")
                               };
 
         var content = string.IsNullOrEmpty(presetType) ?
                           string.Empty :
                           presetType switch
                           {
-                              "Narrator" => NarratorPrompt.SYSTEM,
+                              "Narrator"     => NarratorPrompt.SYSTEM,
                               "MemoryUpdate" => MemorySubAgentPrompt.UPDATE,
-                              "Scene" => SceneAgentPrompt.SYSTEM,
+                              "Scene"        => SceneAgentPrompt.SYSTEM,
                               "SceneSummary" => SceneSummaryPrompt.SYSTEM,
-                              _ => string.Empty
+                              _              => string.Empty
                           };
 
         var config = new PromptConfig
@@ -269,7 +266,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
 
         server.Apply();
-        server.IsTesting = true;
+        server.IsTesting         = true;
         server.InspectionMessage = "正在连接";
 
         try
@@ -277,11 +274,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             var inspection = await externalMCPToolRegistry.InspectAsync(server.Config, false);
             server.ConnectionStatus = inspection.IsAvailable;
             server.ToolNames.Clear();
+
             if (inspection.IsAvailable)
             {
                 foreach (var tool in inspection.Tools)
                     server.ToolNames.Add(tool);
             }
+
             server.InspectionMessage = inspection.IsAvailable ?
                                            $"连接成功, 发现 {inspection.Tools.Count} 个工具: {string.Join(", ", inspection.Tools.Select(t => t.Name))}" :
                                            $"连接失败: {inspection.ErrorMessage}";
@@ -299,7 +298,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
 
         server.Apply();
-        server.IsTesting = true;
+        server.IsTesting         = true;
         server.InspectionMessage = "正在刷新工具";
 
         try
@@ -307,11 +306,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             var inspection = await externalMCPToolRegistry.InspectAsync(server.Config, true);
             server.ConnectionStatus = inspection.IsAvailable;
             server.ToolNames.Clear();
+
             if (inspection.IsAvailable)
             {
                 foreach (var tool in inspection.Tools)
                     server.ToolNames.Add(tool);
             }
+
             server.InspectionMessage = inspection.IsAvailable ?
                                            $"已刷新, 发现 {inspection.Tools.Count} 个工具: {string.Join(", ", inspection.Tools.Select(t => t.Name))}" :
                                            $"刷新失败: {inspection.ErrorMessage}";
@@ -332,7 +333,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             foreach (var server in MCPServers)
                 server.Apply();
 
-            userSettings.Localization.Language = SelectedLanguage;
+            userSettings.Localization.Language             = SelectedLanguage;
             userSettings.RemoteControl.IsLanSharingEnabled = IsLanSharingEnabled;
 
             await userSettingsStore.SaveAsync(userSettings);

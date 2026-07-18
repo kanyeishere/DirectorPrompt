@@ -5,12 +5,15 @@ namespace DirectorPrompt.Agents;
 
 public static class ToolResult
 {
-    private sealed record ToolErrorPayload(string Error);
+    private sealed record ToolErrorPayload
+    (
+        string Error
+    );
 
     private sealed record ToolSuccessPayload
     (
-        bool             Success,
-        string?          Message = null
+        bool    Success,
+        string? Message = null
     );
 
     public static string Error(string message) =>

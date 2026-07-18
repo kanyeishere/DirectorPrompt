@@ -4,7 +4,6 @@ using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Repositories;
 using DirectorPrompt.Domain.Services;
-using Xunit;
 
 namespace DirectorPrompt.Tests;
 

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
 using DirectorPrompt.Localization;
@@ -16,9 +15,9 @@ public partial class ProjectEditWindow : FAAppWindow, IRemoteDialogOwner
 {
     private Action<bool>? remoteCloseAction;
 
-    private Grid             rootLayout        = null!;
-    private PathComboBox     remoteNavComboBox = null!;
-    private ListBox          navList           = null!;
+    private Grid         rootLayout        = null!;
+    private PathComboBox remoteNavComboBox = null!;
+    private ListBox      navList           = null!;
 
     public ProjectEditViewModel ViewModel { get; }
 
@@ -80,11 +79,11 @@ public partial class ProjectEditWindow : FAAppWindow, IRemoteDialogOwner
         if (sender is not ListBox { SelectedItem: ListBoxItem item })
             return;
 
-        var tag    = item.Tag as string;
+        var tag = item.Tag as string;
         if (sender is not Visual visual)
             return;
 
-        var root = TopLevel.GetTopLevel(visual);
+        var root = GetTopLevel(visual);
 
         if (root is null)
             return;

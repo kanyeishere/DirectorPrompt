@@ -12,8 +12,8 @@ public sealed class ProjectContentServiceTests
     public async Task ChangeBatchCoalescesNotificationsForSameProject()
     {
         await using var context = await DatabaseTestContext.CreateAsync();
-        var service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
-        var changes = new List<ProjectContentChange>();
+        var             service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
+        var             changes = new List<ProjectContentChange>();
         service.Changed += changes.Add;
 
         using (service.BeginChangeBatch())
@@ -31,25 +31,24 @@ public sealed class ProjectContentServiceTests
     public async Task UpdatingKnowledgeMetadataPreservesEmbeddingState()
     {
         await using var context = await DatabaseTestContext.CreateAsync();
-        var service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
+        var             service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
         var entry = await service.ManageKnowledgeEntryAsync
-        (
-            1,
-            ProjectContentAction.Create,
-            new KnowledgeEntry
-            {
-                ProjectID = 1,
-                Remarks = "原备注",
-                Content = "内容",
-                Keywords = ["关键字"],
-                Active = true
-            },
-            null
-        );
+                    (
+                        1,
+                        ProjectContentAction.Create,
+                        new KnowledgeEntry
+                        {
+                            ProjectID = 1,
+                            Remarks   = "原备注",
+                            Content   = "内容",
+                            Keywords  = ["关键字"],
+                            Active    = true
+                        },
+                        null
+                    );
 
         await context.Scheduler.ExecuteAsync
-        (
-            async (connection, token) =>
+        (async (connection, token) =>
             {
                 await using var command = connection.CreateCommand();
                 command.CommandText = """
@@ -71,15 +70,14 @@ public sealed class ProjectContentServiceTests
         );
 
         var contentHash = await context.Scheduler.ExecuteAsync
-        (
-            async (connection, token) =>
-            {
-                await using var command = connection.CreateCommand();
-                command.CommandText = "SELECT content_hash FROM knowledge_entries WHERE id = $id";
-                command.Parameters.AddWithValue("$id", entry.ID);
-                return (string?)await command.ExecuteScalarAsync(token);
-            }
-        );
+                          (async (connection, token) =>
+                              {
+                                  await using var command = connection.CreateCommand();
+                                  command.CommandText = "SELECT content_hash FROM knowledge_entries WHERE id = $id";
+                                  command.Parameters.AddWithValue("$id", entry.ID);
+                                  return (string?)await command.ExecuteScalarAsync(token);
+                              }
+                          );
 
         Assert.Equal("indexed", contentHash);
     }
@@ -88,53 +86,53 @@ public sealed class ProjectContentServiceTests
     public async Task DeletingKnowledgeGroupDeletesEntriesAndPhaseReferences()
     {
         await using var context = await DatabaseTestContext.CreateAsync();
-        var service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
+        var             service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
         var created = await service.CreateProjectAsync
-        (
-            "项目",
-            "设定",
-            "开场白",
-            new ProjectBlueprint
-            {
-                KnowledgeGroups =
-                [
-                    new KnowledgeGroupDefinition
-                    {
-                        Key = "lore",
-                        Name = "设定",
-                        Entries =
-                        [
-                            new KnowledgeEntryDefinition
-                            {
-                                Key = "entry",
-                                Remarks = "条目",
-                                Content = "内容"
-                            }
-                        ]
-                    }
-                ],
-                StateAttributes =
-                [
-                    new StateAttributeDefinition
-                    {
-                        Name = "progress",
-                        DisplayName = "进度",
-                        Numeric = new NumericStateDefinition(),
-                        Phases =
-                        [
-                            new PhaseDefinition
-                            {
-                                Name = "阶段",
-                                Expression = "{val} > 0",
-                                KnowledgeGroupKeys = ["lore"],
-                                KnowledgeEntryKeys = ["entry"]
-                            }
-                        ]
-                    }
-                ]
-            },
-            false
-        );
+                      (
+                          "项目",
+                          "设定",
+                          "开场白",
+                          new ProjectBlueprint
+                          {
+                              KnowledgeGroups =
+                              [
+                                  new KnowledgeGroupDefinition
+                                  {
+                                      Key  = "lore",
+                                      Name = "设定",
+                                      Entries =
+                                      [
+                                          new KnowledgeEntryDefinition
+                                          {
+                                              Key     = "entry",
+                                              Remarks = "条目",
+                                              Content = "内容"
+                                          }
+                                      ]
+                                  }
+                              ],
+                              StateAttributes =
+                              [
+                                  new StateAttributeDefinition
+                                  {
+                                      Name        = "progress",
+                                      DisplayName = "进度",
+                                      Numeric     = new NumericStateDefinition(),
+                                      Phases =
+                                      [
+                                          new PhaseDefinition
+                                          {
+                                              Name               = "阶段",
+                                              Expression         = "{val} > 0",
+                                              KnowledgeGroupKeys = ["lore"],
+                                              KnowledgeEntryKeys = ["entry"]
+                                          }
+                                      ]
+                                  }
+                              ]
+                          },
+                          false
+                      );
 
         await service.ManageKnowledgeGroupAsync
         (
@@ -156,50 +154,50 @@ public sealed class ProjectContentServiceTests
     public async Task DeletingStateAttributeRemovesDependentEnumTransitions()
     {
         await using var context = await DatabaseTestContext.CreateAsync();
-        var service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
+        var             service = new ProjectContentService(context.Scheduler, new ProjectRepository(context.Scheduler));
         var created = await service.CreateProjectAsync
-        (
-            "项目",
-            string.Empty,
-            string.Empty,
-            new ProjectBlueprint
-            {
-                StateAttributes =
-                [
-                    new StateAttributeDefinition
-                    {
-                        Name = "score",
-                        DisplayName = "分数",
-                        ValueType = StateValueType.Numeric,
-                        Driver = Driver.Narrative,
-                        Numeric = new NumericStateDefinition()
-                    },
-                    new StateAttributeDefinition
-                    {
-                        Name = "weather",
-                        DisplayName = "天气",
-                        ValueType = StateValueType.Enum,
-                        Enumeration = new EnumStateDefinition
-                        {
-                            Options = ["晴"],
-                            Transitions =
-                            [
-                                new EnumTransitionConfig
-                                {
-                                    Option = "晴",
-                                    AttributeName = "score",
-                                    Method = EnumTransitionMethod.Expression,
-                                    Expression = "{val} > 0"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            },
-            false
-        );
+                      (
+                          "项目",
+                          string.Empty,
+                          string.Empty,
+                          new ProjectBlueprint
+                          {
+                              StateAttributes =
+                              [
+                                  new StateAttributeDefinition
+                                  {
+                                      Name        = "score",
+                                      DisplayName = "分数",
+                                      ValueType   = StateValueType.Numeric,
+                                      Driver      = Driver.Narrative,
+                                      Numeric     = new NumericStateDefinition()
+                                  },
+                                  new StateAttributeDefinition
+                                  {
+                                      Name        = "weather",
+                                      DisplayName = "天气",
+                                      ValueType   = StateValueType.Enum,
+                                      Enumeration = new EnumStateDefinition
+                                      {
+                                          Options = ["晴"],
+                                          Transitions =
+                                          [
+                                              new EnumTransitionConfig
+                                              {
+                                                  Option        = "晴",
+                                                  AttributeName = "score",
+                                                  Method        = EnumTransitionMethod.Expression,
+                                                  Expression    = "{val} > 0"
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          },
+                          false
+                      );
         var snapshot = await service.GetProjectAsync(created.Project.ID);
-        var score = snapshot!.StateAttributes.Single(attribute => attribute.Name == "score");
+        var score    = snapshot!.StateAttributes.Single(attribute => attribute.Name == "score");
 
         await service.ManageStateAttributeAsync
         (

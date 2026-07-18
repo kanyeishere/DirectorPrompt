@@ -9,8 +9,8 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed class DialogEntryViewModel : INotifyPropertyChanged
 {
-    private string thinking     = string.Empty;
-    private string errorMessage = string.Empty;
+    private string            thinking     = string.Empty;
+    private string            errorMessage = string.Empty;
     private MarkdownDocument? markdownDocument;
 
     public long ID { get; init; }
@@ -32,7 +32,7 @@ public sealed class DialogEntryViewModel : INotifyPropertyChanged
         {
             if (field != value)
             {
-                field = value;
+                field            = value;
                 MarkdownDocument = null;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Content)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Preview)));

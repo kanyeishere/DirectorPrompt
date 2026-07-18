@@ -115,7 +115,7 @@ public sealed class SceneRepository
                                      summary                = scene.Summary,
                                      progressSummary        = scene.ProgressSummary,
                                      progressSummaryRoundID = scene.ProgressSummaryRoundID,
-                                      status                 = scene.Status.ToString()
+                                     status                 = scene.Status.ToString()
                                  },
                                  transaction,
                                  cancellationToken: token

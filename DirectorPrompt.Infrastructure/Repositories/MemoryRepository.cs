@@ -14,16 +14,16 @@ public sealed class MemoryRepository
     public Task<MemoryEntry?> GetByIDAsync(long id, CancellationToken cancellationToken = default) =>
         scheduler.ExecuteAsync
         (
-            async (connection, token) => 
+            async (connection, token) =>
                 await connection.QueryFirstOrDefaultAsync<MemoryEntry>
-                                         (
-                                             new CommandDefinition
-                                             (
-                                                 "SELECT * FROM memory_entries WHERE id = @id",
-                                                 new { id },
-                                                 cancellationToken: token
-                                             )
-                                         ),
+                (
+                    new CommandDefinition
+                    (
+                        "SELECT * FROM memory_entries WHERE id = @id",
+                        new { id },
+                        cancellationToken: token
+                    )
+                ),
             cancellationToken: cancellationToken
         );
 

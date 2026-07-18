@@ -1,11 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
+using Avalonia.Layout;
 using Avalonia.Media;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Localization;
-using DirectorPrompt.ViewModels;
 using DirectorPrompt.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,21 +12,21 @@ namespace DirectorPrompt.Services;
 
 public sealed class RemoteWindowService
 (
-    IServiceProvider   serviceProvider,
-    UserSettings       userSettings,
-    ILanSharingService lanSharingService,
+    IServiceProvider               serviceProvider,
+    UserSettings                   userSettings,
+    ILanSharingService             lanSharingService,
     IProjectEditWindowCoordinator? projectEditWindowCoordinator = null
 ) : IWindowService, IRemoteDialogHost
 {
     private readonly List<Control> openWindows = [];
 
-    private Panel? overlay;
+    private Panel?  overlay;
     private Canvas? popupLayer;
 
     public void Attach(Panel overlay, Canvas popupLayer)
     {
-        this.overlay   = overlay;
-        this.popupLayer = popupLayer;
+        this.overlay      = overlay;
+        this.popupLayer   = popupLayer;
         overlay.IsVisible = true;
         RemotePopupHost.Attach(popupLayer);
     }
@@ -59,10 +58,10 @@ public sealed class RemoteWindowService
         try
         {
             return await ShowWindowAsync<bool>
-            (
-                window,
-                completion => window.SetRemoteCloseAction(completion)
-            );
+                   (
+                       window,
+                       completion => window.SetRemoteCloseAction(completion)
+                   );
         }
         finally
         {
@@ -76,10 +75,10 @@ public sealed class RemoteWindowService
         window.RemoteDialogHost = this;
 
         var saved = await ShowWindowAsync<bool>
-        (
-            window,
-            completion => window.SetRemoteCloseAction(completion)
-        );
+                    (
+                        window,
+                        completion => window.SetRemoteCloseAction(completion)
+                    );
 
         if (!saved)
             return;
@@ -104,7 +103,7 @@ public sealed class RemoteWindowService
         string message,
         string primaryText,
         string secondaryText,
-        bool danger
+        bool   danger
     )
     {
         var dialog = new PromptDialog();
@@ -125,17 +124,16 @@ public sealed class RemoteWindowService
         string title,
         string prompt,
         string defaultValue,
-        bool multiline
+        bool   multiline
     )
     {
-        var dialog = new PromptDialog();
+        var dialog     = new PromptDialog();
         var completion = dialog.ShowRemoteInputAsync(title, prompt, defaultValue, multiline);
 
         return ShowPromptAsync(dialog, completion);
     }
 
-    private async Task ShowErrorAsync(string title, string message)
-    {
+    private async Task ShowErrorAsync(string title, string message) =>
         await ShowConfirmationAsync
         (
             title,
@@ -144,11 +142,10 @@ public sealed class RemoteWindowService
             string.Empty,
             false
         );
-    }
 
     private async Task<TResult> ShowWindowAsync<TResult>
     (
-        Window window,
+        Window                  window,
         Action<Action<TResult>> setCompletion
     )
     {
@@ -157,7 +154,7 @@ public sealed class RemoteWindowService
         else if (window is ProjectEditWindow projectEditWindow)
             projectEditWindow.UseRemoteLayout();
 
-        var content = DetachContent(window);
+        var content    = DetachContent(window);
         var completion = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         setCompletion(result => completion.TrySetResult(result));
@@ -176,12 +173,12 @@ public sealed class RemoteWindowService
 
     private async Task<TResult> ShowPromptAsync<TResult>
     (
-        PromptDialog dialog,
+        PromptDialog  dialog,
         Task<TResult> completion
     )
     {
         var content = DetachContent(dialog);
-        var modal = CreateModal(dialog, content);
+        var modal   = CreateModal(dialog, content);
         AddWindow(dialog, modal);
 
         try
@@ -199,7 +196,7 @@ public sealed class RemoteWindowService
         if (window.Content is not Control content)
             throw new InvalidOperationException($"{window.GetType().Name} 内容无法用于远程显示");
 
-        window.Content = null;
+        window.Content      = null;
         content.DataContext = window.DataContext;
         return content;
     }
@@ -208,8 +205,8 @@ public sealed class RemoteWindowService
     {
         var modal = new Grid
         {
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-            VerticalAlignment   = Avalonia.Layout.VerticalAlignment.Stretch
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment   = VerticalAlignment.Stretch
         };
         modal.Children.Add
         (
@@ -222,19 +219,19 @@ public sealed class RemoteWindowService
         var frame = new Border
         {
             Margin              = new Thickness(16),
-            Background           = new SolidColorBrush(Color.FromRgb(32, 32, 32)),
-            BorderBrush          = new SolidColorBrush(Color.FromRgb(92, 92, 92)),
-            BorderThickness      = new Thickness(1),
-            HorizontalAlignment  = Avalonia.Layout.HorizontalAlignment.Center,
-            VerticalAlignment    = Avalonia.Layout.VerticalAlignment.Center,
-            Child                = content
+            Background          = new SolidColorBrush(Color.FromRgb(32, 32, 32)),
+            BorderBrush         = new SolidColorBrush(Color.FromRgb(92, 92, 92)),
+            BorderThickness     = new Thickness(1),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment   = VerticalAlignment.Center,
+            Child               = content
         };
 
         if (window is SettingsWindow or ProjectEditWindow)
         {
-            frame.Margin             = new Thickness(8);
-            frame.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-            frame.VerticalAlignment   = Avalonia.Layout.VerticalAlignment.Stretch;
+            frame.Margin              = new Thickness(8);
+            frame.HorizontalAlignment = HorizontalAlignment.Stretch;
+            frame.VerticalAlignment   = VerticalAlignment.Stretch;
         }
         else
         {

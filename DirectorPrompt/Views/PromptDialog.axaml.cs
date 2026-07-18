@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -13,9 +12,9 @@ namespace DirectorPrompt.Views;
 
 public partial class PromptDialog : FAAppWindow
 {
-    private bool    isInputMode;
-    private bool    boolResult;
-    private string? stringResult;
+    private bool             isInputMode;
+    private bool             boolResult;
+    private string?          stringResult;
     private Action<object?>? remoteCompletion;
 
     private TextBlock Message => MessageText;
@@ -29,9 +28,9 @@ public partial class PromptDialog : FAAppWindow
     public PromptDialog()
     {
         AvaloniaXamlLoader.Load(this);
-        MessageText    = this.FindControl<TextBlock>(nameof(MessageText))!;
-        InputBox       = this.FindControl<TextBox>(nameof(InputBox))!;
-        PrimaryButton  = this.FindControl<Button>(nameof(PrimaryButton))!;
+        MessageText     = this.FindControl<TextBlock>(nameof(MessageText))!;
+        InputBox        = this.FindControl<TextBox>(nameof(InputBox))!;
+        PrimaryButton   = this.FindControl<Button>(nameof(PrimaryButton))!;
         SecondaryButton = this.FindControl<Button>(nameof(SecondaryButton))!;
     }
 
@@ -44,7 +43,7 @@ public partial class PromptDialog : FAAppWindow
         string message,
         string primaryText,
         string secondaryText,
-        bool danger
+        bool   danger
     )
     {
         Configure(title, message, primaryText, secondaryText, danger);
@@ -58,7 +57,7 @@ public partial class PromptDialog : FAAppWindow
         string title,
         string prompt,
         string defaultValue,
-        bool multiline
+        bool   multiline
     )
     {
         Configure(title, prompt, Loc.Get("Common.Save"), Loc.Get("Common.Cancel"), false);
@@ -68,9 +67,15 @@ public partial class PromptDialog : FAAppWindow
         Input.IsVisible       = true;
         Message.IsVisible     = false;
         Input.AcceptsReturn   = multiline;
-        Input.TextWrapping    = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap;
-        Input.MinHeight       = multiline ? 120 : 0;
-        Input.MaxHeight       = multiline ? 300 : double.PositiveInfinity;
+        Input.TextWrapping = multiline ?
+                                 TextWrapping.Wrap :
+                                 TextWrapping.NoWrap;
+        Input.MinHeight = multiline ?
+                              120 :
+                              0;
+        Input.MaxHeight = multiline ?
+                              300 :
+                              double.PositiveInfinity;
 
         var completion = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         remoteCompletion = result => completion.TrySetResult((string?)result);
@@ -118,17 +123,24 @@ public partial class PromptDialog : FAAppWindow
         if (remoteCompletion is { } completion)
         {
             remoteCompletion = null;
-            completion(isInputMode ? stringResult : boolResult);
+            completion
+            (
+                isInputMode ?
+                    stringResult :
+                    boolResult
+            );
             return;
         }
 
         if (Owner is not null)
+        {
             Close
             (
                 isInputMode ?
                     stringResult :
                     boolResult
             );
+        }
         else
             Close();
     }
@@ -158,14 +170,16 @@ public partial class PromptDialog : FAAppWindow
     )
     {
         if (owner is IRemoteDialogOwner { RemoteDialogHost: { } remoteDialogHost })
+        {
             return await remoteDialogHost.ShowConfirmationAsync
-            (
-                title,
-                message,
-                primaryText,
-                secondaryText,
-                danger
-            );
+                   (
+                       title,
+                       message,
+                       primaryText,
+                       secondaryText,
+                       danger
+                   );
+        }
 
         var dialog = new PromptDialog();
         dialog.Configure(title, message, primaryText, secondaryText, danger);

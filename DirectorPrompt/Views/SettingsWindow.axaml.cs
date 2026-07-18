@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
 using DirectorPrompt.Localization;
@@ -16,11 +15,11 @@ namespace DirectorPrompt.Views;
 public partial class SettingsWindow : FAAppWindow, IRemoteDialogOwner
 {
     private readonly SettingsViewModel viewModel;
-    private Action<bool>? remoteCloseAction;
+    private          Action<bool>?     remoteCloseAction;
 
-    private Grid             rootLayout        = null!;
-    private PathComboBox     remoteNavComboBox = null!;
-    private ListBox          navList           = null!;
+    private Grid         rootLayout        = null!;
+    private PathComboBox remoteNavComboBox = null!;
+    private ListBox      navList           = null!;
 
     public IRemoteDialogHost? RemoteDialogHost { get; set; }
 
@@ -77,11 +76,11 @@ public partial class SettingsWindow : FAAppWindow, IRemoteDialogOwner
         if (sender is not ListBox { SelectedItem: ListBoxItem item })
             return;
 
-        var tag    = item.Tag as string;
+        var tag = item.Tag as string;
         if (sender is not Visual visual)
             return;
 
-        var root = TopLevel.GetTopLevel(visual);
+        var root = GetTopLevel(visual);
 
         if (root is null)
             return;
@@ -152,7 +151,8 @@ public partial class SettingsWindow : FAAppWindow, IRemoteDialogOwner
 
     private async void OnCopyInternalEndpoint(object sender, RoutedEventArgs e)
     {
-        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        var clipboard = GetTopLevel(this)?.Clipboard;
+
         if (clipboard is not null)
         {
             var transfer = new DataTransfer();

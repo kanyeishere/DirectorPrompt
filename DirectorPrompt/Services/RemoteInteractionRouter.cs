@@ -5,17 +5,15 @@ public sealed class RemoteInteractionRouter
     private IWindowService? remoteWindowService;
     private long            activeInteractionID;
 
-    public void Attach(IWindowService windowService)
-    {
+    public void Attach(IWindowService windowService) =>
         remoteWindowService = windowService;
-    }
 
     public void Detach(IWindowService? windowService)
     {
         if (!ReferenceEquals(remoteWindowService, windowService))
             return;
 
-        remoteWindowService  = null;
+        remoteWindowService = null;
         activeInteractionID = 0;
     }
 

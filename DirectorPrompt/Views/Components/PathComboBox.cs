@@ -11,9 +11,9 @@ namespace DirectorPrompt.Views.Components;
 
 public sealed class PathComboBox : ComboBox
 {
-    private Border? remotePopupContent;
+    private Border?  remotePopupContent;
     private ListBox? remoteList;
-    private bool suppressDropDownClosed;
+    private bool     suppressDropDownClosed;
 
     protected override Type StyleKeyOverride => typeof(ComboBox);
 
@@ -93,7 +93,7 @@ public sealed class PathComboBox : ComboBox
             return;
 
         suppressDropDownClosed = true;
-        IsDropDownOpen        = false;
+        IsDropDownOpen         = false;
         suppressDropDownClosed = false;
 
         var list = new ListBox
@@ -109,9 +109,13 @@ public sealed class PathComboBox : ComboBox
         else
         {
             list.ItemsSource = Items
-                .Cast<object>()
-                .Select(static item => item is ComboBoxItem comboItem ? comboItem.Content : item)
-                .ToArray();
+                               .Cast<object>()
+                               .Select
+                               (static item => item is ComboBoxItem comboItem ?
+                                                   comboItem.Content :
+                                                   item
+                               )
+                               .ToArray();
             list.SelectedIndex = SelectedIndex;
         }
 
@@ -120,17 +124,17 @@ public sealed class PathComboBox : ComboBox
 
         var content = new Border
         {
-            MinHeight     = 36,
-            MaxHeight     = 320,
-            Padding       = new Thickness(4),
-            Background    = new SolidColorBrush(Color.FromRgb(32, 32, 32)),
-            BorderBrush   = new SolidColorBrush(Color.FromRgb(92, 92, 92)),
+            MinHeight       = 36,
+            MaxHeight       = 320,
+            Padding         = new Thickness(4),
+            Background      = new SolidColorBrush(Color.FromRgb(32, 32, 32)),
+            BorderBrush     = new SolidColorBrush(Color.FromRgb(92, 92, 92)),
             BorderThickness = new Thickness(1),
-            Child         = list
+            Child           = list
         };
 
-        remoteList          = list;
-        remotePopupContent  = content;
+        remoteList         = list;
+        remotePopupContent = content;
 
         if (!RemotePopupHost.Show(this, content, Bounds.Width, RestoreRemotePopupContent))
         {
@@ -149,10 +153,8 @@ public sealed class PathComboBox : ComboBox
         remoteList         = null;
     }
 
-    private void OnRemoteSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
+    private void OnRemoteSelectionChanged(object? sender, SelectionChangedEventArgs e) =>
         CommitRemoteSelection();
-    }
 
     private void CommitRemoteSelection()
     {

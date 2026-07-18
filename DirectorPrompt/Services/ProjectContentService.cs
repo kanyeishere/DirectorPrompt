@@ -16,7 +16,7 @@ public sealed class ProjectContentService
     IProjectRepository      projectRepository
 ) : IProjectContentService
 {
-    private readonly Lock changeSync = new();
+    private readonly Lock                   changeSync     = new();
     private readonly Dictionary<long, bool> pendingChanges = [];
 
     private int changeBatchDepth;
@@ -26,7 +26,9 @@ public sealed class ProjectContentService
     public IDisposable BeginChangeBatch()
     {
         lock (changeSync)
+        {
             changeBatchDepth++;
+        }
 
         return new ChangeBatch(this);
     }
@@ -92,14 +94,13 @@ public sealed class ProjectContentService
                                       )
                                   )).ToList();
                 var grouped = groups.Select
-                              (
-                                  group => new ProjectKnowledgeGroup
-                                  (
-                                      group,
-                                      entries.Where(entry => entry.GroupID == group.ID).ToList()
-                                  )
-                              )
-                              .ToList();
+                                    (group => new ProjectKnowledgeGroup
+                                     (
+                                         group,
+                                         entries.Where(entry => entry.GroupID == group.ID).ToList()
+                                     )
+                                    )
+                                    .ToList();
                 var states = attributes.Select(ToProjectStateAttribute).ToList();
 
                 return new ProjectContentSnapshot
@@ -116,12 +117,12 @@ public sealed class ProjectContentService
 
     public async Task<ProjectBlueprintResult> CreateProjectAsync
     (
-        string             name,
-        string             description,
-        string             openingMessage,
-        ProjectBlueprint?  blueprint,
-        bool               dryRun,
-        CancellationToken  cancellationToken = default
+        string            name,
+        string            description,
+        string            openingMessage,
+        ProjectBlueprint? blueprint,
+        bool              dryRun,
+        CancellationToken cancellationToken = default
     )
     {
         ValidateProjectName(name);
@@ -234,12 +235,12 @@ public sealed class ProjectContentService
                                  (
                                      new Project
                                      {
-                                         ID = projectID,
-                                         Name = name.Trim(),
-                                         Description = description,
+                                         ID             = projectID,
+                                         Name           = name.Trim(),
+                                         Description    = description,
                                          OpeningMessage = openingMessage,
-                                         CreatedAt = now,
-                                         UpdatedAt = now
+                                         CreatedAt      = now,
+                                         UpdatedAt      = now
                                      },
                                      categoryIDs,
                                      groupIDs,
@@ -329,9 +330,9 @@ public sealed class ProjectContentService
                                                        new
                                                        {
                                                            projectID,
-                                                           name = value.Name,
+                                                           name        = value.Name,
                                                            description = value.Description,
-                                                           active = value.Active
+                                                           active      = value.Active
                                                        },
                                                        cancellationToken: token
                                                    )
@@ -346,8 +347,8 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Update:
             {
-                var value = group ?? throw new ArgumentException("缺少知识分组数据", nameof(group));
-                var id = groupID ?? value.ID;
+                var value = group   ?? throw new ArgumentException("缺少知识分组数据", nameof(group));
+                var id    = groupID ?? value.ID;
                 await EnsureEntityProjectAsync("knowledge_groups", id, projectID, cancellationToken);
                 await scheduler.ExecuteAsync
                 (
@@ -367,7 +368,7 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Delete:
             {
-                var id = groupID ?? throw new ArgumentException("缺少知识分组 ID", nameof(groupID));
+                var id      = groupID ?? throw new ArgumentException("缺少知识分组 ID", nameof(groupID));
                 var deleted = await DeleteKnowledgeGroupAsync(projectID, id, cancellationToken);
                 NotifyChanged(projectID, false);
                 return deleted;
@@ -411,11 +412,11 @@ public sealed class ProjectContentService
                                                        new
                                                        {
                                                            projectID,
-                                                           remarks = value.Remarks,
-                                                           content = value.Content,
-                                                           keywords = value.Keywords,
-                                                           groupID = value.GroupID,
-                                                           active = value.Active,
+                                                           remarks   = value.Remarks,
+                                                           content   = value.Content,
+                                                           keywords  = value.Keywords,
+                                                           groupID   = value.GroupID,
+                                                           active    = value.Active,
                                                            createdAt = now,
                                                            updatedAt = now
                                                        },
@@ -432,8 +433,8 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Update:
             {
-                var value = entry ?? throw new ArgumentException("缺少知识条目数据", nameof(entry));
-                var id = entryID ?? value.ID;
+                var value = entry   ?? throw new ArgumentException("缺少知识条目数据", nameof(entry));
+                var id    = entryID ?? value.ID;
                 await EnsureEntityProjectAsync("knowledge_entries", id, projectID, cancellationToken);
                 await ValidateKnowledgeGroupAsync(projectID, value.GroupID, cancellationToken);
                 var now = DateTime.UtcNow;
@@ -464,11 +465,11 @@ public sealed class ProjectContentService
                             new
                             {
                                 id,
-                                remarks = value.Remarks,
-                                content = value.Content,
-                                keywords = value.Keywords,
-                                groupID = value.GroupID,
-                                active = value.Active,
+                                remarks   = value.Remarks,
+                                content   = value.Content,
+                                keywords  = value.Keywords,
+                                groupID   = value.GroupID,
+                                active    = value.Active,
                                 updatedAt = now
                             },
                             cancellationToken: token
@@ -481,7 +482,7 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Delete:
             {
-                var id = entryID ?? throw new ArgumentException("缺少知识条目 ID", nameof(entryID));
+                var id      = entryID ?? throw new ArgumentException("缺少知识条目 ID", nameof(entryID));
                 var deleted = await DeleteKnowledgeEntryAsync(projectID, id, cancellationToken);
                 NotifyChanged(projectID, false);
                 return deleted;
@@ -493,11 +494,11 @@ public sealed class ProjectContentService
 
     public async Task<CharacterCategory> ManageCharacterCategoryAsync
     (
-        long                       projectID,
-        ProjectContentAction       action,
-        CharacterCategory?         category,
-        long?                      categoryID,
-        CancellationToken          cancellationToken = default
+        long                 projectID,
+        ProjectContentAction action,
+        CharacterCategory?   category,
+        long?                categoryID,
+        CancellationToken    cancellationToken = default
     )
     {
         await EnsureProjectExistsAsync(projectID, cancellationToken);
@@ -524,8 +525,8 @@ public sealed class ProjectContentService
                                                        new
                                                        {
                                                            projectID,
-                                                           name = value.Name,
-                                                           description = value.Description,
+                                                           name              = value.Name,
+                                                           description       = value.Description,
                                                            parentCategoryIDs = value.ParentCategoryIDs
                                                        },
                                                        cancellationToken: token
@@ -541,8 +542,8 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Update:
             {
-                var value = category ?? throw new ArgumentException("缺少人物分类数据", nameof(category));
-                var id = categoryID ?? value.ID;
+                var value = category   ?? throw new ArgumentException("缺少人物分类数据", nameof(category));
+                var id    = categoryID ?? value.ID;
                 await EnsureEntityProjectAsync("character_categories", id, projectID, cancellationToken);
                 await ValidateCategoryParentsAsync(projectID, value.ParentCategoryIDs, id, cancellationToken);
                 await scheduler.ExecuteAsync
@@ -563,7 +564,7 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Delete:
             {
-                var id = categoryID ?? throw new ArgumentException("缺少人物分类 ID", nameof(categoryID));
+                var id      = categoryID ?? throw new ArgumentException("缺少人物分类 ID", nameof(categoryID));
                 var deleted = await DeleteCharacterCategoryAsync(projectID, id, cancellationToken);
                 NotifyChanged(projectID, false);
                 return deleted;
@@ -575,11 +576,11 @@ public sealed class ProjectContentService
 
     public async Task<StateAttribute> ManageStateAttributeAsync
     (
-        long                     projectID,
-        ProjectContentAction     action,
+        long                      projectID,
+        ProjectContentAction      action,
         StateAttributeDefinition? definition,
-        long?                    attributeID,
-        CancellationToken        cancellationToken = default
+        long?                     attributeID,
+        CancellationToken         cancellationToken = default
     )
     {
         await EnsureProjectExistsAsync(projectID, cancellationToken);
@@ -596,8 +597,8 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Update:
             {
-                var value = definition ?? throw new ArgumentException("缺少状态属性数据", nameof(definition));
-                var id = attributeID ?? throw new ArgumentException("缺少状态属性 ID", nameof(attributeID));
+                var value = definition  ?? throw new ArgumentException("缺少状态属性数据",  nameof(definition));
+                var id    = attributeID ?? throw new ArgumentException("缺少状态属性 ID", nameof(attributeID));
                 await EnsureEntityProjectAsync("state_attributes", id, projectID, cancellationToken);
                 await ValidateStateDefinitionAsync(projectID, value, id, cancellationToken);
                 var updated = await UpdateStateAttributeAsync(projectID, id, value, cancellationToken);
@@ -606,7 +607,7 @@ public sealed class ProjectContentService
             }
             case ProjectContentAction.Delete:
             {
-                var id = attributeID ?? throw new ArgumentException("缺少状态属性 ID", nameof(attributeID));
+                var id      = attributeID ?? throw new ArgumentException("缺少状态属性 ID", nameof(attributeID));
                 var deleted = await DeleteStateAttributeAsync(projectID, id, cancellationToken);
                 NotifyChanged(projectID, false);
                 return deleted;
@@ -616,204 +617,200 @@ public sealed class ProjectContentService
         }
     }
 
-    private async Task<KnowledgeGroup> DeleteKnowledgeGroupAsync(long projectID, long groupID, CancellationToken cancellationToken)
-    {
-        return await scheduler.ExecuteAsync
-               (
-                   async (connection, token) =>
-                   {
-                       var group = await connection.QueryFirstOrDefaultAsync<KnowledgeGroup>
-                                   (
-                                       new CommandDefinition
-                                       (
-                                           "SELECT * FROM knowledge_groups WHERE id = @groupID AND project_id = @projectID",
-                                           new { groupID, projectID },
-                                           cancellationToken: token
-                                       )
-                                   ) ?? throw new InvalidOperationException($"知识分组不存在: ID={groupID}");
-                       var entryIDs = (await connection.QueryAsync<long>
-                                       (
-                                           new CommandDefinition
-                                           (
-                                               "SELECT id FROM knowledge_entries WHERE group_id = @groupID",
-                                               new { groupID },
-                                               cancellationToken: token
-                                           )
-                                       )).ToList();
-                       await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
-
-                       try
-                       {
-                            await CleanupConfigurationsAsync
+    private async Task<KnowledgeGroup> DeleteKnowledgeGroupAsync(long projectID, long groupID, CancellationToken cancellationToken) =>
+        await scheduler.ExecuteAsync
+        (
+            async (connection, token) =>
+            {
+                var group = await connection.QueryFirstOrDefaultAsync<KnowledgeGroup>
                             (
-                                connection,
-                                transaction,
-                                projectID,
-                                entryIDs,
-                                [groupID],
-                                new HashSet<string>(),
-                                token
-                            );
-                           await DeleteKnowledgeRowsAsync(connection, transaction, projectID, entryIDs, token);
-                           await connection.ExecuteAsync
-                           (
-                               new CommandDefinition
+                                new CommandDefinition
+                                (
+                                    "SELECT * FROM knowledge_groups WHERE id = @groupID AND project_id = @projectID",
+                                    new { groupID, projectID },
+                                    cancellationToken: token
+                                )
+                            ) ??
+                            throw new InvalidOperationException($"知识分组不存在: ID={groupID}");
+                var entryIDs = (await connection.QueryAsync<long>
+                                (
+                                    new CommandDefinition
+                                    (
+                                        "SELECT id FROM knowledge_entries WHERE group_id = @groupID",
+                                        new { groupID },
+                                        cancellationToken: token
+                                    )
+                                )).ToList();
+                await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
+
+                try
+                {
+                    await CleanupConfigurationsAsync
+                    (
+                        connection,
+                        transaction,
+                        projectID,
+                        entryIDs,
+                        [groupID],
+                        new HashSet<string>(),
+                        token
+                    );
+                    await DeleteKnowledgeRowsAsync(connection, transaction, projectID, entryIDs, token);
+                    await connection.ExecuteAsync
+                    (
+                        new CommandDefinition
+                        (
+                            "DELETE FROM knowledge_groups WHERE id = @groupID",
+                            new { groupID },
+                            transaction,
+                            cancellationToken: token
+                        )
+                    );
+                    await transaction.CommitAsync(token);
+                    return group;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(token);
+                    throw;
+                }
+            },
+            cancellationToken: cancellationToken
+        );
+
+    private async Task<KnowledgeEntry> DeleteKnowledgeEntryAsync(long projectID, long entryID, CancellationToken cancellationToken) =>
+        await scheduler.ExecuteAsync
+        (
+            async (connection, token) =>
+            {
+                var entry = await connection.QueryFirstOrDefaultAsync<KnowledgeEntry>
+                            (
+                                new CommandDefinition
+                                (
+                                    "SELECT * FROM knowledge_entries WHERE id = @entryID AND project_id = @projectID",
+                                    new { entryID, projectID },
+                                    cancellationToken: token
+                                )
+                            ) ??
+                            throw new InvalidOperationException($"知识条目不存在: ID={entryID}");
+                await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
+
+                try
+                {
+                    await CleanupConfigurationsAsync
+                    (
+                        connection,
+                        transaction,
+                        projectID,
+                        [entryID],
+                        [],
+                        new HashSet<string>(),
+                        token
+                    );
+                    await DeleteKnowledgeRowsAsync(connection, transaction, projectID, [entryID], token);
+                    await transaction.CommitAsync(token);
+                    return entry;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(token);
+                    throw;
+                }
+            },
+            cancellationToken: cancellationToken
+        );
+
+    private async Task<CharacterCategory> DeleteCharacterCategoryAsync(long projectID, long categoryID, CancellationToken cancellationToken) =>
+        await scheduler.ExecuteAsync
+        (
+            async (connection, token) =>
+            {
+                var category = await connection.QueryFirstOrDefaultAsync<CharacterCategory>
                                (
-                                   "DELETE FROM knowledge_groups WHERE id = @groupID",
-                                   new { groupID },
-                                   transaction,
-                                   cancellationToken: token
-                               )
-                           );
-                           await transaction.CommitAsync(token);
-                           return group;
-                       }
-                       catch
-                       {
-                           await transaction.RollbackAsync(token);
-                           throw;
-                       }
-                   },
-                   cancellationToken: cancellationToken
-               );
-    }
-
-    private async Task<KnowledgeEntry> DeleteKnowledgeEntryAsync(long projectID, long entryID, CancellationToken cancellationToken)
-    {
-        return await scheduler.ExecuteAsync
-               (
-                   async (connection, token) =>
-                   {
-                       var entry = await connection.QueryFirstOrDefaultAsync<KnowledgeEntry>
+                                   new CommandDefinition
                                    (
-                                       new CommandDefinition
-                                       (
-                                           "SELECT * FROM knowledge_entries WHERE id = @entryID AND project_id = @projectID",
-                                           new { entryID, projectID },
-                                           cancellationToken: token
-                                       )
-                                   ) ?? throw new InvalidOperationException($"知识条目不存在: ID={entryID}");
-                       await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
-
-                       try
-                       {
-                            await CleanupConfigurationsAsync
-                            (
-                                connection,
-                                transaction,
-                                projectID,
-                                [entryID],
-                                [],
-                                new HashSet<string>(),
-                                token
-                            );
-                           await DeleteKnowledgeRowsAsync(connection, transaction, projectID, [entryID], token);
-                           await transaction.CommitAsync(token);
-                           return entry;
-                       }
-                       catch
-                       {
-                           await transaction.RollbackAsync(token);
-                           throw;
-                       }
-                   },
-                   cancellationToken: cancellationToken
-               );
-    }
-
-    private async Task<CharacterCategory> DeleteCharacterCategoryAsync(long projectID, long categoryID, CancellationToken cancellationToken)
-    {
-        return await scheduler.ExecuteAsync
-               (
-                   async (connection, token) =>
-                   {
-                       var category = await connection.QueryFirstOrDefaultAsync<CharacterCategory>
+                                       "SELECT * FROM character_categories WHERE id = @categoryID AND project_id = @projectID",
+                                       new { categoryID, projectID },
+                                       cancellationToken: token
+                                   )
+                               ) ??
+                               throw new InvalidOperationException($"人物分类不存在: ID={categoryID}");
+                var attributes = (await connection.QueryAsync<StateAttribute>
+                                  (
+                                      new CommandDefinition
                                       (
-                                          new CommandDefinition
-                                          (
-                                              "SELECT * FROM character_categories WHERE id = @categoryID AND project_id = @projectID",
-                                              new { categoryID, projectID },
-                                              cancellationToken: token
-                                          )
-                                      ) ?? throw new InvalidOperationException($"人物分类不存在: ID={categoryID}");
-                       var attributes = (await connection.QueryAsync<StateAttribute>
-                                         (
-                                             new CommandDefinition
-                                             (
-                                                 "SELECT * FROM state_attributes WHERE project_id = @projectID AND category_id = @categoryID",
-                                                 new { projectID, categoryID },
-                                                 cancellationToken: token
-                                             )
-                                         )).ToList();
-                       await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
+                                          "SELECT * FROM state_attributes WHERE project_id = @projectID AND category_id = @categoryID",
+                                          new { projectID, categoryID },
+                                          cancellationToken: token
+                                      )
+                                  )).ToList();
+                await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
 
-                       try
-                       {
-                           await RemoveCategoryReferencesAsync(connection, transaction, projectID, categoryID, token);
-                           await DeleteStateAttributesAsync(connection, transaction, projectID, attributes, token);
-                           await connection.ExecuteAsync
-                           (
-                               new CommandDefinition
-                               (
-                                   "DELETE FROM character_categories WHERE id = @categoryID",
-                                   new { categoryID },
-                                   transaction,
-                                   cancellationToken: token
-                               )
-                           );
-                           await transaction.CommitAsync(token);
-                           return category;
-                       }
-                       catch
-                       {
-                           await transaction.RollbackAsync(token);
-                           throw;
-                       }
-                   },
-                   cancellationToken: cancellationToken
-               );
-    }
+                try
+                {
+                    await RemoveCategoryReferencesAsync(connection, transaction, projectID, categoryID, token);
+                    await DeleteStateAttributesAsync(connection, transaction, projectID, attributes, token);
+                    await connection.ExecuteAsync
+                    (
+                        new CommandDefinition
+                        (
+                            "DELETE FROM character_categories WHERE id = @categoryID",
+                            new { categoryID },
+                            transaction,
+                            cancellationToken: token
+                        )
+                    );
+                    await transaction.CommitAsync(token);
+                    return category;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(token);
+                    throw;
+                }
+            },
+            cancellationToken: cancellationToken
+        );
 
-    private async Task<StateAttribute> DeleteStateAttributeAsync(long projectID, long attributeID, CancellationToken cancellationToken)
-    {
-        return await scheduler.ExecuteAsync
-               (
-                   async (connection, token) =>
-                   {
-                       var attribute = await connection.QueryFirstOrDefaultAsync<StateAttribute>
-                                       (
-                                           new CommandDefinition
-                                           (
-                                               "SELECT * FROM state_attributes WHERE id = @attributeID AND project_id = @projectID",
-                                               new { attributeID, projectID },
-                                               cancellationToken: token
-                                           )
-                                       ) ?? throw new InvalidOperationException($"状态属性不存在: ID={attributeID}");
-                       await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
+    private async Task<StateAttribute> DeleteStateAttributeAsync(long projectID, long attributeID, CancellationToken cancellationToken) =>
+        await scheduler.ExecuteAsync
+        (
+            async (connection, token) =>
+            {
+                var attribute = await connection.QueryFirstOrDefaultAsync<StateAttribute>
+                                (
+                                    new CommandDefinition
+                                    (
+                                        "SELECT * FROM state_attributes WHERE id = @attributeID AND project_id = @projectID",
+                                        new { attributeID, projectID },
+                                        cancellationToken: token
+                                    )
+                                ) ??
+                                throw new InvalidOperationException($"状态属性不存在: ID={attributeID}");
+                await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(token);
 
-                       try
-                       {
-                           await DeleteStateAttributesAsync(connection, transaction, projectID, [attribute], token);
-                           await transaction.CommitAsync(token);
-                           return attribute;
-                       }
-                       catch
-                       {
-                           await transaction.RollbackAsync(token);
-                           throw;
-                       }
-                   },
-                   cancellationToken: cancellationToken
-               );
-    }
+                try
+                {
+                    await DeleteStateAttributesAsync(connection, transaction, projectID, [attribute], token);
+                    await transaction.CommitAsync(token);
+                    return attribute;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(token);
+                    throw;
+                }
+            },
+            cancellationToken: cancellationToken
+        );
 
     private static async Task<Dictionary<string, long>> InsertCategoriesAsync
     (
-        SqliteConnection                    connection,
-        SqliteTransaction                   transaction,
-        long                                projectID,
+        SqliteConnection                           connection,
+        SqliteTransaction                          transaction,
+        long                                       projectID,
         IReadOnlyList<CharacterCategoryDefinition> categories,
-        CancellationToken                   cancellationToken
+        CancellationToken                          cancellationToken
     )
     {
         var ids = new Dictionary<string, long>(StringComparer.Ordinal);
@@ -860,11 +857,11 @@ public sealed class ProjectContentService
 
     private static async Task<Dictionary<string, long>> InsertKnowledgeGroupsAsync
     (
-        SqliteConnection                    connection,
-        SqliteTransaction                   transaction,
-        long                                projectID,
+        SqliteConnection                        connection,
+        SqliteTransaction                       transaction,
+        long                                    projectID,
         IReadOnlyList<KnowledgeGroupDefinition> groups,
-        CancellationToken                   cancellationToken
+        CancellationToken                       cancellationToken
     )
     {
         var ids = new Dictionary<string, long>(StringComparer.Ordinal);
@@ -893,12 +890,12 @@ public sealed class ProjectContentService
 
     private static async Task<Dictionary<string, long>> InsertKnowledgeEntriesAsync
     (
-        SqliteConnection                    connection,
-        SqliteTransaction                   transaction,
-        long                                projectID,
+        SqliteConnection                        connection,
+        SqliteTransaction                       transaction,
+        long                                    projectID,
         IReadOnlyList<KnowledgeGroupDefinition> groups,
-        IReadOnlyDictionary<string, long>   groupIDs,
-        CancellationToken                   cancellationToken
+        IReadOnlyDictionary<string, long>       groupIDs,
+        CancellationToken                       cancellationToken
     )
     {
         var ids = new Dictionary<string, long>(StringComparer.Ordinal);
@@ -922,11 +919,11 @@ public sealed class ProjectContentService
                                  new
                                  {
                                      projectID,
-                                     remarks = entry.Remarks,
-                                     content = entry.Content,
-                                    keywords = entry.Keywords.ToArray(),
+                                     remarks  = entry.Remarks,
+                                     content  = entry.Content,
+                                     keywords = entry.Keywords.ToArray(),
                                      groupID,
-                                     active = entry.Active,
+                                     active    = entry.Active,
                                      createdAt = now,
                                      updatedAt = now
                                  },
@@ -943,23 +940,27 @@ public sealed class ProjectContentService
 
     private static async Task InsertStateAttributesAsync
     (
-        SqliteConnection                    connection,
-        SqliteTransaction                   transaction,
-        long                                projectID,
+        SqliteConnection                        connection,
+        SqliteTransaction                       transaction,
+        long                                    projectID,
         IReadOnlyList<StateAttributeDefinition> definitions,
-        long?                               categoryID,
-        IReadOnlyDictionary<string, long>   categoryIDs,
-        IReadOnlyDictionary<string, long>   groupIDs,
-        IReadOnlyDictionary<string, long>   entryIDs,
-        CancellationToken                   cancellationToken
+        long?                                   categoryID,
+        IReadOnlyDictionary<string, long>       categoryIDs,
+        IReadOnlyDictionary<string, long>       groupIDs,
+        IReadOnlyDictionary<string, long>       entryIDs,
+        CancellationToken                       cancellationToken
     )
     {
         foreach (var definition in definitions)
         {
-            var scope = categoryID.HasValue ? StateScope.Category : definition.Scope;
+            var scope = categoryID.HasValue ?
+                            StateScope.Category :
+                            definition.Scope;
             var resolvedCategoryID = categoryID ?? definition.CategoryID;
-            var config = JsonSerializer.Serialize(BuildConfig(definition, groupIDs, entryIDs), JsonOptions.Compact);
-            var driver = definition.ValueType == StateValueType.Enum ? Driver.System : definition.Driver;
+            var config             = JsonSerializer.Serialize(BuildConfig(definition, groupIDs, entryIDs), JsonOptions.Compact);
+            var driver = definition.ValueType == StateValueType.Enum ?
+                             Driver.System :
+                             definition.Driver;
 
             await connection.ExecuteAsync
             (
@@ -972,11 +973,11 @@ public sealed class ProjectContentService
                     new
                     {
                         projectID,
-                        name = definition.Name,
+                        name        = definition.Name,
                         displayName = definition.DisplayName,
                         scope,
                         categoryID = resolvedCategoryID,
-                        valueType = definition.ValueType,
+                        valueType  = definition.ValueType,
                         driver,
                         config
                     },
@@ -995,16 +996,18 @@ public sealed class ProjectContentService
     )
     {
         var config = JsonSerializer.Serialize
-                     (
-                         BuildConfig
-                         (
-                             definition,
-                             new Dictionary<string, long>(),
-                             new Dictionary<string, long>()
-                         ),
-                         JsonOptions.Compact
-                     );
-        var driver = definition.ValueType == StateValueType.Enum ? Driver.System : definition.Driver;
+        (
+            BuildConfig
+            (
+                definition,
+                new Dictionary<string, long>(),
+                new Dictionary<string, long>()
+            ),
+            JsonOptions.Compact
+        );
+        var driver = definition.ValueType == StateValueType.Enum ?
+                         Driver.System :
+                         definition.Driver;
 
         return await scheduler.ExecuteAsync
                (
@@ -1022,10 +1025,12 @@ public sealed class ProjectContentService
                                         new
                                         {
                                             projectID,
-                                            name = definition.Name,
+                                            name        = definition.Name,
                                             displayName = definition.DisplayName,
-                                            scope = definition.Scope,
-                                            categoryID = definition.Scope == StateScope.Category ? definition.CategoryID : null,
+                                            scope       = definition.Scope,
+                                            categoryID = definition.Scope == StateScope.Category ?
+                                                             definition.CategoryID :
+                                                             null,
                                             valueType = definition.ValueType,
                                             driver,
                                             config
@@ -1036,15 +1041,17 @@ public sealed class ProjectContentService
 
                        return new StateAttribute
                        {
-                           ID = id,
-                           ProjectID = projectID,
-                           Name = definition.Name,
+                           ID          = id,
+                           ProjectID   = projectID,
+                           Name        = definition.Name,
                            DisplayName = definition.DisplayName,
-                           Scope = definition.Scope,
-                           CategoryID = definition.Scope == StateScope.Category ? definition.CategoryID : null,
+                           Scope       = definition.Scope,
+                           CategoryID = definition.Scope == StateScope.Category ?
+                                            definition.CategoryID :
+                                            null,
                            ValueType = definition.ValueType,
-                           Driver = driver,
-                           Config = config
+                           Driver    = driver,
+                           Config    = config
                        };
                    },
                    cancellationToken: cancellationToken
@@ -1060,16 +1067,18 @@ public sealed class ProjectContentService
     )
     {
         var config = JsonSerializer.Serialize
-                     (
-                         BuildConfig
-                         (
-                             definition,
-                             new Dictionary<string, long>(),
-                             new Dictionary<string, long>()
-                         ),
-                         JsonOptions.Compact
-                     );
-        var driver = definition.ValueType == StateValueType.Enum ? Driver.System : definition.Driver;
+        (
+            BuildConfig
+            (
+                definition,
+                new Dictionary<string, long>(),
+                new Dictionary<string, long>()
+            ),
+            JsonOptions.Compact
+        );
+        var driver = definition.ValueType == StateValueType.Enum ?
+                         Driver.System :
+                         definition.Driver;
 
         return await scheduler.ExecuteAsync
                (
@@ -1093,10 +1102,12 @@ public sealed class ProjectContentService
                                new
                                {
                                    attributeID,
-                                   name = definition.Name,
+                                   name        = definition.Name,
                                    displayName = definition.DisplayName,
-                                   scope = definition.Scope,
-                                   categoryID = definition.Scope == StateScope.Category ? definition.CategoryID : null,
+                                   scope       = definition.Scope,
+                                   categoryID = definition.Scope == StateScope.Category ?
+                                                    definition.CategoryID :
+                                                    null,
                                    valueType = definition.ValueType,
                                    driver,
                                    config
@@ -1107,15 +1118,17 @@ public sealed class ProjectContentService
 
                        return new StateAttribute
                        {
-                           ID = attributeID,
-                           ProjectID = projectID,
-                           Name = definition.Name,
+                           ID          = attributeID,
+                           ProjectID   = projectID,
+                           Name        = definition.Name,
                            DisplayName = definition.DisplayName,
-                           Scope = definition.Scope,
-                           CategoryID = definition.Scope == StateScope.Category ? definition.CategoryID : null,
+                           Scope       = definition.Scope,
+                           CategoryID = definition.Scope == StateScope.Category ?
+                                            definition.CategoryID :
+                                            null,
                            ValueType = definition.ValueType,
-                           Driver = driver,
-                           Config = config
+                           Driver    = driver,
+                           Config    = config
                        };
                    },
                    cancellationToken: cancellationToken
@@ -1124,11 +1137,11 @@ public sealed class ProjectContentService
 
     private static async Task DeleteKnowledgeRowsAsync
     (
-        SqliteConnection       connection,
-        SqliteTransaction      transaction,
-        long                   projectID,
-        IReadOnlyList<long>    entryIDs,
-        CancellationToken      cancellationToken
+        SqliteConnection    connection,
+        SqliteTransaction   transaction,
+        long                projectID,
+        IReadOnlyList<long> entryIDs,
+        CancellationToken   cancellationToken
     )
     {
         if (entryIDs.Count == 0)
@@ -1174,17 +1187,17 @@ public sealed class ProjectContentService
 
     private static async Task DeleteStateAttributesAsync
     (
-        SqliteConnection                connection,
-        SqliteTransaction               transaction,
-        long                            projectID,
-        IReadOnlyList<StateAttribute>   attributes,
-        CancellationToken               cancellationToken
+        SqliteConnection              connection,
+        SqliteTransaction             transaction,
+        long                          projectID,
+        IReadOnlyList<StateAttribute> attributes,
+        CancellationToken             cancellationToken
     )
     {
         if (attributes.Count == 0)
             return;
 
-        var ids = attributes.Select(attribute => attribute.ID).ToList();
+        var ids   = attributes.Select(attribute => attribute.ID).ToList();
         var names = attributes.Select(attribute => attribute.Name).ToHashSet(StringComparer.Ordinal);
         await CleanupConfigurationsAsync(connection, transaction, projectID, [], [], names, cancellationToken, ids);
 
@@ -1242,14 +1255,14 @@ public sealed class ProjectContentService
 
     private static async Task CleanupConfigurationsAsync
     (
-        SqliteConnection      connection,
-        SqliteTransaction     transaction,
-        long                  projectID,
-        IReadOnlyList<long>   entryIDs,
-        IReadOnlyList<long>   groupIDs,
-        IReadOnlySet<string>  attributeNames,
-        CancellationToken     cancellationToken,
-        IReadOnlyList<long>?  excludedAttributeIDs = null
+        SqliteConnection     connection,
+        SqliteTransaction    transaction,
+        long                 projectID,
+        IReadOnlyList<long>  entryIDs,
+        IReadOnlyList<long>  groupIDs,
+        IReadOnlySet<string> attributeNames,
+        CancellationToken    cancellationToken,
+        IReadOnlyList<long>? excludedAttributeIDs = null
     )
     {
         var attributes = (await connection.QueryAsync<StateAttribute>
@@ -1273,15 +1286,14 @@ public sealed class ProjectContentService
 
             var config = ParseConfig(attribute.Config);
             var phases = config.Phases.Select
-            (
-                phase => phase with
+            (phase => phase with
                 {
                     KnowledgeIDs = phase.KnowledgeIDs.Where(id => !entrySet.Contains(id)).ToList(),
                     KnowledgeGroupIDs = phase.KnowledgeGroupIDs.Where(id => !groupSet.Contains(id)).ToList()
                 }
             ).ToList();
             var transitions = config.Transitions?.Where(transition => !attributeNames.Contains(transition.AttributeName ?? string.Empty)).ToList();
-            var updated = config with { Phases = phases, Transitions = transitions };
+            var updated     = config with { Phases = phases, Transitions = transitions };
 
             if (JsonSerializer.Serialize(updated, JsonOptions.Compact) == JsonSerializer.Serialize(config, JsonOptions.Compact))
                 continue;
@@ -1335,15 +1347,15 @@ public sealed class ProjectContentService
         }
 
         var characters = (await connection.QueryAsync<Character>
-                         (
-                             new CommandDefinition
-                             (
-                                 "SELECT * FROM characters WHERE project_id = @projectID",
-                                 new { projectID },
-                                 transaction,
-                                 cancellationToken: cancellationToken
-                             )
-                         )).ToList();
+                          (
+                              new CommandDefinition
+                              (
+                                  "SELECT * FROM characters WHERE project_id = @projectID",
+                                  new { projectID },
+                                  transaction,
+                                  cancellationToken: cancellationToken
+                              )
+                          )).ToList();
 
         foreach (var character in characters.Where(item => item.CategoryIDs.Contains(categoryID)))
         {
@@ -1379,31 +1391,30 @@ public sealed class ProjectContentService
         IReadOnlyDictionary<string, long> entryIDs
     )
     {
-        var numeric = definition.Numeric;
+        var numeric     = definition.Numeric;
         var enumeration = definition.Enumeration;
         var phases = definition.Phases.Select
-        (
-            phase => new Phase
+        (phase => new Phase
             {
-                Name = phase.Name,
-                Expression = phase.Expression,
-                KnowledgeIDs = phase.KnowledgeEntryIDs.Concat(phase.KnowledgeEntryKeys.Select(key => entryIDs[key])).Distinct().ToList(),
+                Name              = phase.Name,
+                Expression        = phase.Expression,
+                KnowledgeIDs      = phase.KnowledgeEntryIDs.Concat(phase.KnowledgeEntryKeys.Select(key => entryIDs[key])).Distinct().ToList(),
                 KnowledgeGroupIDs = phase.KnowledgeGroupIDs.Concat(phase.KnowledgeGroupKeys.Select(key => groupIDs[key])).Distinct().ToList(),
-                EnterDirectives = phase.EnterDirectives,
-                ExitDirectives = phase.ExitDirectives
+                EnterDirectives   = phase.EnterDirectives,
+                ExitDirectives    = phase.ExitDirectives
             }
         ).ToList();
 
         return new StateAttributeConfig
         {
-            Min = numeric?.Min,
-            Max = numeric?.Max,
-            Unit = numeric?.Unit,
+            Min         = numeric?.Min,
+            Max         = numeric?.Max,
+            Unit        = numeric?.Unit,
             ChangeRules = numeric?.ChangeRules,
-            Options = enumeration?.Options,
-            Trigger = enumeration?.Trigger.ToString(),
+            Options     = enumeration?.Options,
+            Trigger     = enumeration?.Trigger.ToString(),
             Transitions = enumeration?.Transitions,
-            Phases = phases
+            Phases      = phases
         };
     }
 
@@ -1436,12 +1447,12 @@ public sealed class ProjectContentService
         IReadOnlySet<string>   attributeNames
     )
     {
-        var transitions = 0;
+        var transitions     = 0;
         var phaseReferences = 0;
 
         foreach (var attribute in snapshot.StateAttributes)
         {
-            transitions += attribute.Configuration.Transitions?.Count(transition => attributeNames.Contains(transition.AttributeName ?? string.Empty)) ?? 0;
+            transitions     += attribute.Configuration.Transitions?.Count(transition => attributeNames.Contains(transition.AttributeName ?? string.Empty)) ?? 0;
             phaseReferences += attribute.Configuration.Phases.Sum(phase => phase.KnowledgeIDs.Count + phase.KnowledgeGroupIDs.Count);
         }
 
@@ -1485,10 +1496,10 @@ public sealed class ProjectContentService
 
     private async Task ValidateCategoryParentsAsync
     (
-        long              projectID,
+        long                projectID,
         IReadOnlyList<long> parentIDs,
-        long?             categoryID,
-        CancellationToken cancellationToken
+        long?               categoryID,
+        CancellationToken   cancellationToken
     )
     {
         if (categoryID is not null && parentIDs.Contains(categoryID.Value))
@@ -1535,13 +1546,13 @@ public sealed class ProjectContentService
 
     private static void ValidateBlueprint(ProjectBlueprint blueprint)
     {
-        ValidateKeys(blueprint.KnowledgeGroups.Select(group => group.Key), "知识分组");
-        ValidateKeys(blueprint.CharacterCategories.Select(category => category.Key), "人物分类");
+        ValidateKeys(blueprint.KnowledgeGroups.Select(group => group.Key),                                    "知识分组");
+        ValidateKeys(blueprint.CharacterCategories.Select(category => category.Key),                          "人物分类");
         ValidateKeys(blueprint.KnowledgeGroups.SelectMany(group => group.Entries).Select(entry => entry.Key), "知识条目");
 
         var categoryKeys = blueprint.CharacterCategories.Select(category => category.Key).ToHashSet(StringComparer.Ordinal);
-        var groupKeys = blueprint.KnowledgeGroups.Select(group => group.Key).ToHashSet(StringComparer.Ordinal);
-        var entryKeys = blueprint.KnowledgeGroups.SelectMany(group => group.Entries).Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
+        var groupKeys    = blueprint.KnowledgeGroups.Select(group => group.Key).ToHashSet(StringComparer.Ordinal);
+        var entryKeys    = blueprint.KnowledgeGroups.SelectMany(group => group.Entries).Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
 
         foreach (var category in blueprint.CharacterCategories)
         {

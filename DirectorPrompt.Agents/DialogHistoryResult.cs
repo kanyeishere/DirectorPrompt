@@ -5,7 +5,7 @@ namespace DirectorPrompt.Agents;
 public sealed record DialogHistoryResult
 (
     IReadOnlyList<DialogHistoryResult.RoundEntry> Rounds,
-    long?                                        PreviousRoundID
+    long?                                         PreviousRoundID
 )
 {
     public sealed record RoundEntry

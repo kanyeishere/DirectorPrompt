@@ -15,8 +15,8 @@ public sealed partial class MCPKeyValueViewModel : ObservableObject
 
     public MCPKeyValueViewModel(string key, string value, Action<MCPKeyValueViewModel> remove)
     {
-        Key = key;
-        Value = value;
+        Key         = key;
+        Value       = value;
         this.remove = remove;
     }
 

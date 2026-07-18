@@ -1,7 +1,6 @@
 using Dapper;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Infrastructure.Repositories;
-using Xunit;
 
 namespace DirectorPrompt.Tests;
 

@@ -3,7 +3,6 @@ using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Infrastructure.Repositories;
-using Xunit;
 
 namespace DirectorPrompt.Tests;
 

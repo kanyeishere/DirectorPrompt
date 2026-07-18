@@ -1089,7 +1089,7 @@ public sealed class CharacterRepository
                         "update",
                     oldRow is null ?
                         JsonSerializer.Serialize(new CharacterStateValueSnapshot(characterID, attributeID, value, now), JsonOptions.Compact) :
-                        JsonSerializer.Serialize(oldRow,                                                                                  JsonOptions.Compact),
+                        JsonSerializer.Serialize(oldRow,                                                                JsonOptions.Compact),
                     token
                 );
                 await transaction.CommitAsync(token);
@@ -1189,15 +1189,20 @@ public sealed class CharacterRepository
 
     private sealed record CharacterScenePresenceSnapshot
     (
-        [property: JsonPropertyName("character_id")] long CharacterID,
-        [property: JsonPropertyName("scene_id")]   long SceneID
+        [property: JsonPropertyName("character_id")]
+        long CharacterID,
+        [property: JsonPropertyName("scene_id")]
+        long SceneID
     );
 
     private sealed record CharacterStateValueSnapshot
     (
-        [property: JsonPropertyName("character_id")]     long       CharacterID,
-        [property: JsonPropertyName("attribute_id")]    long       AttributeID,
-        [property: JsonPropertyName("value")]          string     Value,
-        [property: JsonPropertyName("updated_at")]      DateTime   UpdatedAt
+        [property: JsonPropertyName("character_id")]
+        long CharacterID,
+        [property: JsonPropertyName("attribute_id")]
+        long AttributeID,
+        [property: JsonPropertyName("value")] string Value,
+        [property: JsonPropertyName("updated_at")]
+        DateTime UpdatedAt
     );
 }

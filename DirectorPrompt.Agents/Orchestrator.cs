@@ -280,8 +280,7 @@ public sealed class Orchestrator
                 Data = JsonSerializer.Serialize
                 (
                     context.DirectiveBatch.Directives.Select
-                    (
-                        d => new DirectiveEventData
+                    (d => new DirectiveEventData
                         {
                             Type     = d.Type.ToString(),
                             Content  = d.Content,

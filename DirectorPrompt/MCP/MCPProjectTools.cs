@@ -12,13 +12,13 @@ namespace DirectorPrompt.MCP;
 
 public sealed class MCPProjectTools
 (
-    IProjectContentService          projectContentService,
-    IProjectPortService             projectPortService,
-    IProjectEditWindowCoordinator  projectEditWindowCoordinator,
-    IKnowledgeRepository            knowledgeRepository,
-    EmbeddingIndexService           embeddingIndexService,
-    AgentConfigResolver             agentConfigResolver,
-    UserSettings                    userSettings
+    IProjectContentService        projectContentService,
+    IProjectPortService           projectPortService,
+    IProjectEditWindowCoordinator projectEditWindowCoordinator,
+    IKnowledgeRepository          knowledgeRepository,
+    EmbeddingIndexService         embeddingIndexService,
+    AgentConfigResolver           agentConfigResolver,
+    UserSettings                  userSettings
 )
 {
     [McpServerTool(Name = "list_projects")]
@@ -53,8 +53,8 @@ public sealed class MCPProjectTools
         string            name,
         string            description,
         string            openingMessage,
-        ProjectBlueprint? blueprint = null,
-        bool              dryRun = false,
+        ProjectBlueprint? blueprint         = null,
+        bool              dryRun            = false,
         CancellationToken cancellationToken = default
     ) =>
         ExecuteAsync
@@ -64,14 +64,14 @@ public sealed class MCPProjectTools
             async () =>
             {
                 var result = await projectContentService.CreateProjectAsync
-                (
-                    name,
-                    description,
-                    openingMessage,
-                    blueprint,
-                    dryRun,
-                    cancellationToken
-                );
+                             (
+                                 name,
+                                 description,
+                                 openingMessage,
+                                 blueprint,
+                                 dryRun,
+                                 cancellationToken
+                             );
 
                 if (dryRun)
                     return result;
@@ -98,16 +98,16 @@ public sealed class MCPProjectTools
             {
                 await projectEditWindowCoordinator.CloseForExternalChangeAsync(projectID);
                 return await projectContentService.UpdateProjectAsync
-                (
-                    new Project
-                    {
-                        ID = projectID,
-                        Name = name,
-                        Description = description,
-                        OpeningMessage = openingMessage
-                    },
-                    cancellationToken
-                );
+                       (
+                           new Project
+                           {
+                               ID             = projectID,
+                               Name           = name,
+                               Description    = description,
+                               OpeningMessage = openingMessage
+                           },
+                           cancellationToken
+                       );
             }
         );
 
@@ -144,9 +144,9 @@ public sealed class MCPProjectTools
 
                 var result = format switch
                 {
-                    ProjectImportFormat.DirectorPromptPackage => await projectPortService.ImportAsync(path, cancellationToken),
+                    ProjectImportFormat.DirectorPromptPackage    => await projectPortService.ImportAsync(path, cancellationToken),
                     ProjectImportFormat.SillyTavernCharacterCard => await projectPortService.ImportSillyTavernAsync(path, cancellationToken),
-                    _ => throw new ArgumentOutOfRangeException(nameof(format))
+                    _                                            => throw new ArgumentOutOfRangeException(nameof(format))
                 };
 
                 projectContentService.NotifyProjectChanged(result.ProjectID);
@@ -191,8 +191,8 @@ public sealed class MCPProjectTools
     (
         long                 projectID,
         ProjectContentAction action,
-        KnowledgeGroup?      group = null,
-        long?                groupID = null,
+        KnowledgeGroup?      group             = null,
+        long?                groupID           = null,
         CancellationToken    cancellationToken = default
     ) =>
         ExecuteAsync
@@ -203,13 +203,13 @@ public sealed class MCPProjectTools
             {
                 await projectEditWindowCoordinator.CloseForExternalChangeAsync(projectID);
                 return await projectContentService.ManageKnowledgeGroupAsync
-                (
-                    projectID,
-                    action,
-                    group,
-                    groupID,
-                    cancellationToken
-                );
+                       (
+                           projectID,
+                           action,
+                           group,
+                           groupID,
+                           cancellationToken
+                       );
             }
         );
 
@@ -218,8 +218,8 @@ public sealed class MCPProjectTools
     (
         long                 projectID,
         ProjectContentAction action,
-        KnowledgeEntry?      entry = null,
-        long?                entryID = null,
+        KnowledgeEntry?      entry             = null,
+        long?                entryID           = null,
         CancellationToken    cancellationToken = default
     ) =>
         ExecuteAsync
@@ -230,13 +230,13 @@ public sealed class MCPProjectTools
             {
                 await projectEditWindowCoordinator.CloseForExternalChangeAsync(projectID);
                 var result = await projectContentService.ManageKnowledgeEntryAsync
-                (
-                    projectID,
-                    action,
-                    entry,
-                    entryID,
-                    cancellationToken
-                );
+                             (
+                                 projectID,
+                                 action,
+                                 entry,
+                                 entryID,
+                                 cancellationToken
+                             );
                 var indexStatus = action is ProjectContentAction.Create or ProjectContentAction.Update ?
                                       await TryIndexKnowledgeAsync(projectID, cancellationToken) :
                                       "not_required";
@@ -250,8 +250,8 @@ public sealed class MCPProjectTools
     (
         long                 projectID,
         ProjectContentAction action,
-        CharacterCategory?   category = null,
-        long?                categoryID = null,
+        CharacterCategory?   category          = null,
+        long?                categoryID        = null,
         CancellationToken    cancellationToken = default
     ) =>
         ExecuteAsync
@@ -262,13 +262,13 @@ public sealed class MCPProjectTools
             {
                 await projectEditWindowCoordinator.CloseForExternalChangeAsync(projectID);
                 return await projectContentService.ManageCharacterCategoryAsync
-                (
-                    projectID,
-                    action,
-                    category,
-                    categoryID,
-                    cancellationToken
-                );
+                       (
+                           projectID,
+                           action,
+                           category,
+                           categoryID,
+                           cancellationToken
+                       );
             }
         );
 
@@ -277,8 +277,8 @@ public sealed class MCPProjectTools
     (
         long                      projectID,
         ProjectContentAction      action,
-        StateAttributeDefinition? definition = null,
-        long?                     attributeID = null,
+        StateAttributeDefinition? definition        = null,
+        long?                     attributeID       = null,
         CancellationToken         cancellationToken = default
     ) =>
         ExecuteAsync
@@ -289,13 +289,13 @@ public sealed class MCPProjectTools
             {
                 await projectEditWindowCoordinator.CloseForExternalChangeAsync(projectID);
                 var result = await projectContentService.ManageStateAttributeAsync
-                (
-                    projectID,
-                    action,
-                    definition,
-                    attributeID,
-                    cancellationToken
-                );
+                             (
+                                 projectID,
+                                 action,
+                                 definition,
+                                 attributeID,
+                                 cancellationToken
+                             );
 
                 if (action == ProjectContentAction.Delete)
                     return new { attributeID = result.ID, deleted = true };
@@ -317,12 +317,12 @@ public sealed class MCPProjectTools
         try
         {
             var entries = await knowledgeRepository.GetPendingIndexEntriesAsync
-            (
-                projectID,
-                embeddingConfig.Fingerprint,
-                100,
-                cancellationToken
-            );
+                          (
+                              projectID,
+                              embeddingConfig.Fingerprint,
+                              100,
+                              cancellationToken
+                          );
             await embeddingIndexService.IndexKnowledgeAsync(entries, embeddingConfig, cancellationToken);
             return "completed";
         }
@@ -357,7 +357,7 @@ public sealed class MCPProjectTools
 
         try
         {
-            var data = await operation();
+            var data     = await operation();
             var response = new MCPToolResponse(1, true, data);
             Log.Information("内部 MCP 返回: {ToolName}, 响应={@Response}", toolName, response);
             return response;

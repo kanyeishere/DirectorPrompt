@@ -1,5 +1,4 @@
 using DirectorPrompt.Infrastructure;
-using Xunit;
 
 namespace DirectorPrompt.Tests;
 

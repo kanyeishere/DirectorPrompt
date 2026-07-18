@@ -16,12 +16,12 @@ public interface IProjectContentService
 
     Task<ProjectBlueprintResult> CreateProjectAsync
     (
-        string              name,
-        string              description,
-        string              openingMessage,
-        ProjectBlueprint?   blueprint,
-        bool                dryRun,
-        CancellationToken   cancellationToken = default
+        string            name,
+        string            description,
+        string            openingMessage,
+        ProjectBlueprint? blueprint,
+        bool              dryRun,
+        CancellationToken cancellationToken = default
     );
 
     Task<Project> UpdateProjectAsync(Project project, CancellationToken cancellationToken = default);
@@ -48,19 +48,19 @@ public interface IProjectContentService
 
     Task<CharacterCategory> ManageCharacterCategoryAsync
     (
-        long                       projectID,
-        ProjectContentAction       action,
-        CharacterCategory?         category,
-        long?                      categoryID,
-        CancellationToken          cancellationToken = default
+        long                 projectID,
+        ProjectContentAction action,
+        CharacterCategory?   category,
+        long?                categoryID,
+        CancellationToken    cancellationToken = default
     );
 
     Task<StateAttribute> ManageStateAttributeAsync
     (
-        long                     projectID,
-        ProjectContentAction     action,
+        long                      projectID,
+        ProjectContentAction      action,
         StateAttributeDefinition? definition,
-        long?                    attributeID,
-        CancellationToken        cancellationToken = default
+        long?                     attributeID,
+        CancellationToken         cancellationToken = default
     );
 }

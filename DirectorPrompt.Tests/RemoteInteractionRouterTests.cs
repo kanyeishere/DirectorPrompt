@@ -8,7 +8,7 @@ public sealed class RemoteInteractionRouterTests
     [Fact]
     public void ActiveRemoteInteractionIsConsumedOnlyOnce()
     {
-        var router = new RemoteInteractionRouter();
+        var router  = new RemoteInteractionRouter();
         var service = new WindowServiceStub();
 
         router.Attach(service);
@@ -21,7 +21,7 @@ public sealed class RemoteInteractionRouterTests
     [Fact]
     public void DetachedRemoteServiceCannotBeConsumed()
     {
-        var router = new RemoteInteractionRouter();
+        var router  = new RemoteInteractionRouter();
         var service = new WindowServiceStub();
 
         router.Attach(service);

@@ -127,17 +127,17 @@ public sealed class PhaseDefinition
 
 public sealed record ProjectContentSnapshot
 (
-    Project                                  Project,
-    IReadOnlyList<ProjectKnowledgeGroup>     KnowledgeGroups,
-    IReadOnlyList<KnowledgeEntry>            UngroupedKnowledgeEntries,
-    IReadOnlyList<CharacterCategory>         CharacterCategories,
-    IReadOnlyList<ProjectStateAttribute>     StateAttributes
+    Project                              Project,
+    IReadOnlyList<ProjectKnowledgeGroup> KnowledgeGroups,
+    IReadOnlyList<KnowledgeEntry>        UngroupedKnowledgeEntries,
+    IReadOnlyList<CharacterCategory>     CharacterCategories,
+    IReadOnlyList<ProjectStateAttribute> StateAttributes
 );
 
 public sealed record ProjectKnowledgeGroup
 (
-    KnowledgeGroup                   Group,
-    IReadOnlyList<KnowledgeEntry>    Entries
+    KnowledgeGroup                Group,
+    IReadOnlyList<KnowledgeEntry> Entries
 );
 
 public sealed record ProjectStateAttribute
@@ -155,11 +155,11 @@ public sealed record ProjectStateAttribute
 
 public sealed record ProjectBlueprintResult
 (
-    Project                      Project,
+    Project                           Project,
     IReadOnlyDictionary<string, long> CategoryIDs,
     IReadOnlyDictionary<string, long> GroupIDs,
     IReadOnlyDictionary<string, long> EntryIDs,
-    string                       IndexStatus
+    string                            IndexStatus
 );
 
 public sealed record ProjectDeleteSummary
@@ -175,6 +175,6 @@ public sealed record ProjectDeleteSummary
 
 public sealed record ProjectContentChange
 (
-    long    ProjectID,
-    bool    IsDeleted
+    long ProjectID,
+    bool IsDeleted
 );

@@ -8,10 +8,10 @@ public sealed class NumberBoxValueConverter : IValueConverter
 {
     public static readonly NumberBoxValueConverter Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        return value is null ? double.NaN : System.Convert.ToDouble(value, culture);
-    }
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is null ?
+            double.NaN :
+            System.Convert.ToDouble(value, culture);
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -21,7 +21,9 @@ public sealed class NumberBoxValueConverter : IValueConverter
         if (value is double d && double.IsNaN(d))
         {
             var isNullable = Nullable.GetUnderlyingType(targetType) != null;
-            return isNullable ? null : BindingOperations.DoNothing;
+            return isNullable ?
+                       null :
+                       BindingOperations.DoNothing;
         }
 
         var type = Nullable.GetUnderlyingType(targetType) ?? targetType;

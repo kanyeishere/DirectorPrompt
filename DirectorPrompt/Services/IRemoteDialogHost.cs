@@ -8,7 +8,7 @@ public interface IRemoteDialogHost
         string message,
         string primaryText,
         string secondaryText,
-        bool danger
+        bool   danger
     );
 
     Task<string?> ShowInputAsync
@@ -16,7 +16,7 @@ public interface IRemoteDialogHost
         string title,
         string prompt,
         string defaultValue,
-        bool multiline
+        bool   multiline
     );
 }
 

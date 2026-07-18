@@ -5,7 +5,6 @@ using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Infrastructure;
 using DirectorPrompt.Infrastructure.Repositories;
 using Microsoft.Data.Sqlite;
-using Xunit;
 
 namespace DirectorPrompt.Tests;
 
@@ -43,7 +42,6 @@ public sealed class RepositoryPagingTests
         var             repository = new EventRepository(context.Scheduler);
 
         for (var roundID = 1; roundID <= 50; roundID++)
-        {
             await repository.AppendBatchAsync
             (
                 [
@@ -51,7 +49,6 @@ public sealed class RepositoryPagingTests
                     CreateEvent(roundID, EventType.NarrativeOutput, $"output-{roundID}")
                 ]
             );
-        }
 
         var service    = new DialogHistoryService(repository);
         var firstPage  = await service.LoadAsync(1);
@@ -65,7 +62,7 @@ public sealed class RepositoryPagingTests
         Assert.Equal(11, secondPage.Rounds[0].RoundID);
         Assert.Equal(11, secondPage.PreviousRoundID);
         Assert.Equal(10, thirdPage.Rounds.Count);
-        Assert.Equal(1, thirdPage.Rounds[0].RoundID);
+        Assert.Equal(1,  thirdPage.Rounds[0].RoundID);
         Assert.Null(thirdPage.PreviousRoundID);
     }
 
@@ -257,7 +254,7 @@ public sealed class RepositoryPagingTests
         var             manager = new VectorTableManager(context.Scheduler);
         await manager.EnsureMultiVectorTableAsync("test_memory_vec", 3);
 
-        await using var connection = await context.ConnectionFactory.CreateAsync(loadVectorExtension: true);
+        await using var connection = await context.ConnectionFactory.CreateAsync(true);
         var             first      = ToBytes([1f, 0f, 0f]);
         var             second     = ToBytes([0f, 1f, 0f]);
         await connection.ExecuteAsync

@@ -20,20 +20,19 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed partial class MainViewModel : ObservableObject
 {
-    private readonly Orchestrator           orchestrator;
-    private readonly IProjectRepository     projectRepository;
-    private readonly ISessionRepository     sessionRepository;
-    private readonly IEventRepository       eventRepository;
-    private readonly IMemoryRepository      memoryRepository;
-    private readonly DialogHistoryService   dialogHistoryService;
-    private readonly SidebarQueryService    sidebarQueryService;
-    private readonly UserSettings           userSettings;
-    private readonly IProjectPortService    projectPortService;
-    private readonly NotificationService    notificationService;
-    private readonly IUserSettingsStore     userSettingsStore;
-    private readonly IWindowService         windowService;
-    private readonly IFilePickerService     filePickerService;
-    private readonly ILanSharingService     lanSharingService;
+    private readonly Orchestrator            orchestrator;
+    private readonly IProjectRepository      projectRepository;
+    private readonly ISessionRepository      sessionRepository;
+    private readonly IEventRepository        eventRepository;
+    private readonly IMemoryRepository       memoryRepository;
+    private readonly DialogHistoryService    dialogHistoryService;
+    private readonly SidebarQueryService     sidebarQueryService;
+    private readonly UserSettings            userSettings;
+    private readonly IProjectPortService     projectPortService;
+    private readonly NotificationService     notificationService;
+    private readonly IUserSettingsStore      userSettingsStore;
+    private readonly IWindowService          windowService;
+    private readonly IFilePickerService      filePickerService;
     private readonly IProjectContentService? projectContentService;
 
     private CancellationTokenSource? generationCts;
@@ -46,37 +45,37 @@ public sealed partial class MainViewModel : ObservableObject
 
     public MainViewModel
     (
-        Orchestrator           orchestrator,
-        IProjectRepository     projectRepository,
-        ISessionRepository     sessionRepository,
-        IEventRepository       eventRepository,
-        IMemoryRepository      memoryRepository,
-        DialogHistoryService   dialogHistoryService,
-        SidebarQueryService    sidebarQueryService,
-        UserSettings           userSettings,
-        IProjectPortService    projectPortService,
-        NotificationService    notificationService,
-        IUserSettingsStore     userSettingsStore,
-        IWindowService         windowService,
-        IFilePickerService     filePickerService,
-        ILanSharingService     lanSharingService,
+        Orchestrator            orchestrator,
+        IProjectRepository      projectRepository,
+        ISessionRepository      sessionRepository,
+        IEventRepository        eventRepository,
+        IMemoryRepository       memoryRepository,
+        DialogHistoryService    dialogHistoryService,
+        SidebarQueryService     sidebarQueryService,
+        UserSettings            userSettings,
+        IProjectPortService     projectPortService,
+        NotificationService     notificationService,
+        IUserSettingsStore      userSettingsStore,
+        IWindowService          windowService,
+        IFilePickerService      filePickerService,
+        ILanSharingService      lanSharingService,
         IProjectContentService? projectContentService = null
     )
     {
-        this.orchestrator = orchestrator;
-        this.projectRepository = projectRepository;
-        this.sessionRepository = sessionRepository;
-        this.eventRepository = eventRepository;
-        this.memoryRepository = memoryRepository;
-        this.dialogHistoryService = dialogHistoryService;
-        this.sidebarQueryService = sidebarQueryService;
-        this.userSettings = userSettings;
-        this.projectPortService = projectPortService;
-        this.notificationService = notificationService;
-        this.userSettingsStore = userSettingsStore;
-        this.windowService = windowService;
-        this.filePickerService = filePickerService;
-        this.lanSharingService = lanSharingService;
+        this.orchestrator          = orchestrator;
+        this.projectRepository     = projectRepository;
+        this.sessionRepository     = sessionRepository;
+        this.eventRepository       = eventRepository;
+        this.memoryRepository      = memoryRepository;
+        this.dialogHistoryService  = dialogHistoryService;
+        this.sidebarQueryService   = sidebarQueryService;
+        this.userSettings          = userSettings;
+        this.projectPortService    = projectPortService;
+        this.notificationService   = notificationService;
+        this.userSettingsStore     = userSettingsStore;
+        this.windowService         = windowService;
+        this.filePickerService     = filePickerService;
+        this.LanSharingService     = lanSharingService;
         this.projectContentService = projectContentService;
         if (projectContentService is not null)
             projectContentService.Changed += OnProjectContentChanged;
@@ -126,7 +125,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool ShowPipelineStages => IsProcessing || HasError;
 
-    public ILanSharingService LanSharingService => lanSharingService;
+    public ILanSharingService LanSharingService { get; }
 
     public DialogViewModel Dialog { get; } = new();
 
@@ -146,11 +145,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<PipelineStageViewModel> PipelineStages { get; } = [];
 
-    private void OnProjectContentChanged(ProjectContentChange change)
-    {
+    private void OnProjectContentChanged(ProjectContentChange change) =>
         Dispatcher.UIThread.Post
-        (
-            async () =>
+        (async () =>
             {
                 if (change.IsDeleted && CurrentProject?.ID == change.ProjectID)
                 {
@@ -161,7 +158,6 @@ public sealed partial class MainViewModel : ObservableObject
                 await LoadProjectsAsync();
             }
         );
-    }
 
     [RelayCommand]
     private async Task LoadProjectsAsync()
@@ -507,10 +503,10 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void OpenLanSharing()
     {
-        if (lanSharingService.Endpoint is null)
+        if (LanSharingService.Endpoint is null)
             return;
 
-        Process.Start(new ProcessStartInfo(lanSharingService.Endpoint.AbsoluteUri) { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo(LanSharingService.Endpoint.AbsoluteUri) { UseShellExecute = true });
     }
 
     private void ResetPipelineStages() =>
@@ -613,10 +609,10 @@ public sealed partial class MainViewModel : ObservableObject
             FlushStreamingUpdate();
 
             var markdownDocument = await Task.Run
-            (
-                () => MarkdownRenderer.ParseDocument(result.Narrative),
-                token
-            );
+                                   (
+                                       () => MarkdownRenderer.ParseDocument(result.Narrative),
+                                       token
+                                   );
 
             if (CurrentSession?.ID != sessionID)
             {
@@ -624,10 +620,10 @@ public sealed partial class MainViewModel : ObservableObject
                 return;
             }
 
-            directorEntry.RoundID   = result.RoundID;
-            streamingEntry.RoundID  = result.RoundID;
-            streamingEntry.Content  = result.Narrative;
-            streamingEntry.Thinking = result.Thinking;
+            directorEntry.RoundID           = result.RoundID;
+            streamingEntry.RoundID          = result.RoundID;
+            streamingEntry.Content          = result.Narrative;
+            streamingEntry.Thinking         = result.Thinking;
             streamingEntry.MarkdownDocument = markdownDocument;
             streamingEntry.RenderMarkdown();
 
@@ -857,7 +853,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         IsLoadingDialog = false;
         Dialog.Clear();
-        previousDialogRoundID = null;
+        previousDialogRoundID   = null;
         HasEarlierDialogEntries = false;
         DirectiveInput.Clear();
         ResetPipelineStages();

@@ -19,24 +19,24 @@ namespace DirectorPrompt.ViewModels;
 
 public sealed partial class ProjectEditViewModel
 (
-    IKnowledgeRepository  knowledgeRepository,
-    IStateRepository      stateRepository,
-    ICharacterRepository  characterRepository,
-    IProjectPortService   projectPortService,
-    EmbeddingIndexService embeddingIndexService,
-    AgentConfigResolver   agentConfigResolver,
-    UserSettings          userSettings,
-    IFilePickerService    filePickerService,
+    IKnowledgeRepository    knowledgeRepository,
+    IStateRepository        stateRepository,
+    ICharacterRepository    characterRepository,
+    IProjectPortService     projectPortService,
+    EmbeddingIndexService   embeddingIndexService,
+    AgentConfigResolver     agentConfigResolver,
+    UserSettings            userSettings,
+    IFilePickerService      filePickerService,
     IProjectContentService? projectContentService = null
 )
     : ObservableObject
 {
-    private long projectID;
+    private long     projectID;
     private Project? savedProject;
 
-    private readonly Dictionary<long, string> savedKnowledgeGroupStates = [];
-    private readonly Dictionary<long, string> savedKnowledgeEntryStates = [];
-    private readonly Dictionary<long, string> savedStateAttributeStates = [];
+    private readonly Dictionary<long, string> savedKnowledgeGroupStates    = [];
+    private readonly Dictionary<long, string> savedKnowledgeEntryStates    = [];
+    private readonly Dictionary<long, string> savedStateAttributeStates    = [];
     private readonly Dictionary<long, string> savedCharacterCategoryStates = [];
 
     private IProjectContentService ProjectContentService =>
@@ -360,9 +360,9 @@ public sealed partial class ProjectEditViewModel
     }
 
     private bool HasProjectChanges() =>
-        savedProject is null ||
-        savedProject.Name != Name.Trim() ||
-        savedProject.Description != Description ||
+        savedProject is null                       ||
+        savedProject.Name           != Name.Trim() ||
+        savedProject.Description    != Description ||
         savedProject.OpeningMessage != OpeningMessage;
 
     private static string GetKnowledgeGroupState(KnowledgeGroupEditViewModel group) =>
@@ -389,7 +389,9 @@ public sealed partial class ProjectEditViewModel
                 attribute.Scope,
                 attribute.CategoryID,
                 attribute.ValueType,
-                Driver = attribute.ValueType == StateValueType.Enum ? Driver.System : attribute.Driver,
+                Driver = attribute.ValueType == StateValueType.Enum ?
+                             Driver.System :
+                             attribute.Driver,
                 Config = attribute.BuildConfig()
             },
             JsonOptions.Compact
@@ -405,7 +407,7 @@ public sealed partial class ProjectEditViewModel
             return;
 
         SaveSuccess = false;
-        IsSaving = true;
+        IsSaving    = true;
 
         try
         {
@@ -520,12 +522,12 @@ public sealed partial class ProjectEditViewModel
         };
 
         var created = await ProjectContentService.ManageKnowledgeEntryAsync
-        (
-            projectID,
-            ProjectContentAction.Create,
-            entry,
-            null
-        );
+                      (
+                          projectID,
+                          ProjectContentAction.Create,
+                          entry,
+                          null
+                      );
 
         var entryVM = new KnowledgeEntryEditViewModel
         {
@@ -644,12 +646,12 @@ public sealed partial class ProjectEditViewModel
         };
 
         var created = await ProjectContentService.ManageKnowledgeGroupAsync
-        (
-            projectID,
-            ProjectContentAction.Create,
-            group,
-            null
-        );
+                      (
+                          projectID,
+                          ProjectContentAction.Create,
+                          group,
+                          null
+                      );
 
         KnowledgeGroups.Add
         (
@@ -852,12 +854,12 @@ public sealed partial class ProjectEditViewModel
         };
 
         var created = await ProjectContentService.ManageCharacterCategoryAsync
-        (
-            projectID,
-            ProjectContentAction.Create,
-            category,
-            null
-        );
+                      (
+                          projectID,
+                          ProjectContentAction.Create,
+                          category,
+                          null
+                      );
 
         var vm = new CharacterCategoryEditViewModel();
         vm.SyncFromModel(created);

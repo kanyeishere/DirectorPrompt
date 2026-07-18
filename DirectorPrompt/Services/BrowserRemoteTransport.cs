@@ -20,16 +20,16 @@ namespace DirectorPrompt.Services;
 
 public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection, IAsyncDisposable
 {
-    private readonly Lock connectionLock = new();
-    private readonly IPAddress address;
-    private readonly int port;
-    private readonly byte[] page;
+    private readonly Lock          connectionLock = new();
+    private readonly IPAddress     address;
+    private readonly int           port;
+    private readonly byte[]        page;
     private readonly SemaphoreSlim sendLock = new(1, 1);
 
     private WebApplication? application;
-    private PendingFrame? latestFrame;
-    private long sentSequenceID = -1;
-    private WebSocket? socket;
+    private PendingFrame?   latestFrame;
+    private long            sentSequenceID = -1;
+    private WebSocket?      socket;
 
     public event Action<IAvaloniaRemoteTransportConnection, object>? OnMessage;
 
@@ -55,11 +55,7 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
         var builder = WebApplication.CreateSlimBuilder();
         builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel
-        (
-            options =>
-            {
-                options.Listen(address, port);
-            }
+        (options => { options.Listen(address, port); }
         );
         builder.Services.AddRouting();
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(2));
@@ -87,7 +83,7 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
         if (data is not FrameMessage frame)
             return;
 
-        var frameData = frame.Data.ToArray();
+        var frameData    = frame.Data.ToArray();
         var encodedFrame = await Task.Run(() => EncodeFrame(frameData)).ConfigureAwait(false);
         var header = FormattableString.Invariant
         (
@@ -232,44 +228,62 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
                     (
                         ParseDouble(parts[1]),
                         ParseDouble(parts[2]),
-                        parts.Length > 3 ? ParseDouble(parts[3]) * 96 : 96
+                        parts.Length > 3 ?
+                            ParseDouble(parts[3]) * 96 :
+                            96
                     );
                     break;
                 case "pointer-moved":
-                    OnMessage?.Invoke(this, new PointerMovedEventMessage
-                    {
-                        Modifiers = ParseModifiers(parts[1]),
-                        X         = ParseDouble(parts[2]),
-                        Y         = ParseDouble(parts[3])
-                    });
+                    OnMessage?.Invoke
+                    (
+                        this,
+                        new PointerMovedEventMessage
+                        {
+                            Modifiers = ParseModifiers(parts[1]),
+                            X         = ParseDouble(parts[2]),
+                            Y         = ParseDouble(parts[3])
+                        }
+                    );
                     break;
                 case "pointer-pressed":
-                    OnMessage?.Invoke(this, new PointerPressedEventMessage
-                    {
-                        Modifiers = ParseModifiers(parts[1]),
-                        X         = ParseDouble(parts[2]),
-                        Y         = ParseDouble(parts[3]),
-                        Button    = ParseButton(parts[4])
-                    });
+                    OnMessage?.Invoke
+                    (
+                        this,
+                        new PointerPressedEventMessage
+                        {
+                            Modifiers = ParseModifiers(parts[1]),
+                            X         = ParseDouble(parts[2]),
+                            Y         = ParseDouble(parts[3]),
+                            Button    = ParseButton(parts[4])
+                        }
+                    );
                     break;
                 case "pointer-released":
-                    OnMessage?.Invoke(this, new PointerReleasedEventMessage
-                    {
-                        Modifiers = ParseModifiers(parts[1]),
-                        X         = ParseDouble(parts[2]),
-                        Y         = ParseDouble(parts[3]),
-                        Button    = ParseButton(parts[4])
-                    });
+                    OnMessage?.Invoke
+                    (
+                        this,
+                        new PointerReleasedEventMessage
+                        {
+                            Modifiers = ParseModifiers(parts[1]),
+                            X         = ParseDouble(parts[2]),
+                            Y         = ParseDouble(parts[3]),
+                            Button    = ParseButton(parts[4])
+                        }
+                    );
                     break;
                 case "scroll":
-                    OnMessage?.Invoke(this, new ScrollEventMessage
-                    {
-                        Modifiers = ParseModifiers(parts[1]),
-                        X         = ParseDouble(parts[2]),
-                        Y         = ParseDouble(parts[3]),
-                        DeltaX    = ParseDouble(parts[4]),
-                        DeltaY    = ParseDouble(parts[5])
-                    });
+                    OnMessage?.Invoke
+                    (
+                        this,
+                        new ScrollEventMessage
+                        {
+                            Modifiers = ParseModifiers(parts[1]),
+                            X         = ParseDouble(parts[2]),
+                            Y         = ParseDouble(parts[3]),
+                            DeltaX    = ParseDouble(parts[4]),
+                            DeltaY    = ParseDouble(parts[5])
+                        }
+                    );
                     break;
                 case "key":
                     OnMessage?.Invoke(this, CreateKeyMessage(parts));
@@ -287,13 +301,17 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
 
     private void Resize(double width, double height, double dpi = 96)
     {
-        OnMessage?.Invoke(this, new ClientViewportAllocatedMessage
-        {
-            Width  = width,
-            Height = height,
-            DpiX   = dpi,
-            DpiY   = dpi
-        });
+        OnMessage?.Invoke
+        (
+            this,
+            new ClientViewportAllocatedMessage
+            {
+                Width  = width,
+                Height = height,
+                DpiX   = dpi,
+                DpiY   = dpi
+            }
+        );
 
         ViewportChanged?.Invoke(width, height);
     }
@@ -318,17 +336,19 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
                               RemotePhysicalKey.None;
         var keyName = parts[3] switch
         {
-            "ArrowLeft"  => "Left",
-            "ArrowUp"    => "Up",
-            "ArrowRight" => "Right",
-            "ArrowDown"  => "Down",
-            "Backspace"  => "Back",
-            " "          => "Space",
-            _ when parts[4].StartsWith("Key", StringComparison.Ordinal) => parts[4][3..],
+            "ArrowLeft"                                                   => "Left",
+            "ArrowUp"                                                     => "Up",
+            "ArrowRight"                                                  => "Right",
+            "ArrowDown"                                                   => "Down",
+            "Backspace"                                                   => "Back",
+            " "                                                           => "Space",
+            _ when parts[4].StartsWith("Key",   StringComparison.Ordinal) => parts[4][3..],
             _ when parts[4].StartsWith("Digit", StringComparison.Ordinal) => $"D{parts[4][5..]}",
-            _ => parts[3]
+            _                                                             => parts[3]
         };
-        var key = Enum.TryParse<RemoteKey>(keyName, true, out var parsedKey) ? parsedKey : RemoteKey.None;
+        var key = Enum.TryParse<RemoteKey>(keyName, true, out var parsedKey) ?
+                      parsedKey :
+                      RemoteKey.None;
 
         return new KeyEventMessage
         {
@@ -346,7 +366,9 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
             value.Split(',').Select(static item => Enum.Parse<InputModifiers>(item, true)).ToArray();
 
     private static MouseButton ParseButton(string value) =>
-        Enum.TryParse<MouseButton>(value, true, out var button) ? button : MouseButton.None;
+        Enum.TryParse<MouseButton>(value, true, out var button) ?
+            button :
+            MouseButton.None;
 
     private static double ParseDouble(string value) =>
         double.Parse(value, CultureInfo.InvariantCulture);
@@ -357,7 +379,7 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
 
         try
         {
-            WebSocket? currentSocket;
+            WebSocket?    currentSocket;
             PendingFrame? frame;
 
             lock (connectionLock)
@@ -366,13 +388,13 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
                 frame         = latestFrame;
 
                 if (currentSocket is not { State: WebSocketState.Open } ||
-                    frame is null ||
+                    frame is null                                       ||
                     frame.SequenceID == sentSequenceID)
                     return;
             }
 
-            await currentSocket.SendAsync(Encoding.UTF8.GetBytes(frame.Header), WebSocketMessageType.Text, true, CancellationToken.None);
-            await currentSocket.SendAsync(frame.Data, WebSocketMessageType.Binary, true, CancellationToken.None);
+            await currentSocket.SendAsync(Encoding.UTF8.GetBytes(frame.Header), WebSocketMessageType.Text,   true, CancellationToken.None);
+            await currentSocket.SendAsync(frame.Data,                           WebSocketMessageType.Binary, true, CancellationToken.None);
 
             lock (connectionLock)
             {
@@ -390,7 +412,16 @@ public sealed class BrowserRemoteTransport : IAvaloniaRemoteTransportConnection,
         }
     }
 
-    private sealed record EncodedFrame(byte[] Data, string Encoding);
+    private sealed record EncodedFrame
+    (
+        byte[] Data,
+        string Encoding
+    );
 
-    private sealed record PendingFrame(long SequenceID, string Header, byte[] Data);
+    private sealed record PendingFrame
+    (
+        long   SequenceID,
+        string Header,
+        byte[] Data
+    );
 }

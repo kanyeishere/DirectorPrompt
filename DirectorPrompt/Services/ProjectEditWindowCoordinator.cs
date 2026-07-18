@@ -4,7 +4,7 @@ namespace DirectorPrompt.Services;
 
 public sealed class ProjectEditWindowCoordinator : IProjectEditWindowCoordinator
 {
-    private readonly Lock sync = new();
+    private readonly Lock                              sync    = new();
     private readonly Dictionary<long, HashSet<Action>> windows = [];
 
     public void Register(long projectID, Action closeWithoutSaving)
@@ -50,8 +50,7 @@ public sealed class ProjectEditWindowCoordinator : IProjectEditWindowCoordinator
             return;
 
         await Dispatcher.UIThread.InvokeAsync
-        (
-            () =>
+        (() =>
             {
                 foreach (var closeAction in closeActions)
                     closeAction();

@@ -150,18 +150,18 @@ public sealed class DirectiveRepository
             {
                 await using var transaction = await connection.BeginTransactionAsync(token);
                 var affectedIDs = (await connection.QueryAsync<long>
-                                  (
-                                      new CommandDefinition
-                                      (
-                                          """
-                                          SELECT id FROM active_directives
-                                          WHERE session_id = @sessionID AND ttl IS NOT NULL
-                                          """,
-                                          new { sessionID },
-                                          transaction,
-                                          cancellationToken: token
-                                      )
-                                  )).ToList();
+                                   (
+                                       new CommandDefinition
+                                       (
+                                           """
+                                           SELECT id FROM active_directives
+                                           WHERE session_id = @sessionID AND ttl IS NOT NULL
+                                           """,
+                                           new { sessionID },
+                                           transaction,
+                                           cancellationToken: token
+                                       )
+                                   )).ToList();
 
                 foreach (var id in affectedIDs)
                 {

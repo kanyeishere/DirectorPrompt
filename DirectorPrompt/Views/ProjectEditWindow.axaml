@@ -471,9 +471,11 @@
                                                                 VerticalAlignment="Center"
                                                                 Margin="8,0,0,0" />
                                                         </StackPanel>
-                                                        <fa:FANumberBox Value="{Binding MinValue, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
-                                                                        Minimum="-999999"
-                                                                        Maximum="999999" HorizontalAlignment="Stretch" />
+                                                        <fa:FANumberBox
+                                                            Value="{Binding MinValue, Converter={StaticResource NumberBoxValue}}"
+                                                            SimpleNumberFormat="F2"
+                                                            Minimum="-999999"
+                                                            Maximum="999999" HorizontalAlignment="Stretch" />
                                                         <StackPanel Orientation="Horizontal" Margin="0,8,0,4">
                                                             <TextBlock
                                                                 Text="{Binding [State.Attribute.MaxValue], Source={x:Static loc:Loc.Instance}}" />
@@ -484,9 +486,11 @@
                                                                 VerticalAlignment="Center"
                                                                 Margin="8,0,0,0" />
                                                         </StackPanel>
-                                                        <fa:FANumberBox Value="{Binding MaxValue, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
-                                                                        Minimum="-999999"
-                                                                        Maximum="999999" HorizontalAlignment="Stretch" />
+                                                        <fa:FANumberBox
+                                                            Value="{Binding MaxValue, Converter={StaticResource NumberBoxValue}}"
+                                                            SimpleNumberFormat="F2"
+                                                            Minimum="-999999"
+                                                            Maximum="999999" HorizontalAlignment="Stretch" />
                                                         <StackPanel Orientation="Horizontal" Margin="0,8,0,4">
                                                             <TextBlock
                                                                 Text="{Binding [State.Attribute.Unit], Source={x:Static loc:Loc.Instance}}" />
@@ -593,7 +597,8 @@
                                                                                         Margin="8,0,0,0" />
                                                                                 </StackPanel>
                                                                                 <fa:FANumberBox
-                                                                                    Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
+                                                                                    Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}"
+                                                                                    SimpleNumberFormat="F2"
                                                                                     Minimum="0"
                                                                                     HorizontalAlignment="Stretch" />
                                                                             </StackPanel>
@@ -660,7 +665,8 @@
                                                                                         Margin="8,0,0,0" />
                                                                                 </StackPanel>
                                                                                 <fa:FANumberBox
-                                                                                    Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
+                                                                                    Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}"
+                                                                                    SimpleNumberFormat="F2"
                                                                                     Minimum="0"
                                                                                     HorizontalAlignment="Stretch" />
                                                                             </StackPanel>
@@ -920,10 +926,12 @@
                                                                                     VerticalAlignment="Center"
                                                                                     Margin="8,0,0,0" />
                                                                             </StackPanel>
-                                                                            <fa:FANumberBox Value="{Binding MinValue, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
-                                                                                    Minimum="-999999"
-                                                                                    Maximum="999999"
-                                                                                    HorizontalAlignment="Stretch" />
+                                                                            <fa:FANumberBox
+                                                                                Value="{Binding MinValue, Converter={StaticResource NumberBoxValue}}"
+                                                                                SimpleNumberFormat="F2"
+                                                                                Minimum="-999999"
+                                                                                Maximum="999999"
+                                                                                HorizontalAlignment="Stretch" />
                                                                             <StackPanel Orientation="Horizontal"
                                                                                     Margin="0,8,0,4">
                                                                                 <TextBlock
@@ -935,10 +943,12 @@
                                                                                     VerticalAlignment="Center"
                                                                                     Margin="8,0,0,0" />
                                                                             </StackPanel>
-                                                                            <fa:FANumberBox Value="{Binding MaxValue, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
-                                                                                    Minimum="-999999"
-                                                                                    Maximum="999999"
-                                                                                    HorizontalAlignment="Stretch" />
+                                                                            <fa:FANumberBox
+                                                                                Value="{Binding MaxValue, Converter={StaticResource NumberBoxValue}}"
+                                                                                SimpleNumberFormat="F2"
+                                                                                Minimum="-999999"
+                                                                                Maximum="999999"
+                                                                                HorizontalAlignment="Stretch" />
                                                                             <StackPanel Orientation="Horizontal"
                                                                                     Margin="0,8,0,4">
                                                                                 <TextBlock
@@ -1057,7 +1067,8 @@
                                                                                                             Margin="8,0,0,0" />
                                                                                                     </StackPanel>
                                                                                                     <fa:FANumberBox
-                                                                                                        Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
+                                                                                                        Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}"
+                                                                                                        SimpleNumberFormat="F2"
                                                                                                         Minimum="0"
                                                                                                         HorizontalAlignment="Stretch" />
                                                                                                 </StackPanel>
@@ -1132,7 +1143,8 @@
                                                                                                             Margin="8,0,0,0" />
                                                                                                     </StackPanel>
                                                                                                     <fa:FANumberBox
-                                                                                                        Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}" SimpleNumberFormat="F2"
+                                                                                                        Value="{Binding Weight, Converter={StaticResource NumberBoxValue}}"
+                                                                                                        SimpleNumberFormat="F2"
                                                                                                         Minimum="0"
                                                                                                         HorizontalAlignment="Stretch" />
                                                                                                 </StackPanel>

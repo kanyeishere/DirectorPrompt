@@ -8,28 +8,28 @@ namespace DirectorPrompt.Agents;
 
 public sealed class AgentToolResolver
 (
-    SceneTools                sceneTools,
-    KnowledgeTools            knowledgeTools,
-    MemoryTools               memoryTools,
-    StateTools                stateTools,
-    CharacterTools            characterTools,
-    UserSettings              userSettings,
-    IExternalMCPToolRegistry  externalMCPToolRegistry
+    SceneTools               sceneTools,
+    KnowledgeTools           knowledgeTools,
+    MemoryTools              memoryTools,
+    StateTools               stateTools,
+    CharacterTools           characterTools,
+    UserSettings             userSettings,
+    IExternalMCPToolRegistry externalMCPToolRegistry
 ) : IAgentToolResolver
 {
     public async Task<IReadOnlyList<AIFunction>> ResolveAsync
     (
-        AgentTaskType       taskType,
+        AgentTaskType        taskType,
         ToolExecutionContext context,
-        CancellationToken   cancellationToken = default
+        CancellationToken    cancellationToken = default
     )
     {
         var tools = taskType switch
         {
-            AgentTaskType.Narrator => knowledgeTools.Create(context).ToList(),
-            AgentTaskType.Scene => sceneTools.Create(context).ToList(),
+            AgentTaskType.Narrator     => knowledgeTools.Create(context).ToList(),
+            AgentTaskType.Scene        => sceneTools.Create(context).ToList(),
             AgentTaskType.MemoryUpdate => CreateMemoryUpdateTools(context),
-            _ => throw new ArgumentOutOfRangeException(nameof(taskType))
+            _                          => throw new ArgumentOutOfRangeException(nameof(taskType))
         };
         var task = userSettings.Orchestrator.AgentTasks.FirstOrDefault(item => item.TaskType == taskType);
 

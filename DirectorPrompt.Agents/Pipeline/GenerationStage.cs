@@ -27,7 +27,7 @@ public sealed class GenerationStage
             resolved.ModelConfig.Temperature
         );
 
-        var client       = chatClientFactory.Create(resolved.ProviderConfig, resolved.ModelConfig);
+        var client = chatClientFactory.Create(resolved.ProviderConfig, resolved.ModelConfig);
         var tools = await agentToolResolver.ResolveAsync
                     (
                         AgentTaskType.Narrator,

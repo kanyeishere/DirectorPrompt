@@ -1,5 +1,5 @@
-using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Domain.Configurations;
+using DirectorPrompt.Domain.Models;
 using DirectorPrompt.Localization;
 using DirectorPrompt.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,10 +9,10 @@ namespace DirectorPrompt.Services;
 
 public sealed class WindowService
 (
-    IServiceProvider         serviceProvider,
-    UserSettings             userSettings,
-    ILanSharingService       lanSharingService,
-    RemoteInteractionRouter remoteInteractionRouter,
+    IServiceProvider              serviceProvider,
+    UserSettings                  userSettings,
+    ILanSharingService            lanSharingService,
+    RemoteInteractionRouter       remoteInteractionRouter,
     IProjectEditWindowCoordinator projectEditWindowCoordinator
 ) : IWindowService
 {

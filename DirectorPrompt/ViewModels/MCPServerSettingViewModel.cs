@@ -39,7 +39,7 @@ public sealed partial class MCPServerSettingViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsFailed))]
     [NotifyPropertyChangedFor(nameof(IsUnknown))]
     public partial bool? ConnectionStatus { get; set; }
-    
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ConnectionStatusText))]
     [NotifyPropertyChangedFor(nameof(IsConnected))]
@@ -59,12 +59,14 @@ public sealed partial class MCPServerSettingViewModel : ObservableObject
 
     public ObservableCollection<MCPToolInfo> ToolNames { get; } = [];
 
-    public string ConnectionStatusText => IsTesting ? "正在连接" : ConnectionStatus switch
-    {
-        true => "已连接",
-        false => "连接失败",
-        _ => "未连接"
-    };
+    public string ConnectionStatusText => IsTesting ?
+                                              "正在连接" :
+                                              ConnectionStatus switch
+                                              {
+                                                  true  => "已连接",
+                                                  false => "连接失败",
+                                                  _     => "未连接"
+                                              };
 
     public bool IsConnected => !IsTesting && ConnectionStatus == true;
 
@@ -78,14 +80,14 @@ public sealed partial class MCPServerSettingViewModel : ObservableObject
 
     public MCPServerSettingViewModel(MCPServerConfig config)
     {
-        Config = config;
-        DisplayName = config.DisplayName;
-        Enabled = config.Enabled;
-        Transport = config.Transport;
-        Command = config.Command;
-        ArgumentsText = string.Join(Environment.NewLine, config.Arguments);
+        Config           = config;
+        DisplayName      = config.DisplayName;
+        Enabled          = config.Enabled;
+        Transport        = config.Transport;
+        Command          = config.Command;
+        ArgumentsText    = string.Join(Environment.NewLine, config.Arguments);
         WorkingDirectory = config.WorkingDirectory;
-        Endpoint = config.Endpoint;
+        Endpoint         = config.Endpoint;
 
         foreach (var pair in config.Environment)
             EnvironmentVariables.Add(new MCPKeyValueViewModel(pair.Key, pair.Value, item => EnvironmentVariables.Remove(item)));
@@ -97,18 +99,18 @@ public sealed partial class MCPServerSettingViewModel : ObservableObject
     public void Apply()
     {
         Config.DisplayName = DisplayName.Trim();
-        Config.Enabled = Enabled;
-        Config.Transport = Transport;
-        Config.Command = Command.Trim();
+        Config.Enabled     = Enabled;
+        Config.Transport   = Transport;
+        Config.Command     = Command.Trim();
         Config.Arguments = ArgumentsText.Split
         (
             ["\r\n", "\n"],
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
         ).ToList();
         Config.WorkingDirectory = WorkingDirectory.Trim();
-        Config.Endpoint = Endpoint.Trim();
-        Config.Environment = ToDictionary(EnvironmentVariables);
-        Config.Headers = ToDictionary(Headers);
+        Config.Endpoint         = Endpoint.Trim();
+        Config.Environment      = ToDictionary(EnvironmentVariables);
+        Config.Headers          = ToDictionary(Headers);
     }
 
     [RelayCommand]

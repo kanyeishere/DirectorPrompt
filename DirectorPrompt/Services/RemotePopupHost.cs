@@ -2,13 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Embedding;
 using Avalonia.Input;
-using Avalonia.VisualTree;
+using Avalonia.Media;
 
 namespace DirectorPrompt.Services;
 
 public static class RemotePopupHost
 {
-    private static Canvas? popupLayer;
+    private static Canvas?     popupLayer;
     private static PopupEntry? currentPopup;
 
     public static void Attach(Canvas layer)
@@ -31,9 +31,9 @@ public static class RemotePopupHost
 
     public static bool Show
     (
-        Control owner,
-        Control content,
-        double width,
+        Control         owner,
+        Control         content,
+        double          width,
         Action<Control> restoreContent
     )
     {
@@ -47,13 +47,13 @@ public static class RemotePopupHost
 
         var dismissLayer = new Border
         {
-            Background = Avalonia.Media.Brushes.Transparent,
+            Background       = Brushes.Transparent,
             IsHitTestVisible = true
         };
         dismissLayer.PointerPressed += OnDismissLayerPressed;
         popupLayer.Children.Add(dismissLayer);
         popupLayer.Children.Add(content);
-        currentPopup = new PopupEntry(owner, content, dismissLayer, restoreContent);
+        currentPopup        =  new PopupEntry(owner, content, dismissLayer, restoreContent);
         owner.LayoutUpdated += OnOwnerLayoutUpdated;
         PositionCurrentPopup();
         return true;
@@ -118,7 +118,7 @@ public static class RemotePopupHost
         if (currentPopup is null)
             return;
 
-        currentPopup.Owner.LayoutUpdated -= OnOwnerLayoutUpdated;
+        currentPopup.Owner.LayoutUpdated         -= OnOwnerLayoutUpdated;
         currentPopup.DismissLayer.PointerPressed -= OnDismissLayerPressed;
         popupLayer?.Children.Remove(currentPopup.Content);
         popupLayer?.Children.Remove(currentPopup.DismissLayer);
@@ -131,9 +131,9 @@ public static class RemotePopupHost
 
     private sealed record PopupEntry
     (
-        Control Owner,
-        Control Content,
-        Border DismissLayer,
+        Control         Owner,
+        Control         Content,
+        Border          DismissLayer,
         Action<Control> RestoreContent
     );
 }

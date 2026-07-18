@@ -6,7 +6,6 @@ using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Domain.Enums;
 using DirectorPrompt.Infrastructure.Repositories;
 using Microsoft.Extensions.AI;
-using Xunit;
 
 namespace DirectorPrompt.Tests;
 
@@ -15,13 +14,13 @@ public sealed class DirectiveProcessingStageTests
     [Fact]
     public async Task FirstSceneChangeIsProcessedOnlyOnce()
     {
-        await using var context = await DatabaseTestContext.CreateAsync();
-        var sceneRepository  = new SceneRepository(context.Scheduler);
-        var sceneTools       = new SceneTools(sceneRepository, new TimelineCalculator());
-        var chatClient       = new SceneCreatingChatClient();
-        var orchestratorConfig = new OrchestratorConfig();
-        var provider         = new ProviderConfig { ID = "provider" };
-        var model            = new ModelConfig { ID = "model", ProviderID = provider.ID, ModelName = "test" };
+        await using var context            = await DatabaseTestContext.CreateAsync();
+        var             sceneRepository    = new SceneRepository(context.Scheduler);
+        var             sceneTools         = new SceneTools(sceneRepository, new TimelineCalculator());
+        var             chatClient         = new SceneCreatingChatClient();
+        var             orchestratorConfig = new OrchestratorConfig();
+        var             provider           = new ProviderConfig { ID = "provider" };
+        var             model              = new ModelConfig { ID    = "model", ProviderID = provider.ID, ModelName = "test" };
 
         orchestratorConfig.Providers.Add(provider);
         orchestratorConfig.Models.Add(model);
@@ -65,7 +64,10 @@ public sealed class DirectiveProcessingStageTests
         Assert.Equal(SceneStatus.Active, scenes[0].Status);
     }
 
-    private sealed class TestChatClientFactory(IChatClient chatClient) : IChatClientFactory
+    private sealed class TestChatClientFactory
+    (
+        IChatClient chatClient
+    ) : IChatClientFactory
     {
         public IChatClient Create(ProviderConfig provider, ModelConfig model) => chatClient;
 
@@ -74,13 +76,16 @@ public sealed class DirectiveProcessingStageTests
         }
     }
 
-    private sealed class SceneToolResolver(SceneTools sceneTools) : IAgentToolResolver
+    private sealed class SceneToolResolver
+    (
+        SceneTools sceneTools
+    ) : IAgentToolResolver
     {
         public Task<IReadOnlyList<AIFunction>> ResolveAsync
         (
-            AgentTaskType       taskType,
+            AgentTaskType        taskType,
             ToolExecutionContext context,
-            CancellationToken   cancellationToken = default
+            CancellationToken    cancellationToken = default
         ) => Task.FromResult((IReadOnlyList<AIFunction>)sceneTools.Create(context).ToList());
     }
 
@@ -91,7 +96,7 @@ public sealed class DirectiveProcessingStageTests
         public async Task<ChatResponse> GetResponseAsync
         (
             IEnumerable<ChatMessage> messages,
-            ChatOptions?             options = null,
+            ChatOptions?             options           = null,
             CancellationToken        cancellationToken = default
         )
         {
@@ -110,7 +115,7 @@ public sealed class DirectiveProcessingStageTests
         public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync
         (
             IEnumerable<ChatMessage> messages,
-            ChatOptions?             options = null,
+            ChatOptions?             options           = null,
             CancellationToken        cancellationToken = default
         ) => throw new NotSupportedException();
 

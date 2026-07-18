@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -28,19 +27,19 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
 
     private ListBox       dialogList = null!;
     private ScrollViewer? dialogScrollViewer;
-    
+
     private int  dialogScrollRequestID;
     private bool isFollowingDialogTail = true;
     private bool isMobileRemote;
     private bool closeAuthorized;
     private bool closeInProgress;
 
-    private Panel?   remoteOverlay;
-    private Border?  remoteImportMenu;
-    private Border?  remoteProjectMenu;
-    private Border?  remoteSessionMenu;
-    private Border?  remoteMenu;
-    private Control? remoteMenuOwner;
+    private Panel?        remoteOverlay;
+    private Border?       remoteImportMenu;
+    private Border?       remoteProjectMenu;
+    private Border?       remoteSessionMenu;
+    private Border?       remoteMenu;
+    private Control?      remoteMenuOwner;
     private PathComboBox? projectComboBox;
 
     public IRemoteDialogHost? RemoteDialogHost { get; set; }
@@ -69,16 +68,16 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
         isRemote       = !attachWindowBehavior;
         DataContext    = viewModel;
         AvaloniaXamlLoader.Load(this);
-        RootLayout                = this.FindControl<Grid>(nameof(RootLayout))!;
-        MobileSessionsToggle      = this.FindControl<ToggleButton>(nameof(MobileSessionsToggle))!;
-        MobileDetailsToggle       = this.FindControl<ToggleButton>(nameof(MobileDetailsToggle))!;
-        MobileMoreActionsButton   = this.FindControl<ToggleButton>(nameof(MobileMoreActionsButton))!;
-        dialogList                = this.FindControl<ListBox>("DialogListBox")!;
-        remoteOverlay    = this.FindControl<Panel>(nameof(RemoteOverlay));
-        remoteImportMenu = this.FindControl<Border>(nameof(RemoteImportMenu));
-        remoteProjectMenu = this.FindControl<Border>(nameof(RemoteProjectMenu));
-        remoteSessionMenu = this.FindControl<Border>(nameof(RemoteSessionMenu));
-        projectComboBox = this.FindControl<PathComboBox>(nameof(ProjectComboBox));
+        RootLayout              = this.FindControl<Grid>(nameof(RootLayout))!;
+        MobileSessionsToggle    = this.FindControl<ToggleButton>(nameof(MobileSessionsToggle))!;
+        MobileDetailsToggle     = this.FindControl<ToggleButton>(nameof(MobileDetailsToggle))!;
+        MobileMoreActionsButton = this.FindControl<ToggleButton>(nameof(MobileMoreActionsButton))!;
+        dialogList              = this.FindControl<ListBox>("DialogListBox")!;
+        remoteOverlay           = this.FindControl<Panel>(nameof(RemoteOverlay));
+        remoteImportMenu        = this.FindControl<Border>(nameof(RemoteImportMenu));
+        remoteProjectMenu       = this.FindControl<Border>(nameof(RemoteProjectMenu));
+        remoteSessionMenu       = this.FindControl<Border>(nameof(RemoteSessionMenu));
+        projectComboBox         = this.FindControl<PathComboBox>(nameof(ProjectComboBox));
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         Title = $"DirectorPrompt {version}";
@@ -87,7 +86,7 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
         viewModel.PropertyChanged                  += OnViewModelPropertyChanged;
 
         if (attachWindowBehavior)
-            Loaded                                     += OnLoaded;
+            Loaded += OnLoaded;
     }
 
     internal void SetRemoteViewportWidth(double width)
@@ -137,15 +136,11 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
             MobileSessionsToggle.IsChecked = false;
     }
 
-    private void OnMobileBackdropPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
+    private void OnMobileBackdropPointerPressed(object? sender, PointerPressedEventArgs e) =>
         MobileMoreActionsButton.IsChecked = false;
-    }
 
-    private void OnMobileMenuItemClick(object? sender, RoutedEventArgs e)
-    {
+    private void OnMobileMenuItemClick(object? sender, RoutedEventArgs e) =>
         MobileMoreActionsButton.IsChecked = false;
-    }
 
     private void OnMobileImportDirectorPromptClick(object? sender, RoutedEventArgs e)
     {
@@ -322,9 +317,9 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
         if (dialogScrollViewer is null)
             return;
 
-        var maximum = Math.Max(0, dialogScrollViewer.Extent.Height - dialogScrollViewer.Viewport.Height);
+        var maximum     = Math.Max(0, dialogScrollViewer.Extent.Height - dialogScrollViewer.Viewport.Height);
         var addedHeight = Math.Max(0, dialogScrollViewer.Extent.Height - previousExtent);
-        var offset      = Math.Clamp(previousOffset.Y + addedHeight, 0, maximum);
+        var offset      = Math.Clamp(previousOffset.Y                  + addedHeight, 0, maximum);
 
         dialogScrollViewer.Offset = dialogScrollViewer.Offset.WithY(offset);
     }
@@ -414,9 +409,9 @@ public partial class MainWindow : FAAppWindow, IRemoteDialogOwner
 
     private void RestoreRemoteMenu(Control content)
     {
-        remoteMenuOwner    = null;
-        remoteMenu         = null;
-        content.IsVisible  = false;
+        remoteMenuOwner   = null;
+        remoteMenu        = null;
+        content.IsVisible = false;
 
         if (remoteOverlay is not null && content.Parent is null)
             remoteOverlay.Children.Add(content);

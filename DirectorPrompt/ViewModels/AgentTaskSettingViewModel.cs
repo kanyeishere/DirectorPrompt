@@ -21,8 +21,10 @@ public sealed class AgentTaskSettingViewModel : ObservableObject
         Config = config;
 
         if (mcpServers is not null)
+        {
             foreach (var server in mcpServers)
                 MCPServers.Add(new MCPServerSelectionViewModel(config, server));
+        }
     }
 
     public void AddMCPServer(MCPServerConfig server) =>
@@ -66,9 +68,9 @@ public sealed class AgentTaskSettingViewModel : ObservableObject
 
     public string TaskIcon => TaskType switch
     {
-        AgentTaskType.Narrator => "Message",
+        AgentTaskType.Narrator     => "Message",
         AgentTaskType.MemoryUpdate => "SaveLocal",
-        AgentTaskType.Scene => "Pictures",
-        _ => "Bullets"
+        AgentTaskType.Scene        => "Pictures",
+        _                          => "Bullets"
     };
 }

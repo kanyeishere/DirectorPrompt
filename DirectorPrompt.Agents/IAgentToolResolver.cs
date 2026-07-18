@@ -7,8 +7,8 @@ public interface IAgentToolResolver
 {
     Task<IReadOnlyList<AIFunction>> ResolveAsync
     (
-        AgentTaskType      taskType,
+        AgentTaskType        taskType,
         ToolExecutionContext context,
-        CancellationToken  cancellationToken = default
+        CancellationToken    cancellationToken = default
     );
 }

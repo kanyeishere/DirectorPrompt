@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using DirectorPrompt.MCP;
 using ModelContextProtocol.Client;
-using System.Diagnostics;
 
 namespace DirectorPrompt.Tests;
 
@@ -9,7 +9,7 @@ public sealed class DirectorPromptMCPHostedServiceTests
     [Fact]
     public async Task ServiceExposesAllProjectTools()
     {
-        var tools = new MCPProjectTools(null!, null!, null!, null!, null!, null!, null!);
+        var             tools   = new MCPProjectTools(null!, null!, null!, null!, null!, null!, null!);
         await using var service = new DirectorPromptMCPHostedService(tools);
         await service.StartAsync(CancellationToken.None);
 
@@ -18,17 +18,17 @@ public sealed class DirectorPromptMCPHostedServiceTests
             Assert.True(service.IsAvailable, service.ErrorMessage);
 
             await using var client = await McpClient.CreateAsync
-            (
-                new HttpClientTransport
-                (
-                    new HttpClientTransportOptions
-                    {
-                        Name = "test-client",
-                        Endpoint = new Uri(service.Endpoint),
-                        TransportMode = HttpTransportMode.StreamableHttp
-                    }
-                )
-            );
+                                     (
+                                         new HttpClientTransport
+                                         (
+                                             new HttpClientTransportOptions
+                                             {
+                                                 Name          = "test-client",
+                                                 Endpoint      = new Uri(service.Endpoint),
+                                                 TransportMode = HttpTransportMode.StreamableHttp
+                                             }
+                                         )
+                                     );
             var toolNames = (await client.ListToolsAsync()).Select(tool => tool.Name).Order().ToArray();
 
             Assert.Equal

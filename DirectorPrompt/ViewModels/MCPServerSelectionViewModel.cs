@@ -17,8 +17,8 @@ public sealed partial class MCPServerSelectionViewModel : ObservableObject
     public MCPServerSelectionViewModel(AgentTaskConfig config, MCPServerConfig server)
     {
         this.config = config;
-        Server = server;
-        IsSelected = config.MCPServerIDs.Contains(server.ID);
+        Server      = server;
+        IsSelected  = config.MCPServerIDs.Contains(server.ID);
     }
 
     partial void OnIsSelectedChanged(bool value)

@@ -1,8 +1,8 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
-using System.IO.Compression;
 using Avalonia.Remote.Protocol.Viewport;
 using DirectorPrompt.Domain.Configurations;
 using DirectorPrompt.Services;
@@ -28,15 +28,15 @@ public sealed class BrowserRemoteTransportTests
         await transport.StartServerAsync();
 
         using var client = new HttpClient();
-        var page = await client.GetStringAsync($"http://127.0.0.1:{port}/");
+        var       page   = await client.GetStringAsync($"http://127.0.0.1:{port}/");
 
-        Assert.Contains("<canvas id=\"screen\"", page);
-        Assert.Contains("id=\"keyboardButton\"", page);
+        Assert.Contains("<canvas id=\"screen\"",    page);
+        Assert.Contains("id=\"keyboardButton\"",    page);
         Assert.Contains("Math.max(360,innerWidth)", page);
-        Assert.Contains("devicePixelRatio", page);
-        Assert.Contains("DecompressionStream", page);
-        Assert.Contains("logicalWidth", page);
-        Assert.Contains("currentFrame?.dpiX", page);
+        Assert.Contains("devicePixelRatio",         page);
+        Assert.Contains("DecompressionStream",      page);
+        Assert.Contains("logicalWidth",             page);
+        Assert.Contains("currentFrame?.dpiX",       page);
 
         await transport.DisposeAsync();
 
@@ -51,17 +51,20 @@ public sealed class BrowserRemoteTransportTests
         var port      = GetAvailablePort();
         var transport = new BrowserRemoteTransport(IPAddress.Loopback, port);
         await transport.StartServerAsync();
-        await transport.Send(new FrameMessage
-        {
-            SequenceId = 7,
-            Width      = 1,
-            Height     = 1,
-            Stride     = 4,
-            DpiX       = 96,
-            DpiY       = 96,
-            Format     = PixelFormat.Rgba8888,
-            Data       = [1, 2, 3, 4]
-        });
+        await transport.Send
+        (
+            new FrameMessage
+            {
+                SequenceId = 7,
+                Width      = 1,
+                Height     = 1,
+                Stride     = 4,
+                DpiX       = 96,
+                DpiY       = 96,
+                Format     = PixelFormat.Rgba8888,
+                Data       = [1, 2, 3, 4]
+            }
+        );
 
         using var socket = new ClientWebSocket();
         await socket.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/remote"), CancellationToken.None);
@@ -73,7 +76,7 @@ public sealed class BrowserRemoteTransportTests
 
         Assert.StartsWith("frame:7:1:1:4", header);
         Assert.Equal(WebSocketMessageType.Binary, frameResult.MessageType);
-        Assert.Equal([1, 2, 3, 4], buffer[..frameResult.Count]);
+        Assert.Equal([1, 2, 3, 4],                buffer[..frameResult.Count]);
 
         await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
         await transport.DisposeAsync();
@@ -87,17 +90,20 @@ public sealed class BrowserRemoteTransportTests
         var data      = Enumerable.Repeat((byte)42, 32 * 32 * 4).ToArray();
 
         await transport.StartServerAsync();
-        await transport.Send(new FrameMessage
-        {
-            SequenceId = 8,
-            Width      = 32,
-            Height     = 32,
-            Stride     = 32 * 4,
-            DpiX       = 192,
-            DpiY       = 192,
-            Format     = PixelFormat.Rgba8888,
-            Data       = data
-        });
+        await transport.Send
+        (
+            new FrameMessage
+            {
+                SequenceId = 8,
+                Width      = 32,
+                Height     = 32,
+                Stride     = 32 * 4,
+                DpiX       = 192,
+                DpiY       = 192,
+                Format     = PixelFormat.Rgba8888,
+                Data       = data
+            }
+        );
 
         using var socket = new ClientWebSocket();
         await socket.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/remote"), CancellationToken.None);

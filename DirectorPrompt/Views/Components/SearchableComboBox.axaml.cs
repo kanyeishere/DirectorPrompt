@@ -38,8 +38,8 @@ public sealed partial class SearchableComboBox : UserControl
 
     private readonly List<object>              allItems = [];
     private          INotifyCollectionChanged? observedCollection;
-    private          Border?                  remotePopupContent;
-    private          ListBox?                 remoteResults;
+    private          Border?                   remotePopupContent;
+    private          ListBox?                  remoteResults;
     private          bool                      isUpdatingText;
 
     private TextBox SearchInput =>
@@ -216,16 +216,18 @@ public sealed partial class SearchableComboBox : UserControl
     private void CommitSelection(object selectedItem)
     {
         var display = GetDisplayValue(selectedItem);
-        isUpdatingText       = true;
-        SearchInput.Text     = display;
-        Text                 = display;
-        SelectedValue        = GetValue(selectedItem, SelectedValuePath);
-        isUpdatingText = false;
-        Dispatcher.UIThread.Post(() =>
-        {
-            Results.SelectedItem = null;
-            SetDropDownOpen(false);
-        });
+        isUpdatingText   = true;
+        SearchInput.Text = display;
+        Text             = display;
+        SelectedValue    = GetValue(selectedItem, SelectedValuePath);
+        isUpdatingText   = false;
+        Dispatcher.UIThread.Post
+        (() =>
+            {
+                Results.SelectedItem = null;
+                SetDropDownOpen(false);
+            }
+        );
     }
 
     private void OnSearchBoxKeyDown(object? sender, KeyEventArgs e)
