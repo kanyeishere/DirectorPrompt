@@ -82,7 +82,10 @@ public class App : Application
             var shouldContinue = await CheckForUpdatesAsync();
 
             if (!shouldContinue)
+            {
+                desktop.Shutdown();
                 return;
+            }
 #endif
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();

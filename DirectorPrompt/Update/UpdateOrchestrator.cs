@@ -61,7 +61,7 @@ internal class UpdateOrchestrator
             onStatus?.Invoke(Loc.Get("Update.Installing"));
             onProgress?.Invoke(100);
 
-            updateManager.ApplyUpdatesAndRestart(newRelease);
+            updateManager.WaitExitThenApplyUpdates(newRelease, false, true, []);
 
             return (false, null);
         }
